@@ -2,11 +2,11 @@
 
 import anime from 'animejs/lib/anime.es.js';
 
-const intersectionPrecision = 4;
+const intersectionPrecision = 5;
 const sscOptions = {
-	rootMargin: '0px',
-	ContainerMargin: '100px', // the IntersectionObserver root margin
-	threshold: [ ...Array( intersectionPrecision + 1 ).keys() ].map( ( x ) => x / intersectionPrecision ), // 1-100 the precision of intersections (higher number increase cpu usage - use with care!)
+  rootMargin: '-50px 0px', // the IntersectionObserver root margin
+	// threshold: [ ...Array( intersectionPrecision + 1 ).keys() ].map( ( x ) => x / intersectionPrecision ), // 1-100 the precision of intersections (higher number increase cpu usage - use with care!)
+	threshold: [ 0, 0.5 ],
 };
 
 // detect available wheel event
@@ -70,7 +70,7 @@ class _ssc {
 	// wait for resize to be completely done
 	updateScreenSize() {
 		( async () => await ( () => console.log( 'Old Screensize', this.windowData ) ) )()
-			// .delay( 250 )
+			.delay( 250 )
 			.then( () => {
 				this.windowData = {
 					viewHeight: window.innerHeight,
@@ -123,6 +123,7 @@ class _ssc {
 				this.screenControl,
 				{
 					root: null,
+          rootMargin: sscOptions.rootMargin,
 					threshold: sscOptions.threshold,
 				}
 			);
@@ -180,6 +181,9 @@ class _ssc {
 					case 'sscSequence':
 						this.animationSequence( entry );
 						break;
+					case 'sscSvgPath':
+						this.animationSvgPath( entry );
+						break;
 					case 'sscVideoControl':
 						this.videoWheelControlled( entry );
 						break;
@@ -207,7 +211,7 @@ class _ssc {
 				}
 			}
 
-			if ( entry.intersectionRatio < 0.05 ) {
+			if ( entry.intersectionRatio < 0.5 ) {
 				console.log( 'is exiting', sscElement );
 				sscElement.removeAttribute( 'data-lock' );
 			}
@@ -260,11 +264,16 @@ class _ssc {
 	// video playback
 	videoFocusPlay = ( entry ) => {
 		const video = entry.target.querySelector( 'video' );
-		if ( entry.intersectionRatio > .8 ) {
-			entry.target.dataset.lock = 'active';
-			return this.playVideo( video );
+		if ( entry.intersectionRatio > .5 ) {
+			if ( ! video.paused || ! video.ended ) {
+				return this.playVideo( video );
+			}
+		} else {
+			if ( video.paused || ! video.ended ) {
+				return video.pause();
+			}
+			return this.stopVideo( video );
 		}
-		return ( video.paused || video.ended ) ? false : this.stopVideo( video );
 	};
 
 	playVideo = ( el ) => el.play();
@@ -274,52 +283,28 @@ class _ssc {
 		el.currentTime = 0;
 	};
 
-	animationDelay = ( ms ) => {
-		new Promise( ( resolve ) => setTimeout( resolve(), ms ) );
-	};
-
-	applyStyle = ( el, action ) => {
-		new Promise( ( resolve ) => {
-			// otherwise it's a common css style
-			// convert all transform properties into the css transform props
-			action[ 1 ].property = action[ 1 ].property.startsWith( 'transform' ) ? 'transform' : action[ 1 ].property;
-
-			// then if is there is a transformation add the prop the current style
-			if ( action[ 0 ] === 'transform' ) {
-				el.style.transform = ( el.style.transform ) ? el.style.transform + ' ' + action[ 1 ].value : action[ 1 ].value;
-			} else {
-				el.style[ action[ 1 ].property ] = action[ 1 ].value;
-			}
-
-			resolve( el.dataset.sscAnimationStep + ' ' + action[ 1 ].property );
-		} );
-	};
-
-	animationSequence = async ( entry ) => {
-		if ( entry.intersectionRatio > .8 ) {
+	animationSequence = ( entry ) => {
+		if ( entry.intersectionRatio > .5 ) {
 			const animation = entry.target.itemDataOpts;
 			const el = entry.target;
 
-			if ( animation !== null && ! el.dataset.sscAnimationStep ) {
+			if ( animation !== null && ! el.dataset.sscSequence ) {
 				entry.target.itemData.originalCss = el.style.cssText;
-				el.dataset.sscAnimationStep = 'init';
-				// const promise = Promise.resolve( el.dataset.sscAnimationStep );
+				el.dataset.sscSequence = 'init';
 
 				const anim = anime.timeline( {
 					targets: el,
 					autoplay: true,
 					direction: 'alternate',
 					loop: true,
-					easing: 'easeInOutSine',
 					easing: 'linear',
 				} );
 
 				let currentAction = {};
-				const currentindex = 0;
 
 				Object.entries( el.itemDataOpts ).map( ( action, index ) => {
 					// update the animation step value
-					el.dataset.sscAnimationStep = index + '';
+					el.dataset.sscSequence = index + '';
 
 					// if it's a function
 					if ( action[ 1 ].property === 'duration' ) {
@@ -337,6 +322,40 @@ class _ssc {
 			entry.target.removeAttribute( 'data-ssc-animation-step' );
 			entry.style = entry.target.itemData.originalCss;
 		}
+	};
+
+	animationSvgPath = ( entry ) => {
+		const path = entry.target.querySelectorAll( 'path' );
+		// entry.target.itemData.sscItem
+		if ( entry.intersectionRatio > .5 ) {
+			if ( entry.target.dataset.sccSvgLock ) {
+				return true;
+			}
+			anime( {
+				targets: path,
+				strokeDashoffset: [ anime.setDashoffset, 0 ],
+				easing: 'easeInOutSine',
+				duration: entry.target.itemDataOpts.duration,
+				delay( el, i ) {
+					return i * 250;
+				},
+				direction: 'normal',
+			} );
+			entry.target.dataset.sccSvgLock = 'active';
+			return true;
+		}
+
+		entry.target.removeAttribute( 'data-scc-svg-lock' );
+		anime( {
+			targets: path,
+			strokeDashoffset: [ anime.setDashoffset, 0 ],
+			easing: 'easeInOutSine',
+			duration: entry.target.itemDataOpts.duration,
+			delay( el, i ) {
+				return i * 250;
+			},
+			direction: 'reverse',
+		} );
 	};
 
 	// this will position with fixed an element for X scrolled pixels
@@ -448,7 +467,6 @@ class _ssc {
 	handleKeydown = ( e ) => {
 		let keys = this.options.keyboardKeys;
 
-		/* istanbul ignore else */
 		if (
 			[ 'INPUT', 'TEXTAREA' ].includes( ( e.target ).tagName )
 		) {
@@ -463,7 +481,7 @@ class _ssc {
 
 	imageParallax = ( event ) => {
 		// if the object with the parallax prop enter in the screen
-		if ( event.intersectionRatio > .25 ) {
+		if ( event.intersectionRatio > .5 ) {
 			// remove the lock
 			event.target.removeAttribute( 'data-parallax-lock' );
 			// add this object to the watched list
@@ -481,7 +499,7 @@ class _ssc {
 	};
 
 	animation = ( event ) => {
-		if ( event.intersectionRatio > .75 ) {
+		if ( event.intersectionRatio > .5 ) {
 			// trigger the enter animation
 			if ( event.target.dataset.sscActive ) {
 				return;

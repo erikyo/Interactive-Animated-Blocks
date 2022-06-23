@@ -368,6 +368,13 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			},
 		},
 		{
+			label: 'Svg Path Animation',
+			value: 'sscSvgPath',
+			default: {
+				duration: '1500',
+			},
+		},
+		{
 			label: 'Video parallax',
 			value: 'sscVideoControl',
 			default: {},
@@ -637,6 +644,17 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 											type={ 'number' }
 											value={ sscAnimationOptions[ sscAnimationType ].position }
 											onChange={ ( e ) => setOption( e, 'position', sscAnimationType ) }
+										/>
+									</>
+								) }
+
+								{ sscAnimationType === 'sscSvgPath' && sscAnimationOptions[ sscAnimationType ] && (
+									<>
+										<TextControl
+											label={ 'Duration' }
+											type={ 'number' }
+											value={ sscAnimationOptions[ sscAnimationType ].duration }
+											onChange={ ( e ) => setOption( e, 'duration', sscAnimationType ) }
 										/>
 									</>
 								) }
