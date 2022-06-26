@@ -4,9 +4,9 @@ import anime from 'animejs/lib/anime.es.js';
 
 const intersectionPrecision = 5;
 const sscOptions = {
-  rootMargin: '-50px 0px', // the IntersectionObserver root margin
+	rootMargin: '0px', // the IntersectionObserver root margin
 	// threshold: [ ...Array( intersectionPrecision + 1 ).keys() ].map( ( x ) => x / intersectionPrecision ), // 1-100 the precision of intersections (higher number increase cpu usage - use with care!)
-	threshold: [ 0, 0.5 ],
+	threshold: [ 0 ],
 };
 
 // detect available wheel event
@@ -14,41 +14,41 @@ const mouseWheel = 'onwheel' in document.createElement( 'div' ) ? 'wheel' // Mod
 	: document.onmousewheel !== undefined ? 'mousewheel' // Webkit and IE support at least "mousewheel"
 		: 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
 
-// delay util function
-Promise.prototype.delay = ( ms ) => new Promise( ( r ) => setTimeout( r, ms ) );
-
-// How long you want the animation to take, in ms
-const animationDuration = 20000;
-// Calculate how long each ‘frame’ should last if we want to update the animation 60 times per second
-const frameDuration = 1000 / 60;
-// Use that to calculate how many frames we need to complete the animation
-const totalFrames = Math.round( animationDuration / frameDuration );
 // An ease-out function that slows the count as it progresses
 const easeOutQuad = ( t ) => t * ( 2 - t );
 
 class _ssc {
 	constructor( options ) {
 		this.page = options.page || document.body;
+
 		// will hold the intersection observer
 		this.observer = [];
-		this.collected = []; // it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
+
+		// the ssc enabled elements found in this page it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
+		this.collected = [];
+
+		// parallax handler
 		this.parallaxed = [];
 		this.parallax = this.parallax.bind( this );
 
-		this.refreshIntervalID = 0;
-
 		this.scheduledAnimationFrame = false;
-		this.resizeTimer = false;
-		this.frameID;
+		this.parallaxFrameID = 0;
+
+		this.animations = [];
+
+		this.refreshIntervalID = 0;
+		this.scrollAnim = 0;
 
 		this.windowData = {
-			viewHeight: 0,
-			lastScrollPosition: 0,
+			viewHeight: window.innerHeight,
+			lastScrollPosition: false,
 		};
+
 		this.init();
 	}
 
 	// UTILS.js
+	// parse data stored with wp editor into element dataset and transform into properties / style to provide a faster access
 	getElelementData = ( opts, type = 'data' ) => {
 		if ( opts ) {
 			const rawArgs = opts.split( ';' );
@@ -67,39 +67,103 @@ class _ssc {
 		return false;
 	};
 
+	// delay util function
+	delay = ( ms ) => new Promise( ( r ) => setTimeout( r, ms ) );
+
 	// wait for resize to be completely done
 	updateScreenSize() {
 		( async () => await ( () => console.log( 'Old Screensize', this.windowData ) ) )()
-			.delay( 250 )
+			.then( () => {
+				return this.delay( 250 );
+			} )
 			.then( () => {
 				this.windowData = {
 					viewHeight: window.innerHeight,
+					lastScrollPosition: window.pageYOffset,
 				};
 				console.log( 'New Screensize', this.windowData );
 			} );
 	}
 
-	// MAIN.js
+	checkVisibility( el, state = 'crossing', position = 100 ) {
+		const rect = el.getBoundingClientRect();
+		switch ( state ) {
+			case 'partiallyVisible':
+				return this.isPartiallyVisible( rect );
+			case 'visible':
+				return this.isFullyVisible( rect );
+			case 'crossing':
+				return this.isCrossing( rect, position );
+			case 'between':
+				return this.isBeetween( rect, position );
+		}
+	}
+
+	isPartiallyVisible( rect ) {
+		return (
+			rect.top < this.windowData.viewHeight &&
+      rect.bottom > 0
+		);
+	}
+
+	isFullyVisible( rect ) {
+		return (
+			rect.top >= 0 &&
+      rect.bottom <= this.windowData.viewHeight
+		);
+	}
+
+	isCrossing( rect, rangePosition ) {
+		const center = this.windowData.viewHeight * ( rangePosition * .01 );
+		return (
+			rect.top < center &&
+      rect.bottom > center
+		);
+	}
+
+	isBeetween( rect, rangePosition ) {
+		const limit = this.windowData.viewHeight * ( rangePosition * .005 ); // 20% of 1000px is 100px from top and 100px from bottom
+		const elementCenter = rect.top + ( rect.height * .5 );
+		return (
+			elementCenter > limit &&
+      elementCenter < this.windowData.viewHeight - limit
+		);
+	}
+
+	// Detach an element from screen control
+	unmount = ( el ) => {
+		el.unWatch();
+	};
+
+	scrollDirection() {
+		if ( this.windowData.lastScrollPosition < window.pageYOffset ) {
+			document.body.dataset.direction = 'down';
+		} else if ( this.windowData.lastScrollPosition > window.pageYOffset ) {
+			document.body.dataset.direction = 'up';
+		}
+	}
+
+	// Parallax.js
 	// The parallax function
 	parallax() {
 		if ( typeof this.parallaxed !== 'undefined' && this.parallaxed.length ) {
-			// if last position if the same than the curent one
+			// if last position is the same as current
 			if ( window.pageYOffset === this.windowData.lastScrollPosition ) {
 				// callback the animationFrame and exit the current loop
-				this.frameID = window.requestAnimationFrame( this.parallax );
+				this.parallaxFrameID = window.requestAnimationFrame( this.parallax );
 				return;
 			}
 			this.parallaxed.forEach( ( element ) => {
 				if ( ! element.dataset.parallaxLock ) {
-					// apply the parallax style
+					// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
 					const motion = this.windowData.viewHeight - element.getBoundingClientRect().top;
 					if ( motion > 0 ) {
-						const styleValue = ( element.itemDataOpts.speed * element.itemDataOpts.level * motion ) * -0.2;
-						element.style.transform = 'translate3d(' + ( element.itemDataOpts.direction === 'Y' ? '0,' + styleValue + 'px' : styleValue + 'px,0' ) + ',0)';
+						const styleValue = ( element.sscItemOpts.speed * element.sscItemOpts.level * motion ) * -0.2;
+						element.style.transform = 'translate3d(' + ( element.sscItemOpts.direction === 'Y' ? '0,' + styleValue + 'px' : styleValue + 'px,0' ) + ',0)';
 					}
 
 					// requestAnimationFrame callback
-					this.frameID = window.requestAnimationFrame( this.parallax );
+					this.parallaxFrameID = window.requestAnimationFrame( this.parallax );
 
 					// Store the last position
 					this.windowData.lastScrollPosition = window.pageYOffset;
@@ -109,9 +173,24 @@ class _ssc {
 		return false;
 	}
 
+	parallaxController = ( entry ) => {
+		// add this object to the watched list
+		this.parallaxed[ entry.target.sscItemData.sscItem ] = entry.target;
+		// if the parallax function wasn't running before so we need to start it
+		if ( this.parallaxed.length ) {
+			this.parallax();
+		}
+		if ( entry.target.action === 'leave' ) {
+			// remove the animated item from the watched list
+			this.parallaxed = this.parallaxed.filter( ( item ) => item.sscItemData.sscItem !== entry.target.sscItemData.sscItem );
+			console.log( `ssc-${ entry.target.sscItemData.sscItem } will be unwatched. current list`, this.parallaxed );
+		}
+	};
+
+	// Main.js
 	// Screen Control Initialization
 	init = () => {
-		this.page.style.overflow = 'auto';
+		//this.page.style.overflow = 'auto';
 		this.collected = this.page.querySelectorAll( '.ssc' );
 
 		this.updateScreenSize();
@@ -123,7 +202,7 @@ class _ssc {
 				this.screenControl,
 				{
 					root: null,
-          rootMargin: sscOptions.rootMargin,
+					rootMargin: sscOptions.rootMargin,
 					threshold: sscOptions.threshold,
 				}
 			);
@@ -134,6 +213,9 @@ class _ssc {
 				obj.dataset.sscItem = index;
 
 				obj.unWatch = this.observer.unobserve( obj );
+
+				obj.sscItemData = obj.dataset;
+				obj.sscItemOpts = this.getElelementData( obj.dataset.sscProps, obj.sscItemData.sscAnimation === 'sscSequence' ? 'style' : 'data' );
 
 				// watch the objects to detect the screen margins intersection
 				this.observer.observe( obj );
@@ -155,67 +237,76 @@ class _ssc {
 	};
 
 	screenControl = ( entries, observer ) => {
+		// store the scroll direction into body
+		this.scrollDirection();
+
 		entries.forEach( ( entry ) => {
-			const sscElement = entry.target;
+			if ( entry.target.dataset.lock ) {
+				return true;
+			}
+
+			// stores the direction from which the element appeared
+			entry.target.dataset.intersection = ( ( this.windowData.viewHeight / 2 ) > entry.boundingClientRect.top )
+				?	 'up'
+				: 'down';
+
+			// check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
+			// eslint-disable-next-line no-nested-ternary
+			entry.target.action = ( entry.isIntersecting !== entry.target.dataset.visible )
+				? ( entry.isIntersecting ? 'enter' : 'leave' )
+				: null;
+
+			// is colliding with borders
+			entry.target.dataset.visible = entry.isIntersecting ? 'true' : 'false';
 
 			// this item is entering the view
-			if ( entry.isIntersecting && ! sscElement.dataset.lock ) {
-				sscElement.itemClasses = sscElement.classList;
-				sscElement.itemData = sscElement.dataset;
-				sscElement.itemDataOpts = this.getElelementData( sscElement.dataset.sscProps, sscElement.itemData.sscAnimation === 'sscSequence' ? 'style' : 'data' );
-				// sscElement.dataset.intersection = entry.intersectionRatio;
+			if ( entry.target.action ) {
+				console.log( `SSC: ${ entry.target.sscItemData.sscItem } is entering with args `, entry.target.sscItemOpts );
 
-				console.log( `SSC: ${ sscElement.itemData.sscItem } is entering with args `, sscElement.itemDataOpts );
-
-				// Add a flag to indicate which way this element appeared
-				if ( ( this.windowData.innerHeight / 2 ) < entry.boundingClientRect.top ) {
-					entry.target.dataset.enter = 'bottom';
-				} else {
-					entry.target.dataset.enter = 'top';
-				}
-
-				switch ( sscElement.itemData.sscAnimation ) {
-					case 'sscScreenJacker':
-						this.screenJacker( entry );
-						break;
-					case 'sscSequence':
-						this.animationSequence( entry );
-						break;
-					case 'sscSvgPath':
-						this.animationSvgPath( entry );
-						break;
-					case 'sscVideoControl':
-						this.videoWheelControlled( entry );
-						break;
-					case 'sscVideoFocusPlay':
-						this.videoFocusPlay( entry );
-						break;
+				switch ( entry.target.sscItemData.sscAnimation ) {
 					case 'sscParallax':
-						this.imageParallax( entry );
-						break;
-					case 'sscCounter':
-						this.animateCountUp( entry );
-						break;
-					case 'sscLevitate':
-						this.itemLevition( entry );
+						this.parallaxController( entry ); // yup
 						break;
 					case 'sscAnimation':
-						this.animation( entry );
+						this.handleAnimation( entry, entry.target.action );
+						break;
+					case 'sscSequence':
+						this.animationSequence( entry, entry.target.action );
+						break;
+					case 'sscSvgPath':
+						entry.target.style.opacity = 0;
+						entry.target.style.transition = '350ms';
+						this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
+						break;
+					case 'sscScreenJacker':
+						this.screenJacker( entry ); // yup
+						break;
+					case 'sscCounter':
+						this.animateCountUp( entry ); // yup
+						break;
+          case 'sscVideoFocusPlay':
+            this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
+            break;
+
+					case 'sscVideoControl':
+						this.videoWheelControlled( entry ); // NO
 						break;
 					case 'ssc360':
-						this.image360( entry );
+						this.image360( entry ); // NO
+						break;
+					case 'sscLevitate':
+						this.itemLevition( entry ); // NO
 						break;
 					default:
-						console.log( `JS action ${ sscElement.itemData.sscAnimation } missing for ${ sscElement.itemData.sscItem }` );
+						// err
+						console.log( `JS action ${ entry.target.sscItemData.sscAnimation } missing for ${ entry.target.sscItemData.sscItem }` );
 						break;
 				}
 			}
-
-			if ( entry.intersectionRatio < 0.5 ) {
-				console.log( 'is exiting', sscElement );
-				sscElement.removeAttribute( 'data-lock' );
-			}
 		} );
+
+		// store the last scroll position
+		this.windowData.lastScrollPosition = window.pageYOffset;
 	};
 
 	handleRefreshInterval() {}
@@ -256,24 +347,19 @@ class _ssc {
 		} );
 	}
 
-	unmount = ( el ) => {
-		el.unWatch();
-	};
-
 	// ACTIONS.js
 	// video playback
+
+	// VIDEO
 	videoFocusPlay = ( entry ) => {
 		const video = entry.target.querySelector( 'video' );
-		if ( entry.intersectionRatio > .5 ) {
-			if ( ! video.paused || ! video.ended ) {
-				return this.playVideo( video );
-			}
-		} else {
-			if ( video.paused || ! video.ended ) {
-				return video.pause();
-			}
-			return this.stopVideo( video );
+		if ( entry.target.dataset.visible === 'true' ) {
+			return this.playVideo( video );
 		}
+		if ( ! video.ended ) {
+			return video.pause();
+		}
+		return this.stopVideo( video );
 	};
 
 	playVideo = ( el ) => el.play();
@@ -283,247 +369,34 @@ class _ssc {
 		el.currentTime = 0;
 	};
 
-	animationSequence = ( entry ) => {
-		if ( entry.intersectionRatio > .5 ) {
-			const animation = entry.target.itemDataOpts;
-			const el = entry.target;
-
-			if ( animation !== null && ! el.dataset.sscSequence ) {
-				entry.target.itemData.originalCss = el.style.cssText;
-				el.dataset.sscSequence = 'init';
-
-				const anim = anime.timeline( {
-					targets: el,
-					autoplay: true,
-					direction: 'alternate',
-					loop: true,
-					easing: 'linear',
-				} );
-
-				let currentAction = {};
-
-				Object.entries( el.itemDataOpts ).map( ( action, index ) => {
-					// update the animation step value
-					el.dataset.sscSequence = index + '';
-
-					// if it's a function
-					if ( action[ 1 ].property === 'duration' ) {
-						currentAction = { ...currentAction, duration: action[ 1 ].value + 'ms' };
-						anim.add( currentAction );
-						currentAction = {};
-					}
-
-					currentAction = { ...currentAction, [ action[ 1 ].property ]: action[ 1 ].value };
-				} );
-
-				anim.play();
-			}
-		} else {
-			entry.target.removeAttribute( 'data-ssc-animation-step' );
-			entry.style = entry.target.itemData.originalCss;
-		}
-	};
-
-	animationSvgPath = ( entry ) => {
-		const path = entry.target.querySelectorAll( 'path' );
-		// entry.target.itemData.sscItem
-		if ( entry.intersectionRatio > .5 ) {
-			if ( entry.target.dataset.sccSvgLock ) {
-				return true;
-			}
-			anime( {
-				targets: path,
-				strokeDashoffset: [ anime.setDashoffset, 0 ],
-				easing: 'easeInOutSine',
-				duration: entry.target.itemDataOpts.duration,
-				delay( el, i ) {
-					return i * 250;
-				},
-				direction: 'normal',
-			} );
-			entry.target.dataset.sccSvgLock = 'active';
-			return true;
-		}
-
-		entry.target.removeAttribute( 'data-scc-svg-lock' );
-		anime( {
-			targets: path,
-			strokeDashoffset: [ anime.setDashoffset, 0 ],
-			easing: 'easeInOutSine',
-			duration: entry.target.itemDataOpts.duration,
-			delay( el, i ) {
-				return i * 250;
-			},
-			direction: 'reverse',
-		} );
-	};
-
-	// this will position with fixed an element for X scrolled pixels
-	itemLevition = ( el ) => el.style.backgroundColor = 'red';
-
-	// this will convert a gallery into a 360° viewer (fake spin around a product)
-	image360 = ( el ) => el.style.backgroundColor = 'red';
-
-	// ScrollTo
-	screenJacker = ( el ) => {
-		if ( typeof el.target.dataset.lock !== 'string' && el.intersectionRatio >= el.target.dataset.intersection / 100 ) {
-			this.smoothScroll( el.target, {
-				behavior: el.target.itemDataOpts.behavior || 'smooth',
-			} );
-		}
-	};
-
-	/**
-	 * @param { Element }          elem    - An Element on which we'll call scrollIntoView
-	 * @param {{behavior: string}} options - An optional scrollIntoViewOptions dictionary
-	 * @return { Promise } (void) - Resolves when the scrolling ends
-	 */
-	smoothScroll( elem, options ) {
-		elem.dataset.lock = 'active';
-		this.screenLock( false, { disableWheel: true } );
-		return new Promise( ( resolve ) => {
-			if ( ! ( elem instanceof Element ) ) {
-				throw new TypeError( 'Argument 1 must be an Element' );
-			}
-			let same = 0; // a counter
-			let lastPos = null; // last known Y position
-
-			const scrollOptions = ( { behavior: 'smooth' }, { ...options } );
-
-			// this function will be called every painting frame
-			// for the duration of the smooth scroll operation
-			const check = () => {
-				const newPos = elem.getBoundingClientRect().top;
-
-				if ( newPos === lastPos ) { // same as previous
-					if ( same++ > 2 ) {
-						return resolve(); // we've come to a halt
-					}
-				} else {
-					same = 0; // reset our counter
-					lastPos = newPos; // remember our current position
-				}
-				// check again next painting frame
-				window.requestAnimationFrame( check );
-			};
-
-			elem.scrollIntoView( scrollOptions );
-			window.requestAnimationFrame( check );
-		} ).then( () =>
-			this.screenUnlock()
-		);
-	}
-
-	/**
-	 * Disable Page Scroll
-	 *
-	 * @param  element
-	 * @param  options
-	 */
-	screenLock( element, options ) {
-		this.options = {
-			...this.options,
-			...options,
-		};
-
-		const { disableKeys, disableScroll, disableWheel } = this.options;
-
-		/* istanbul ignore else */
-		if ( disableWheel ) {
-			document.addEventListener( 'wheel', this.handleWheel, { passive: false } );
-			document.addEventListener( 'touchmove', this.handleWheel, { passive: false } );
-		}
-
-		/* istanbul ignore else */
-		if ( disableScroll ) {
-			this.lockToScrollPos = [ element.scrollLeft ?? 0, element.scrollTop ?? 0 ];
-			document.addEventListener( 'scroll', this.handleScroll, { passive: false } );
-		}
-
-		/* istanbul ignore else */
-		if ( disableKeys ) {
-			document.addEventListener( 'keydown', this.handleKeydown, { passive: false } );
-		}
-	}
-
-	/**
-	 * Re-enable page scrolls
-	 */
-	screenUnlock() {
-		document.removeEventListener( 'wheel', this.handleWheel );
-		document.removeEventListener( 'touchmove', this.handleWheel );
-		document.removeEventListener( 'scroll', this.handleScroll );
-		document.removeEventListener( 'keydown', this.handleKeydown );
-	}
-
-	handleWheel = ( e ) => {
-		e.preventDefault();
-	};
-
-	handleScroll = () => {
-		window.scrollTo( ...this.lockToScrollPos );
-	};
-
-	handleKeydown = ( e ) => {
-		let keys = this.options.keyboardKeys;
-
-		if (
-			[ 'INPUT', 'TEXTAREA' ].includes( ( e.target ).tagName )
-		) {
-			keys = keys.filter( ( key ) => ! this.options.authorizedInInputs.includes( key ) );
-		}
-
-		/* istanbul ignore else */
-		if ( keys.includes( e.keyCode ) ) {
-			e.preventDefault();
-		}
-	};
-
-	imageParallax = ( event ) => {
-		// if the object with the parallax prop enter in the screen
-		if ( event.intersectionRatio > .5 ) {
-			// remove the lock
-			event.target.removeAttribute( 'data-parallax-lock' );
-			// add this object to the watched list
-			this.parallaxed[ event.target.itemData.sscItem ] = event.target;
-			// if the parallax function wasn't running start it
-			if ( this.parallaxed.length ) {
-				this.parallax();
-			}
-		} else {
-			// remove the animated item from the watched list
-			this.parallaxed = this.parallaxed.filter( ( item ) => item.itemData.sscItem !== event.target.itemData.sscItem );
-			console.log( `ssc-${ event.target.itemData.sscItem } will be unwatched. current list`, this.parallaxed );
-			event.target.dataset.parallaxLock = 'active';
-		}
-	};
-
-	animation = ( event ) => {
-		if ( event.intersectionRatio > .5 ) {
+	handleAnimation = ( entry, action ) => {
+		if ( action === 'enter' && this.checkVisibility( entry.target, 'between', 50 ) ) {
+			// check if the action needed is enter and if the element is in the range
 			// trigger the enter animation
-			if ( event.target.dataset.sscActive ) {
-				return;
-			}
-			event.target.classList.remove(
+			entry.target.classList.remove(
 				'animate__animated',
-				'animate__' + event.target.itemDataOpts.animationExit,
+				'animate__' + entry.target.sscItemOpts.animationExit,
 			);
-			event.target.classList.add( 'animate__animated', 'animate__' + event.target.itemDataOpts.animationEnter );
-			event.target.dataset.sscActive = 'start';
-		} else {
+			entry.target.classList.add( 'animate__animated', 'animate__' + entry.target.sscItemOpts.animationEnter );
+			action = 'leave';
+		} else if ( action === 'leave' && ! this.checkVisibility( entry.target, 'between', 50 ) ) {
+			// check if the action needed is the leave animation and if the element is outside the range
 			// trigger the exit animation
-			if ( event.target.dataset.sscActive ) {
-				event.target.classList.remove(
-					'animate__animated',
-					'animate__' + event.target.itemDataOpts.animationEnter,
-				);
-				if ( event.target.itemDataOpts.animationExit ) {
-					event.target.classList.add( 'animate__animated', 'animate__' + event.target.itemDataOpts.animationExit );
-				}
-				event.target.dataset.sscActive = 'exit';
+			entry.target.classList.remove(
+				'animate__animated',
+				'animate__' + entry.target.sscItemOpts.animationEnter,
+			);
+			if ( entry.target.sscItemOpts.animationExit ) {
+				entry.target.classList.add( 'animate__animated', 'animate__' + entry.target.sscItemOpts.animationExit );
 			}
+			action = 'enter';
+		}
 
-			event.target.removeAttribute( 'data-ssc-active' );
+		// if none of the previous condition is met but the element is still in the viewport delay this function
+		if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+		  this.delay( 100 ).then( () => {
+				this.handleAnimation( entry, action );
+			} );
 		}
 	};
 
@@ -533,13 +406,22 @@ class _ssc {
 	 * @param {Object} el Element to animate.
 	 */
 	animateCountUp( el ) {
-		let frame = 0;
-
-		const countTo = parseInt( el.target.lastChild.innerHTML, 10 ) || 100;
-
 		if ( el.target.dataset.sscCount ) {
 			return true;
 		}
+
+		let frame = 0;
+
+		// How long you want the animation to take, in ms
+		const animationDuration = el.target.sscItemOpts.duration || 5000;
+		// Calculate how long each ‘frame’ should last in order to update the animation 60 times per second (1000ms / 60fps)
+		const frameDuration = 1000 / 60;
+
+		const item = el.target.lastChild;
+
+		const countTo = parseInt( item.innerHTML, 10 ) || 100;
+
+		const totalFrames = Math.round( animationDuration / frameDuration );
 
 		el.target.dataset.sscCount = 'true';
 
@@ -552,7 +434,7 @@ class _ssc {
 			const progress = easeOutQuad( frame / totalFrames );
 
 			// Use the progress value to calculate the current count
-			el.target.innerHTML = Math.round( countTo * progress );
+			item.innerHTML = Math.round( countTo * progress );
 
 			// If we’ve reached our last frame, stop the animation
 			if ( frame === totalFrames ) {
@@ -560,6 +442,168 @@ class _ssc {
 				clearInterval( counter );
 			}
 		}, frameDuration );
+	}
+
+	animationSequence = ( entry, action ) => {
+		const animation = entry.target.sscItemOpts;
+
+		// build the animation if isn't already stored
+		if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
+			let i = 0;
+			const currentStep = {};
+
+			// loop into animation object in order to create the animation timeline
+			Object.entries( animation ).forEach( ( step ) => {
+				// we use the duration as a "marker" for the next step
+				if ( step[ 1 ].property === 'duration' ) {
+					currentStep[ i ] = { ...currentStep[ i ], duration: step[ 1 ].value + 'ms' };
+					i++;
+				} else {
+					// otherwise store the step and contiue the loop
+					currentStep[ i ] = { ...currentStep[ i ], [ step[ 1 ].property ]: step[ 1 ].value };
+				}
+			} );
+
+			if ( currentStep[ 0 ] ) {
+				// creates the animation initializer
+				const a = anime.timeline( {
+					targets: entry.target,
+					autoplay: false,
+					easing: 'easeOutExpo', // Can be inherited
+					direction: 'normal', // Is not inherited
+					complete( anim ) {
+						console.log( anim );
+						entry.target.removeAttribute( 'data-visible' );
+						entry.target.removeAttribute( 'data-ssc-lock' );
+					},
+				} );
+
+				// loop into the rest of the actions adding the timelines step to sequence
+				Object.entries( currentStep ).forEach( ( step ) => {
+					a.add( step[ 1 ] );
+				} );
+				this.animations[ entry.target.sscItemData.sscItem ] = a;
+			}
+		}
+
+		// The Enter animation sequence
+		if ( action === 'enter' && this.checkVisibility( entry.target, 'between', 25 ) ) {
+			action = 'leave';
+			this.animations[ entry.target.sscItemData.sscItem ].play();
+		} else if ( action === 'leave' && ! this.checkVisibility( entry.target, 'between', 25 ) ) {
+			action = 'enter';
+			this.animations[ entry.target.sscItemData.sscItem ].pause();
+		}
+		if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+			this.delay( 100 ).then( () => {
+				this.animationSequence( entry, action );
+			} );
+		}
+	};
+
+	animationSvgPath = ( entry, action, animationInstance = false ) => {
+		let animation = ( animationInstance ) ? animationInstance : anime;
+		const path = entry.target.querySelectorAll( 'path' );
+		if ( action === 'enter' && this.checkVisibility( entry.target, 'between', 25 ) ) {
+			entry.target.style.opacity = 1;
+			action = 'leave';
+			if ( animation.began && animation.currentTime !== 0 ) {
+				animation.reverse();
+			} else {
+				animation = anime( {
+					targets: path,
+					strokeDashoffset: [ anime.setDashoffset, 0 ],
+					easing: 'easeInOutSine',
+					duration: entry.target.sscItemOpts.duration,
+					delay( el, i ) {
+						return i * entry.target.sscItemOpts.duration / path.length;
+					},
+					direction: 'normal',
+				} );
+			}
+		} else if ( action === 'leave' && ! this.checkVisibility( entry.target, 'between', 25 ) ) {
+			action = 'enter';
+			if ( ! animation.completed && typeof animation.reverse === 'function' ) {
+				animation.reverse();
+			} else {
+				animation = anime( {
+					targets: path,
+					strokeDashoffset: [ anime.setDashoffset, 0 ],
+					easing: 'easeInOutSine',
+					duration: entry.target.sscItemOpts.duration,
+					delay( el, i ) {
+						return i * entry.target.sscItemOpts.duration / path.length;
+					},
+					direction: 'reverse',
+					complete: () => {
+						if ( action === 'leave' ) {
+							return entry.target.style.opacity = 0;
+						}
+					},
+				} );
+			}
+		}
+		if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+			this.delay( 100 ).then( () => {
+				this.animationSvgPath( entry, action, animation );
+			} );
+		}
+	};
+
+	// this will position with fixed an element for X scrolled pixels
+	itemLevition = ( el ) => el.target.style.backgroundColor = 'red';
+
+	// this will convert a gallery into a 360° viewer (fake spin around a product)
+	image360 = ( el ) => el.target.style.backgroundColor = 'red';
+
+	// ScrollTo
+	screenJacker = ( entry ) => {
+		if ( entry.target.action === 'enter' && this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+			return this.scrollToElement( entry.target );
+		}
+	};
+
+	onScroll( action ) {
+		let isTicking = false;
+		let scrollY = 0;
+		const body = document.body;
+		const html = document.documentElement;
+		const scrollHeight = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
+		function scroll() {
+			scrollY = window.scrollY;
+			if ( action ) {
+				action( scrollY, scrollHeight );
+			}
+			getFrame();
+		}
+		function getFrame() {
+			if ( ! isTicking ) {
+				requestAnimationFrame( updateScroll );
+			}
+			isTicking = true;
+		}
+		function updateScroll() {
+			isTicking = false;
+			this.windowData.scrollOffset = scrollY;
+		}
+		scroll();
+		window.onscroll = scroll;
+	}
+
+	// Scroll to element
+	scrollToElement( el, offset ) {
+		const off = offset || 0;
+		const rect = el.getBoundingClientRect();
+		const top = rect.top + off;
+		if ( ( document.body.dataset.direction === 'down' && rect.top + window.scrollY > this.windowData.lastScrollPosition ) ||
+    ( document.body.dataset.direction === 'up' && rect.top + window.scrollY < this.windowData.lastScrollPosition ) ) {
+			anime( {
+				targets: [ document.body, document.documentElement ],
+				scrollTop: '+=' + top,
+				easing: 'easeInOutSine',
+				duration: 1000,
+			} );
+		}
 	}
 
 	onWheel = ( event ) => {
@@ -657,7 +701,7 @@ class _ssc {
 // on script load trigger immediately ssc
 window.addEventListener( 'load', () => {
 	// const content = document.getElementById( 'page' );
-	const content = document.body;
+	const content = document.querySelector('.wp-site-blocks');
 
 	const options = {
 		page: content,

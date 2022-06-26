@@ -202,25 +202,25 @@ function ActionList( props ) {
 			valueDefault: '1',
 		},
 		{
-			actionLabel: 'Transform - translateY',
+			actionLabel: 'translateY',
 			action: 'translateY',
 			valueType: 'string',
 			valueDefault: '100px',
 		},
 		{
-			actionLabel: 'Transform - translateX',
+			actionLabel: 'translateX',
 			action: 'translateX',
 			valueType: 'string',
 			valueDefault: '100px',
 		},
 		{
-			actionLabel: 'Transform - rotate',
+			actionLabel: 'Rotate',
 			action: 'rotate',
 			valueType: 'string',
 			valueDefault: '45deg',
 		},
 		{
-			actionLabel: 'Transform - scale',
+			actionLabel: 'Scale',
 			action: 'scale',
 			valueType: 'number',
 			valueDefault: '1.5',
@@ -406,7 +406,9 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 		{
 			label: 'Counter',
 			value: 'sscCounter',
-			default: {},
+			default: {
+				duration: '5000',
+			},
 		},
 	];
 
@@ -454,6 +456,18 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 		{
 			label: 'fadeOut',
 			value: 'fadeOut',
+		},
+		{
+			label: 'fadeOutLeft',
+			value: 'fadeOutLeft',
+		},
+		{
+			label: 'fadeOutRight',
+			value: 'fadeOutRight',
+		},
+		{
+			label: 'fadeOutBottom',
+			value: 'fadeOutBottom',
 		},
 	];
 
@@ -644,6 +658,17 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 											type={ 'number' }
 											value={ sscAnimationOptions[ sscAnimationType ].position }
 											onChange={ ( e ) => setOption( e, 'position', sscAnimationType ) }
+										/>
+									</>
+								) }
+
+								{ sscAnimationType === 'sscCounter' && sscAnimationOptions[ sscAnimationType ] && (
+									<>
+										<TextControl
+											label={ 'Duration' }
+											type={ 'number' }
+											value={ sscAnimationOptions[ sscAnimationType ].duration }
+											onChange={ ( e ) => setOption( e, 'duration', sscAnimationType ) }
 										/>
 									</>
 								) }
