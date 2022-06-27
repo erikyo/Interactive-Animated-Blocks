@@ -32,7 +32,12 @@ class _ssc {
 		this.parallax = this.parallax.bind( this );
 
 		this.scheduledAnimationFrame = false;
+
 		this.parallaxFrameID = 0;
+
+		this.videoParallaxed = [];
+		this.videoParallaxFrameID = 0;
+		this.parallaxVideo = this.parallaxVideo.bind( this );
 
 		this.animations = [];
 
@@ -41,7 +46,7 @@ class _ssc {
 
 		this.windowData = {
 			viewHeight: window.innerHeight,
-			lastScrollPosition: false,
+			lastScrollPosition: window.pageYOffset,
 		};
 
 		this.init();
@@ -154,20 +159,18 @@ class _ssc {
 				return;
 			}
 			this.parallaxed.forEach( ( element ) => {
-				if ( ! element.dataset.parallaxLock ) {
-					// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
-					const motion = this.windowData.viewHeight - element.getBoundingClientRect().top;
-					if ( motion > 0 ) {
-						const styleValue = ( element.sscItemOpts.speed * element.sscItemOpts.level * motion ) * -0.2;
-						element.style.transform = 'translate3d(' + ( element.sscItemOpts.direction === 'Y' ? '0,' + styleValue + 'px' : styleValue + 'px,0' ) + ',0)';
-					}
-
-					// requestAnimationFrame callback
-					this.parallaxFrameID = window.requestAnimationFrame( this.parallax );
-
-					// Store the last position
-					this.windowData.lastScrollPosition = window.pageYOffset;
+				// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
+				const motion = this.windowData.viewHeight - element.getBoundingClientRect().top;
+				if ( motion > 0 ) {
+					const styleValue = ( element.sscItemOpts.speed * element.sscItemOpts.level * motion ) * -0.2;
+					element.style.transform = 'translate3d(' + ( element.sscItemOpts.direction === 'Y' ? '0,' + styleValue + 'px' : styleValue + 'px,0' ) + ',0)';
 				}
+
+				// requestAnimationFrame callback
+				this.parallaxFrameID = window.requestAnimationFrame( this.parallax );
+
+				// Store the last position
+				this.windowData.lastScrollPosition = window.pageYOffset;
 			} );
 		}
 		return false;
@@ -279,16 +282,21 @@ class _ssc {
 						this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
 						break;
 					case 'sscScreenJacker':
+						entry.target.style.minHeight = '100.5vh';
+						entry.target.style.margin = 0;
 						this.screenJacker( entry ); // yup
 						break;
 					case 'sscCounter':
 						this.animateCountUp( entry ); // yup
 						break;
-          case 'sscVideoFocusPlay':
-            this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
-            break;
+					case 'sscVideoFocusPlay':
+						this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
+						break;
 
 					case 'sscVideoControl':
+						this.parallaxVideoControl( entry ); // yup
+						break;
+					case 'sscVideoScroll':
 						this.videoWheelControlled( entry ); // NO
 						break;
 					case 'ssc360':
@@ -558,8 +566,13 @@ class _ssc {
 
 	// ScrollTo
 	screenJacker = ( entry ) => {
-		if ( entry.target.action === 'enter' && this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
-			return this.scrollToElement( entry.target );
+		if ( entry.target.action === 'enter' ) {
+			if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+				return this.scrollToElement( entry.target );
+			}
+			this.delay( 100 ).then( () => {
+				this.screenJacker( entry );
+			} );
 		}
 	};
 
@@ -606,6 +619,44 @@ class _ssc {
 		}
 	}
 
+	parallaxVideo() {
+		if ( typeof this.videoParallaxed !== 'undefined' || this.videoParallaxed.length ) {
+			if ( window.pageYOffset === this.windowData.lastScrollPosition ) {
+				// callback the animationFrame and exit the current loop
+				this.videoParallaxFrameID = window.requestAnimationFrame( this.parallaxVideo );
+				return;
+			}
+
+			// Store the last position
+			this.windowData.lastScrollPosition = window.pageYOffset;
+
+			this.videoParallaxed.forEach( ( video ) => {
+				if ( video.readyState < 3 ) {
+					return window.requestAnimationFrame( this.parallaxVideo );
+				}
+				const rect = video.getBoundingClientRect();
+				// TODO: tween playback with current_frame = (previous value + new_value) in Arduino style
+				video.currentTime = ( ( 1 + -( rect.top + this.windowData.viewHeight ) / ( this.windowData.viewHeight * 2 ) ) * video.videoLenght ).toFixed( 2 ).toString();
+				this.videoParallaxFrameID = window.requestAnimationFrame( this.parallaxVideo );
+			} );
+		}
+		return false;
+	}
+
+	parallaxVideoControl( entry ) {
+		const videoEl = entry.target.querySelector( 'video' );
+		if ( entry.target.action === 'enter' ) {
+			this.videoParallaxed[ entry.target.sscItemData.sscItem ] = videoEl;
+			this.videoParallaxed[ entry.target.sscItemData.sscItem ].videoLenght = videoEl.duration;
+			this.videoParallaxed[ entry.target.sscItemData.sscItem ].sscItemData = entry.target.sscItemData;
+			if ( this.videoParallaxed.length === 1 ) {
+				this.parallaxVideo();
+			}
+		} else if ( entry.target.action === 'leave' ) {
+			this.videoParallaxed = this.videoParallaxed.filter( ( item ) => item.sscItemData.sscItem !== entry.target.sscItemData.sscItem );
+		}
+	}
+
 	onWheel = ( event ) => {
 		const videoEl = event.target;
 
@@ -618,8 +669,7 @@ class _ssc {
 		const targetOffset = 0;
 		const videoCurrentTime = videoEl.currentTime;
 
-		// Normally scrolling this should be a subtraction
-		// not a sum but "I like it like this!"
+		// set the current frame
 		const Offset = targetOffset + event.deltaY > 0 ? ( 1 / 29.97 ) : ( 1 / 29.97 ) * -2; // e.deltaY is the direction
 
 		// Prevent multiple rAF callbacks.
@@ -628,25 +678,20 @@ class _ssc {
 		} else if ( videoEl.paused ) {
 			this.scheduledAnimationFrame = true;
 
-			if ( videoCurrentTime <= 0 && event.deltaY < 0 ) {
-				videoEl.removeAttribute( 'data-ssc-lock' );
-				console.log( 'start' );
-			} else if ( videoCurrentTime >= videoEl.duration && event.deltaY > 0 ) {
-				// ended
-				videoEl.removeAttribute( 'data-ssc-lock' );
-				console.log( 'end' );
-			} else {
-				videoEl.dataset.sscLock = 'true';
+			// if ( videoCurrentTime <= 0 && event.deltaY < 0 ) {
 
-				console.log( videoEl.currentTime );
+			// } else if ( videoCurrentTime >= videoEl.duration && event.deltaY > 0 ) {
 
-				videoEl.currentTime = videoEl.currentTime + Offset;
+			videoEl.dataset.sscLock = 'true';
 
-				requestAnimationFrame( () => {
-					this.scheduledAnimationFrame = false;
-				}
-				);
+			console.log( videoEl.currentTime );
+
+			videoEl.currentTime = videoEl.currentTime + Offset;
+
+			window.requestAnimationFrame( () => {
+				this.scheduledAnimationFrame = false;
 			}
+			);
 		}
 	};
 
@@ -654,7 +699,7 @@ class _ssc {
 	videoWheelControlled( el ) {
 		const videoEl = el.target.querySelector( 'video' );
 
-		videoEl.addEventListener( 'wheel', this.onWheel );
+		videoEl.addEventListener( mouseWheel, this.onWheel );
 	}
 
 	scaleImage = ( el ) => new Promise( ( f ) => {
@@ -701,7 +746,7 @@ class _ssc {
 // on script load trigger immediately ssc
 window.addEventListener( 'load', () => {
 	// const content = document.getElementById( 'page' );
-	const content = document.querySelector('.wp-site-blocks');
+	const content = document.querySelector( '.wp-site-blocks' );
 
 	const options = {
 		page: content,

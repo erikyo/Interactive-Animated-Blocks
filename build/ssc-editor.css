@@ -1,18 +1,1 @@
-/*!****************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[3].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[3].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[3].use[3]!./src/editor.scss ***!
-  \****************************************************************************************************************************************************************************************************************************************/
-textarea.ssc-codebox {
-  width: 100%;
-  margin: 0 0 8px;
-  font-family: monospace;
-}
-
-.block-editor-block-inspector div.row {
-  display: flex;
-}
-
-.block-editor-block-inspector div.row .components-base-control {
-  margin-bottom: 4px;
-}
-
-/*# sourceMappingURL=ssc-editor.css.map*/
+textarea.ssc-codebox{font-family:monospace;margin:0 0 8px;width:100%}.block-editor-block-inspector div.row{display:flex}.block-editor-block-inspector div.row .components-base-control{margin-bottom:4px}

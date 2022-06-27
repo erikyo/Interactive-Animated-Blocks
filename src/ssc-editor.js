@@ -375,6 +375,11 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			},
 		},
 		{
+			label: 'Play video on scroll over',
+			value: 'sscVideoScroll',
+			default: {},
+		},
+		{
 			label: 'Video parallax',
 			value: 'sscVideoControl',
 			default: {},
