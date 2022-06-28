@@ -21,17 +21,22 @@ class _ssc {
 	constructor( options ) {
 		this.page = options.page || document.body;
 
+		// store the touch position
+		this.touchPos;
+		//screen stuff
+		this.updateScreenSize = this.updateScreenSize.bind( this );
+
 		// will hold the intersection observer
 		this.observer = [];
 
 		// the ssc enabled elements found in this page it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
 		this.collected = [];
 
+		this.scheduledAnimationFrame = false;
+
 		// parallax handler
 		this.parallaxed = [];
 		this.parallax = this.parallax.bind( this );
-
-		this.scheduledAnimationFrame = false;
 
 		this.parallaxFrameID = 0;
 
@@ -40,16 +45,37 @@ class _ssc {
 		this.parallaxVideo = this.parallaxVideo.bind( this );
 
 		this.animations = [];
+		this.video360 = [];
 
 		this.refreshIntervalID = 0;
 		this.scrollAnim = 0;
 
 		this.windowData = {
-			viewHeight: window.innerHeight,
+			viewHeight: window.screen.height,
 			lastScrollPosition: window.pageYOffset,
 		};
 
+		this.page.ontouchstart = this.touchstartEvent.bind( this );
+		this.page.ontouchmove = this.ontouchmoveEvent.bind( this );
+
 		this.init();
+	}
+
+	// store the touching position at the start of each touch
+	touchstartEvent( e ) {
+		this.touchPos = e.changedTouches[ 0 ].clientY;
+	}
+
+	// detect weather the "old" touchPos is
+	// greater or smaller than the newTouchPos
+	ontouchmoveEvent( e ) {
+		const newTouchPos = e.changedTouches[ 0 ].clientY;
+		if ( newTouchPos > this.touchPos ) {
+			console.log( 'finger moving down' );
+		}
+		if ( newTouchPos < this.touchPos ) {
+			console.log( 'finger moving up' );
+		}
 	}
 
 	// UTILS.js
@@ -83,10 +109,10 @@ class _ssc {
 			} )
 			.then( () => {
 				this.windowData = {
-					viewHeight: window.innerHeight,
+					viewHeight: window.screen.height,
 					lastScrollPosition: window.pageYOffset,
 				};
-				console.log( 'New Screensize', this.windowData );
+				console.warn( 'New Screensize', this.windowData );
 			} );
 	}
 
@@ -294,13 +320,13 @@ class _ssc {
 						break;
 
 					case 'sscVideoControl':
-						this.parallaxVideoControl( entry ); // yup
+						this.parallaxVideoController( entry ); // yup
 						break;
 					case 'sscVideoScroll':
-						this.videoWheelControlled( entry ); // NO
+						this.videoWheelController( entry ); // NO
 						break;
 					case 'ssc360':
-						this.image360( entry ); // NO
+						this.video360Controller( entry ); // NO
 						break;
 					case 'sscLevitate':
 						this.itemLevition( entry ); // NO
@@ -567,7 +593,7 @@ class _ssc {
 	// ScrollTo
 	screenJacker = ( entry ) => {
 		if ( entry.target.action === 'enter' ) {
-			if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+			if ( this.checkVisibility( entry.target, 'between', 10 ) ) {
 				return this.scrollToElement( entry.target );
 			}
 			this.delay( 100 ).then( () => {
@@ -591,7 +617,7 @@ class _ssc {
 		}
 		function getFrame() {
 			if ( ! isTicking ) {
-				requestAnimationFrame( updateScroll );
+				window.requestAnimationFrame( updateScroll );
 			}
 			isTicking = true;
 		}
@@ -611,16 +637,16 @@ class _ssc {
 		if ( ( document.body.dataset.direction === 'down' && rect.top + window.scrollY > this.windowData.lastScrollPosition ) ||
     ( document.body.dataset.direction === 'up' && rect.top + window.scrollY < this.windowData.lastScrollPosition ) ) {
 			anime( {
-				targets: [ document.body, document.documentElement ],
+				targets: [ window.document.scrollingElement || window.document.body || window.document.documentElement ],
 				scrollTop: '+=' + top,
 				easing: 'easeInOutSine',
-				duration: 1000,
+				duration: 1600,
 			} );
 		}
 	}
 
 	parallaxVideo() {
-		if ( typeof this.videoParallaxed !== 'undefined' || this.videoParallaxed.length ) {
+		if ( typeof this.videoParallaxed !== 'undefined' || Object.keys( this.videoParallaxed ).length ) {
 			if ( window.pageYOffset === this.windowData.lastScrollPosition ) {
 				// callback the animationFrame and exit the current loop
 				this.videoParallaxFrameID = window.requestAnimationFrame( this.parallaxVideo );
@@ -643,63 +669,55 @@ class _ssc {
 		return false;
 	}
 
-	parallaxVideoControl( entry ) {
+	parallaxVideoController( entry ) {
 		const videoEl = entry.target.querySelector( 'video' );
 		if ( entry.target.action === 'enter' ) {
 			this.videoParallaxed[ entry.target.sscItemData.sscItem ] = videoEl;
 			this.videoParallaxed[ entry.target.sscItemData.sscItem ].videoLenght = videoEl.duration;
 			this.videoParallaxed[ entry.target.sscItemData.sscItem ].sscItemData = entry.target.sscItemData;
-			if ( this.videoParallaxed.length === 1 ) {
-				this.parallaxVideo();
-			}
+			this.parallaxVideo();
 		} else if ( entry.target.action === 'leave' ) {
 			this.videoParallaxed = this.videoParallaxed.filter( ( item ) => item.sscItemData.sscItem !== entry.target.sscItemData.sscItem );
 		}
 	}
 
-	onWheel = ( event ) => {
+	videoOnWheel = ( event ) => {
+		event.preventDefault();
+
 		const videoEl = event.target;
 
-		if ( videoEl.dataset.sscLock ) {
-			event.preventDefault();
-		} else if ( videoEl.paused ) {
-			videoEl.controls = false;
+		if (
+			( videoEl.currentTime <= 0 && event.deltaY < 0 ) ||
+      ( videoEl.currentTime === videoEl.duration && event.deltaY > 0 )
+		) {
+			console.log( 'unlocked' );
+			videoEl.removeEventListener( mouseWheel, this.videoOnWheel );
+			return true;
 		}
-
-		const targetOffset = 0;
-		const videoCurrentTime = videoEl.currentTime;
-
-		// set the current frame
-		const Offset = targetOffset + event.deltaY > 0 ? ( 1 / 29.97 ) : ( 1 / 29.97 ) * -2; // e.deltaY is the direction
-
-		// Prevent multiple rAF callbacks.
-		if ( this.scheduledAnimationFrame ) {
-
-		} else if ( videoEl.paused ) {
-			this.scheduledAnimationFrame = true;
-
-			// if ( videoCurrentTime <= 0 && event.deltaY < 0 ) {
-
-			// } else if ( videoCurrentTime >= videoEl.duration && event.deltaY > 0 ) {
-
-			videoEl.dataset.sscLock = 'true';
-
-			console.log( videoEl.currentTime );
-
-			videoEl.currentTime = videoEl.currentTime + Offset;
-
+		if ( videoEl.readyState >= 1 ) {
 			window.requestAnimationFrame( () => {
-				this.scheduledAnimationFrame = false;
-			}
-			);
+			// set the current frame
+				const Offset = event.deltaY > 0 ? ( 1 / 29.7 ) : ( 1 / 29.7 ) * -1; // e.deltaY is the direction
+				videoEl.currentTime = videoEl.currentTime + Offset;
+			} );
 		}
 	};
 
-	// Listens mouse scroll wheel
-	videoWheelControlled( el ) {
-		const videoEl = el.target.querySelector( 'video' );
+	hasMouseOver( e ) {
+		const mouseX = e;
+		const mouseY = e;
+		const rect = e.target.getBoundingClientRect();
 
-		videoEl.addEventListener( mouseWheel, this.onWheel );
+		return ( rect.left < mouseX < rect.right && rect.top < mouseY < rect.bottom );
+	}
+
+	// Listens mouse scroll wheel
+	videoWheelController( el ) {
+		const videoEl = el.target.querySelector( 'video' );
+		videoEl.controls = false;
+		videoEl.muted = true;
+		videoEl.pause();
+		videoEl.addEventListener( mouseWheel, this.videoOnWheel );
 	}
 
 	scaleImage = ( el ) => new Promise( ( f ) => {
@@ -719,27 +737,27 @@ class _ssc {
 		return f;
 	} );
 
-	scrollVideo = ( el ) => new Promise( ( f ) => {
-		let scale = 1;
+	handleVideo360( e ) {
+		const video = e.target;
 
-		el.onmousewheel = ( event ) => {
-			event.preventDefault();
-
-			scale += event.deltaY * -0.01;
-
-			// Restrict scale
-			scale = Math.min( Math.max( .125, scale ), 4 );
-
-			// Apply scale transform
-			el.style.transform = `scale(${ scale })`;
-
-			if ( scale === el.target.sscAnimationOptions.times ) {
-				return f;
+		function changeAngle() {
+			const rect = video.getBoundingClientRect();
+			if ( video.readyState > 1 ) {
+				video.currentTime = ( ( e.clientX - rect.left ) / rect.width ) * video.duration;
 			}
-		};
-	} );
+		}
 
-	// move on the X direction the current div until the end
+		window.requestAnimationFrame( changeAngle );
+	}
+
+	video360Controller( entry ) {
+		const videoEl = entry.target.querySelector( 'video' );
+		if ( entry.target.action === 'enter' ) {
+			videoEl.onmousemove = this.handleVideo360;
+		} else if ( entry.target.action === 'leave' ) {
+			videoEl.onmousemove = null;
+		}
+	}
 }
 
 // THIS FILE.js

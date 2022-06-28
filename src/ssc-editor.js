@@ -226,6 +226,18 @@ function ActionList( props ) {
 			valueDefault: '1.5',
 		},
 		{
+			actionLabel: 'Background',
+			action: 'background',
+			valueType: 'color',
+			valueDefault: '#888',
+		},
+		{
+			actionLabel: 'Color',
+			action: 'color',
+			valueType: 'color',
+			valueDefault: '#f00',
+		},
+		{
 			actionLabel: 'CSS Animation',
 			action: 'cssAnimation',
 			valueType: 'string',
@@ -431,16 +443,74 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			value: 'pulse',
 		},
 		{
-			label: 'flash',
-			value: 'flash',
+			label: 'rubberBand',
+			value: 'rubberBand',
 		},
 		{
 			label: 'rubberBand',
 			value: 'rubberBand',
 		},
 		{
+			label: 'shakeX',
+			value: 'shakeX',
+		},
+		{
+			label: 'shakeY',
+			value: 'shakeY',
+		},
+		{
+			label: 'headShake',
+			value: 'headShake',
+		},
+		{
+			label: 'swing',
+			value: 'swing',
+		},
+		{
+			label: 'tada',
+			value: 'tada',
+		},
+		{
+			label: 'wobble',
+			value: 'wobble',
+		},
+		{
+			label: 'jello',
+			value: 'jello',
+		},
+		{
+			label: 'heartBeat',
+			value: 'heartBeat',
+		},
+		{
+			label: 'flash',
+			value: 'flash',
+		},
+		{
+			label: 'hinge',
+			value: 'hinge',
+		},
+		{
+			label: 'jackInTheBox',
+			value: 'jackInTheBox',
+		},
+		{
+			label: 'rollIn',
+			value: 'rollIn',
+		},
+		{
+			label: 'rollOut',
+			value: 'rollOut',
+		},
+
+		// Fade
+		{
 			label: 'fadeIn',
 			value: 'fadeIn',
+		},
+		{
+			label: 'fadeInDown',
+			value: 'fadeInDown',
 		},
 		{
 			label: 'fadeInDownBig',
@@ -451,29 +521,95 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			value: 'fadeInLeft',
 		},
 		{
-			label: 'fadeInBottomLeft',
-			value: 'fadeInBottomLeft',
+			label: 'fadeInLeftBig',
+			value: 'fadeInLeftBig',
 		},
 		{
 			label: 'fadeInRight',
 			value: 'fadeInRight',
 		},
 		{
+			label: 'fadeInRightBig',
+			value: 'fadeInRightBig',
+		},
+		{
+			label: 'fadeInUp',
+			value: 'fadeInUp',
+		},
+		{
+			label: 'fadeInUpBig',
+			value: 'fadeInUpBig',
+		},
+		{
+			label: 'fadeInTopLeft',
+			value: 'fadeInTopLeft',
+		},
+		{
+			label: 'fadeInTopRight',
+			value: 'fadeInTopRight',
+		},
+		{
+			label: 'fadeInTopRight',
+			value: 'fadeInTopRight',
+		},
+		{
+			label: 'fadeInBottomLeft',
+			value: 'fadeInBottomLeft',
+		},
+		// fade exit
+		{
 			label: 'fadeOut',
 			value: 'fadeOut',
+		},
+		{
+			label: 'fadeOutDown',
+			value: 'fadeOutDown',
+		},
+		{
+			label: 'fadeOutDownBig',
+			value: 'fadeOutDownBig',
 		},
 		{
 			label: 'fadeOutLeft',
 			value: 'fadeOutLeft',
 		},
 		{
+			label: 'fadeOutLeftBig',
+			value: 'fadeOutLeftBig',
+		},
+		{
 			label: 'fadeOutRight',
 			value: 'fadeOutRight',
 		},
 		{
-			label: 'fadeOutBottom',
-			value: 'fadeOutBottom',
+			label: 'fadeOutRightBig',
+			value: 'fadeOutRightBig',
 		},
+		{
+			label: 'fadeOutUp',
+			value: 'fadeOutUp',
+		},
+		{
+			label: 'fadeOutUpBig',
+			value: 'fadeOutUpBig',
+		},
+		{
+			label: 'fadeOutTopLeft',
+			value: 'fadeOutTopLeft',
+		},
+		{
+			label: 'fadeOutTopRight',
+			value: 'fadeOutTopRight',
+		},
+		{
+			label: 'fadeOutTopRight',
+			value: 'fadeOutTopRight',
+		},
+		{
+			label: 'fadeOutBottomLeft',
+			value: 'fadeOutBottomLeft',
+		},
+
 	];
 
 	return ( props ) => {
@@ -716,7 +852,7 @@ addFilter(
 	withAdvancedControls
 );
 
-function stringify( data, type ) {
+function dataStringify( data, type ) {
 	let csv = '';
 	csv += Object.entries( data )
 		.map( ( item ) => {
@@ -727,7 +863,7 @@ function stringify( data, type ) {
 				: item[ 0 ] + ':' + item[ 1 ];
 		} )
 		.join( ';' );
-	return csv;
+	return csv || null;
 }
 
 function cssize( style ) {
@@ -775,8 +911,9 @@ const addExtraProps = ( extraProps, blockType, attributes ) => {
 	}
 
 	// map the original array into a single key value object
-	if ( sscAnimationOptions[ sscAnimationType ] ) {
-		extraProps[ 'data-ssc-props' ] = stringify( sscAnimationOptions[ sscAnimationType ], sscAnimationType );
+  const selected = sscAnimationOptions[ sscAnimationType ] || false;
+	if ( Object.keys(sscAnimationOptions).length && selected ) {
+		extraProps[ 'data-ssc-props' ] = dataStringify( selected, sscAnimationType );
 	}
 
 	//check if attribute exists for old Gutenberg version compatibility
