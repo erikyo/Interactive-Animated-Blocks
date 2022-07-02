@@ -2,6 +2,7 @@
 
 import anime from 'animejs/lib/anime.es.js';
 import { textStaggerPresets } from './data';
+import './ssc.scss';
 
 const intersectionPrecision = 5;
 const sscOptions = {
@@ -46,6 +47,7 @@ class _ssc {
 		this.parallaxVideo = this.parallaxVideo.bind( this );
 
 		this.animations = [];
+		this.staggerPresets = textStaggerPresets;
 
 		// avoid scrolling before the page has been loaded
 		this.hasScrolling = false;
@@ -555,28 +557,72 @@ class _ssc {
 	textStagger( entry ) {
 		const item = entry.target;
 
-		if ( item.lastChild.innerHTML ) {
-			item.lastChild.innerHTML = item.lastChild.textContent.replace(
-				/\S/g,
-				"<span class='letter' style='display:inline-block;position:relative'>$&</span>"
+		if (
+			item.action === 'enter' &&
+			this.checkVisibility( entry.target, 'between', 25 )
+		) {
+			const preset = item.sscItemOpts.preset;
+			const duration = item.sscItemOpts.duration;
+			const easing = item.sscItemOpts.easing;
+			const splitBy = item.sscItemOpts.splitBy || 'letter';
+			const splitByRegex = splitBy === 'word' ? /\w+ |\S+/g : /\S/g;
+			const replaced = item.lastChild.textContent.replace(
+				splitByRegex,
+				`<span class="${ item.sscItemOpts.splitBy }">$&</span>`
 			);
-		} else {
-			item.innerHTML = item.textContent.replace(
-				/\S/g,
-				"<span class='letter' style='display:inline-block;position:relative'>$&</span>"
-			);
+
+			if ( item.lastChild.innerHTML ) {
+				item.lastChild.innerHTML = replaced;
+			} else {
+				item.innerHTML = replaced;
+			}
+
+			item.style.position = 'relative';
+
+			const anim = anime.timeline( {
+				loop: false,
+				autoplay: false,
+			} );
+
+			this.staggerPresets[ preset ].forEach( ( data, index ) => {
+				switch ( index ) {
+					case 0:
+						anim.add( {
+							...textStaggerPresets[ preset ][ index ],
+							targets: item.querySelectorAll( '.' + splitBy ),
+							duration: duration * 0.75,
+							easing,
+							delay: ( el, i ) => duration * i * 0.05,
+							...data,
+						} );
+						break;
+					case 1:
+						anim.add( {
+							...( textStaggerPresets[ preset ][ index ] ||
+								null ),
+							targets: item,
+							easing,
+							duration,
+							delay: duration,
+							...data,
+						} );
+						break;
+					default:
+						anim.add( {
+							...( textStaggerPresets[ preset ][ index ] ||
+								null ),
+							targets: item,
+							easing,
+							...data,
+						} );
+						break;
+				}
+			} );
+
+			return anim.play();
 		}
 
-		anime
-			.timeline( { loop: true } )
-			.add( {
-				...textStaggerPresets.default[ 0 ],
-				targets: item.querySelectorAll( '.letter' ),
-			} )
-			.add( {
-				...textStaggerPresets.default[ 1 ],
-				targets: 'item',
-			} );
+		this.delay( 200 ).then( () => this.textStagger( entry ) );
 	}
 
 	animationSequence = ( entry, action ) => {
@@ -772,10 +818,10 @@ class _ssc {
 					window.removeEventListener( 'mousewheel', disableWheel, {
 						passive: false,
 					} );
-          window.scroll(0, el.target.offsetTop)
+					window.scroll( 0, el.target.offsetTop );
 					// this.windowData.lastScrollPosition = window.pageYOffset;
 					// window.pageYOffset = el.target.offsetTop;
-          this.hasScrolling = false;
+					this.hasScrolling = false;
 				},
 			} );
 		};

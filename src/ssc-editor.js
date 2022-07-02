@@ -10,7 +10,7 @@ import {
 	actionsTemplate,
 	animationTypes,
 	animationList,
-	textStaggerPresets,
+	textStaggerPresetsNames,
 	animationEasings,
 } from './data';
 import './editor.scss';
@@ -329,12 +329,12 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 		} = props;
 
 		// get default setting
-		const getDefaults = ( opt ) => {
+		function getDefaults( opt ) {
 			const animationType = animationTypes.filter( ( animation ) => {
 				return animation.value === opt;
 			} );
 			return animationType[ 0 ].default || {};
-		};
+		}
 
 		// set the animation options
 		const setOption = ( event, prop, type ) => {
@@ -408,9 +408,7 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 											}
 											value={ sscAnimationType }
 											options={ animationTypes }
-											onChange={ ( e ) =>
-												updateAnimation( e )
-											}
+											onChange={ updateAnimation }
 										></SelectControl>
 
 										<ToggleControl
@@ -433,51 +431,56 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 											}
 										/>
 
-										{ [
-											'sscSvgPath',
-											'sscSequence',
-											'sscVideoFocusPlay',
-											'sscScreenJacker',
-											'sscCounter',
-											'sscTextStagger',
-										].includes( sscAnimationType ) && (
-											<>
-												<RangeControl
-													label={ 'Duration (ms)' }
-													value={
-														sscAnimationOptions[
-															sscAnimationType
-														].duration
-													}
-													onChange={ ( e ) =>
-														setOption(
-															e,
-															'duration',
-															sscAnimationType
-														)
-													}
-													min={ 0 }
-													max={ 10000 }
-													step={ 10 }
-												/>
-												<SelectControl
-													label={ 'Easing' }
-													value={
-														sscAnimationOptions[
-															sscAnimationType
-														].easing
-													}
-													options={ animationEasings }
-													onChange={ ( e ) =>
-														setOption(
-															e,
-															'easing',
-															sscAnimationType
-														)
-													}
-												></SelectControl>
-											</>
-										) }
+										{ sscAnimationType &&
+											[
+												'sscSvgPath',
+												'sscSequence',
+												'sscVideoFocusPlay',
+												'sscScreenJacker',
+												'sscCounter',
+												'sscTextStagger',
+											].includes( sscAnimationType ) && (
+												<>
+													<RangeControl
+														label={
+															'Duration (ms)'
+														}
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].duration
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'duration',
+																sscAnimationType
+															)
+														}
+														min={ 0 }
+														max={ 10000 }
+														step={ 10 }
+													/>
+													<SelectControl
+														label={ 'Easing' }
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].easing
+														}
+														options={
+															animationEasings
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'easing',
+																sscAnimationType
+															)
+														}
+													></SelectControl>
+												</>
+											) }
 										{ sscAnimationType ===
 											'sscSequence' && (
 											<ActionList
@@ -636,31 +639,53 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 												</>
 											) }
 										{ sscAnimationType ===
-											'sscTextStagger' &&
-											sscAnimationOptions[
-												sscAnimationType
-											] && (
-												<>
-													<SelectControl
-														label={ 'preset' }
-														options={ Object.keys(
-															textStaggerPresets
-														) }
-														value={
-															sscAnimationOptions[
-																sscAnimationType
-															].preset
-														}
-														onChange={ ( e ) =>
-															setOption(
-																e,
-																'preset',
-																sscAnimationType
-															)
-														}
-													/>
-												</>
-											) }
+											'sscTextStagger' && (
+											<>
+												<SelectControl
+													label={ 'preset' }
+													options={
+														textStaggerPresetsNames
+													}
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].preset
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'preset',
+															sscAnimationType
+														)
+													}
+												/>
+												<SelectControl
+													label={ 'Split by' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].splitBy
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'splitBy',
+															sscAnimationType
+														)
+													}
+													options={ [
+														{
+															label: 'Letter',
+															value: 'letter',
+														},
+														{
+															label: 'Word',
+															value: 'word',
+														},
+													] }
+												/>
+											</>
+										) }
 										{ sscAnimationType ===
 											'sscScreenJacker' &&
 											sscAnimationOptions[
@@ -687,11 +712,6 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 													/>
 												</>
 											) }
-										<p>
-											{ JSON.stringify(
-												sscAnimationOptions
-											) }
-										</p>
 									</>
 								) }
 							</>

@@ -61,8 +61,16 @@ export const animationEasings = [
 		value: 'linear',
 	},
 	{
-		label: 'elastic',
-		value: 'elastic',
+		label: 'Elastic (low)',
+		value: 'easeInElastic(1, .3)',
+	},
+	{
+		label: 'Elastic (mid)',
+		value: 'easeInElastic(1, .6)',
+	},
+	{
+		label: 'Elastic (high)',
+		value: 'easeInElastic(2, 1)',
 	},
 	{
 		label: 'easeInQuad',
@@ -95,6 +103,40 @@ export const animationEasings = [
 	{
 		label: 'easeOutInCubic',
 		value: 'easeOutInCubic',
+	},
+
+	{
+		label: 'easeInSine',
+		value: 'easeInSine',
+	},
+	{
+		label: 'easeOutSine',
+		value: 'easeOutSine',
+	},
+	{
+		label: 'easeInOutSine',
+		value: 'easeInOutSine',
+	},
+	{
+		label: 'easeOutInSine',
+		value: 'easeOutInSine',
+	},
+
+	{
+		label: 'easeInExpo',
+		value: 'easeInExpo',
+	},
+	{
+		label: 'easeOutExpo',
+		value: 'easeOutExpo',
+	},
+	{
+		label: 'easeInOutExpo',
+		value: 'easeInOutExpo',
+	},
+	{
+		label: 'easeOutInExpo',
+		value: 'easeOutInExpo',
 	},
 ];
 
@@ -183,6 +225,8 @@ export const animationTypes = [
 		default: {
 			duration: 5000,
 			easing: 'easeInOutQuad',
+			preset: 'default',
+			splitBy: 'letter',
 		},
 	},
 ];
@@ -372,31 +416,61 @@ export const animationList = [
 export const textStaggerPresets = {
 	default: [
 		{
-			translateY: [ '1.1em', 0 ],
+			translateY: [ '1em', 0 ],
 			translateZ: 0,
-			duration: 750,
-			delay: ( el, i ) => 50 * i,
-		},
-		{
-			opacity: 0,
-			duration: 1000,
-			easing: 'easeOutExpo',
-			delay: 1000,
 		},
 	],
 	expo: [
 		{
-			scale: [ 14, 1 ],
+			scale: [ 15, 1 ],
 			opacity: [ 0, 1 ],
-			easing: 'easeOutCirc',
-			duration: 750,
-			delay: ( el, i ) => 750 * i,
+		},
+	],
+	domino: [
+		{
+			rotateY: [ -90, 0 ],
+			transformOrigin: '0 0',
+		},
+	],
+	ghosting: [
+		{
+			translateX: [ 40, 0 ],
+			translateZ: 0,
 		},
 		{
-			opacity: 0,
-			duration: 1000,
-			easing: 'easeOutExpo',
-			delay: 1000,
+			translateX: [ 0, -30 ],
+			opacity: [ 1, 0 ],
+		},
+	],
+	elasticIn: [
+		{
+			scale: [ 0, 1 ],
+			elasticity: 1200,
+		},
+	],
+	rain: [
+		{
+			translateY: [ '-2em', 0 ],
+			scaleX: [ 0, 1 ],
+			opacity: [ 0, 1 ],
+		},
+	],
+	snake: [
+		{
+			scaleX: [ 0, 1 ],
+			translateY: [ '1em', 0 ],
+			translateX: [ '.5em', 0 ],
+			translateZ: 0,
+			rotateZ: [ 90, 0 ],
+			transformOrigin: '100% 50%',
 		},
 	],
 };
+
+export const textStaggerPresetsNames = [];
+Object.keys( textStaggerPresets ).map( ( item ) =>
+	textStaggerPresetsNames.push( {
+		label: item,
+		value: item,
+	} )
+);

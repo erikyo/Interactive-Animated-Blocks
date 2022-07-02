@@ -1,8 +1,10 @@
-.scc {
-  &.textStagger {
-    .letter {
-      display:inline-block;
-      position:relative
-    }
+.ssc {
+  .letter,
+  .word {
+    display:inline-block;
+    position:relative
+  }
+  .word {
+    white-space: pre;
   }
 }
