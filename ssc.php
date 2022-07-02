@@ -23,14 +23,6 @@ function ssc_script() {
 }
 add_action( 'wp_enqueue_scripts', 'ssc_script' );
 
-function ssc_style() {
-	wp_enqueue_style(
-		'ssc_animate',
-		'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css'
-	);
-}
-add_action( 'wp_enqueue_scripts', 'ssc_style' );
-
 /**
  * Register and enqueue a custom stylesheet in the WordPress admin.
  */

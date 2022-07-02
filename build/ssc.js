@@ -1,1 +1,2559 @@
-(()=>{"use strict";function t(t,e,n){return e in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}var e={update:null,begin:null,loopBegin:null,changeBegin:null,change:null,changeComplete:null,loopComplete:null,complete:null,loop:1,direction:"normal",autoplay:!0,timelineOffset:0},n={duration:1e3,delay:0,endDelay:0,easing:"easeOutElastic(1, .5)",round:0},r=["translateX","translateY","translateZ","rotate","rotateX","rotateY","rotateZ","scale","scaleX","scaleY","scaleZ","skew","skewX","skewY","perspective","matrix","matrix3d"],a={CSS:{},springs:{}};function i(t,e,n){return Math.min(Math.max(t,e),n)}function o(t,e){return t.indexOf(e)>-1}function s(t,e){return t.apply(null,e)}var c={arr:function(t){return Array.isArray(t)},obj:function(t){return o(Object.prototype.toString.call(t),"Object")},pth:function(t){return c.obj(t)&&t.hasOwnProperty("totalLength")},svg:function(t){return t instanceof SVGElement},inp:function(t){return t instanceof HTMLInputElement},dom:function(t){return t.nodeType||c.svg(t)},str:function(t){return"string"==typeof t},fnc:function(t){return"function"==typeof t},und:function(t){return void 0===t},nil:function(t){return c.und(t)||null===t},hex:function(t){return/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(t)},rgb:function(t){return/^rgb/.test(t)},hsl:function(t){return/^hsl/.test(t)},col:function(t){return c.hex(t)||c.rgb(t)||c.hsl(t)},key:function(t){return!e.hasOwnProperty(t)&&!n.hasOwnProperty(t)&&"targets"!==t&&"keyframes"!==t}};function l(t){var e=/\(([^)]+)\)/.exec(t);return e?e[1].split(",").map((function(t){return parseFloat(t)})):[]}function u(t,e){var n=l(t),r=i(c.und(n[0])?1:n[0],.1,100),o=i(c.und(n[1])?100:n[1],.1,100),s=i(c.und(n[2])?10:n[2],.1,100),u=i(c.und(n[3])?0:n[3],.1,100),d=Math.sqrt(o/r),h=s/(2*Math.sqrt(o*r)),f=h<1?d*Math.sqrt(1-h*h):0,g=h<1?(h*d-u)/f:-u+d;function m(t){var n=e?e*t/1e3:t;return n=h<1?Math.exp(-n*h*d)*(1*Math.cos(f*n)+g*Math.sin(f*n)):(1+g*n)*Math.exp(-n*d),0===t||1===t?t:1-n}return e?m:function(){var e=a.springs[t];if(e)return e;for(var n=1/6,r=0,i=0;;)if(1===m(r+=n)){if(++i>=16)break}else i=0;var o=r*n*1e3;return a.springs[t]=o,o}}function d(t){return void 0===t&&(t=10),function(e){return Math.ceil(i(e,1e-6,1)*t)*(1/t)}}var h,f,g=function(){var t=.1;function e(t,e){return 1-3*e+3*t}function n(t,e){return 3*e-6*t}function r(t){return 3*t}function a(t,a,i){return((e(a,i)*t+n(a,i))*t+r(a))*t}function i(t,a,i){return 3*e(a,i)*t*t+2*n(a,i)*t+r(a)}return function(e,n,r,o){if(0<=e&&e<=1&&0<=r&&r<=1){var s=new Float32Array(11);if(e!==n||r!==o)for(var c=0;c<11;++c)s[c]=a(c*t,e,r);return function(c){return e===n&&r===o||0===c||1===c?c:a(function(n){for(var o=0,c=1;10!==c&&s[c]<=n;++c)o+=t;--c;var l=o+(n-s[c])/(s[c+1]-s[c])*t,u=i(l,e,r);return u>=.001?function(t,e,n,r){for(var o=0;o<4;++o){var s=i(e,n,r);if(0===s)return e;e-=(a(e,n,r)-t)/s}return e}(n,l,e,r):0===u?l:function(t,e,n,r,i){var o,s,c=0;do{(o=a(s=e+(n-e)/2,r,i)-t)>0?n=s:e=s}while(Math.abs(o)>1e-7&&++c<10);return s}(n,o,o+t,e,r)}(c),n,o)}}}}(),m=(h={linear:function(){return function(t){return t}}},f={Sine:function(){return function(t){return 1-Math.cos(t*Math.PI/2)}},Circ:function(){return function(t){return 1-Math.sqrt(1-t*t)}},Back:function(){return function(t){return t*t*(3*t-2)}},Bounce:function(){return function(t){for(var e,n=4;t<((e=Math.pow(2,--n))-1)/11;);return 1/Math.pow(4,3-n)-7.5625*Math.pow((3*e-2)/22-t,2)}},Elastic:function(t,e){void 0===t&&(t=1),void 0===e&&(e=.5);var n=i(t,1,10),r=i(e,.1,2);return function(t){return 0===t||1===t?t:-n*Math.pow(2,10*(t-1))*Math.sin((t-1-r/(2*Math.PI)*Math.asin(1/n))*(2*Math.PI)/r)}}},["Quad","Cubic","Quart","Quint","Expo"].forEach((function(t,e){f[t]=function(){return function(t){return Math.pow(t,e+2)}}})),Object.keys(f).forEach((function(t){var e=f[t];h["easeIn"+t]=e,h["easeOut"+t]=function(t,n){return function(r){return 1-e(t,n)(1-r)}},h["easeInOut"+t]=function(t,n){return function(r){return r<.5?e(t,n)(2*r)/2:1-e(t,n)(-2*r+2)/2}},h["easeOutIn"+t]=function(t,n){return function(r){return r<.5?(1-e(t,n)(1-2*r))/2:(e(t,n)(2*r-1)+1)/2}}})),h);function p(t,e){if(c.fnc(t))return t;var n=t.split("(")[0],r=m[n],a=l(t);switch(n){case"spring":return u(t,e);case"cubicBezier":return s(g,a);case"steps":return s(d,a);default:return s(r,a)}}function v(t){try{return document.querySelectorAll(t)}catch(t){return}}function w(t,e){for(var n=t.length,r=arguments.length>=2?arguments[1]:void 0,a=[],i=0;i<n;i++)if(i in t){var o=t[i];e.call(r,o,i,t)&&a.push(o)}return a}function y(t){return t.reduce((function(t,e){return t.concat(c.arr(e)?y(e):e)}),[])}function b(t){return c.arr(t)?t:(c.str(t)&&(t=v(t)||t),t instanceof NodeList||t instanceof HTMLCollection?[].slice.call(t):[t])}function x(t,e){return t.some((function(t){return t===e}))}function I(t){var e={};for(var n in t)e[n]=t[n];return e}function D(t,e){var n=I(t);for(var r in t)n[r]=e.hasOwnProperty(r)?e[r]:t[r];return n}function O(t,e){var n=I(t);for(var r in e)n[r]=c.und(t[r])?e[r]:t[r];return n}function S(t){var e=/[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?(%|px|pt|em|rem|in|cm|mm|ex|ch|pc|vw|vh|vmin|vmax|deg|rad|turn)?$/.exec(t);if(e)return e[1]}function M(t,e){return c.fnc(t)?t(e.target,e.id,e.total):t}function P(t,e){return t.getAttribute(e)}function k(t,e,n){if(x([n,"deg","rad","turn"],S(e)))return e;var r=a.CSS[e+n];if(!c.und(r))return r;var i=document.createElement(t.tagName),o=t.parentNode&&t.parentNode!==document?t.parentNode:document.body;o.appendChild(i),i.style.position="absolute",i.style.width=100+n;var s=100/i.offsetWidth;o.removeChild(i);var l=s*parseFloat(e);return a.CSS[e+n]=l,l}function C(t,e,n){if(e in t.style){var r=e.replace(/([a-z])([A-Z])/g,"$1-$2").toLowerCase(),a=t.style[e]||getComputedStyle(t).getPropertyValue(r)||"0";return n?k(t,a,n):a}}function E(t,e){return c.dom(t)&&!c.inp(t)&&(!c.nil(P(t,e))||c.svg(t)&&t[e])?"attribute":c.dom(t)&&x(r,e)?"transform":c.dom(t)&&"transform"!==e&&C(t,e)?"css":null!=t[e]?"object":void 0}function V(t){if(c.dom(t)){for(var e,n=t.style.transform||"",r=/(\w+)\(([^)]*)\)/g,a=new Map;e=r.exec(n);)a.set(e[1],e[2]);return a}}function A(t,e,n,r){switch(E(t,e)){case"transform":return function(t,e,n,r){var a=o(e,"scale")?1:0+function(t){return o(t,"translate")||"perspective"===t?"px":o(t,"rotate")||o(t,"skew")?"deg":void 0}(e),i=V(t).get(e)||a;return n&&(n.transforms.list.set(e,i),n.transforms.last=e),r?k(t,i,r):i}(t,e,r,n);case"css":return C(t,e,n);case"attribute":return P(t,e);default:return t[e]||0}}function F(t,e){var n=/^(\*=|\+=|-=)/.exec(t);if(!n)return t;var r=S(t)||0,a=parseFloat(e),i=parseFloat(t.replace(n[0],""));switch(n[0][0]){case"+":return a+i+r;case"-":return a-i+r;case"*":return a*i+r}}function T(t,e){if(c.col(t))return function(t){return c.rgb(t)?(n=/rgb\((\d+,\s*[\d]+,\s*[\d]+)\)/g.exec(e=t))?"rgba("+n[1]+",1)":e:c.hex(t)?function(t){var e=t.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i,(function(t,e,n,r){return e+e+n+n+r+r})),n=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(e);return"rgba("+parseInt(n[1],16)+","+parseInt(n[2],16)+","+parseInt(n[3],16)+",1)"}(t):c.hsl(t)?function(t){var e,n,r,a=/hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g.exec(t)||/hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)/g.exec(t),i=parseInt(a[1],10)/360,o=parseInt(a[2],10)/100,s=parseInt(a[3],10)/100,c=a[4]||1;function l(t,e,n){return n<0&&(n+=1),n>1&&(n-=1),n<1/6?t+6*(e-t)*n:n<.5?e:n<2/3?t+(e-t)*(2/3-n)*6:t}if(0==o)e=n=r=s;else{var u=s<.5?s*(1+o):s+o-s*o,d=2*s-u;e=l(d,u,i+1/3),n=l(d,u,i),r=l(d,u,i-1/3)}return"rgba("+255*e+","+255*n+","+255*r+","+c+")"}(t):void 0;var e,n}(t);if(/\s/g.test(t))return t;var n=S(t),r=n?t.substr(0,t.length-n.length):t;return e?r+e:r}function q(t,e){return Math.sqrt(Math.pow(e.x-t.x,2)+Math.pow(e.y-t.y,2))}function B(t){for(var e,n=t.points,r=0,a=0;a<n.numberOfItems;a++){var i=n.getItem(a);a>0&&(r+=q(e,i)),e=i}return r}function L(t){if(t.getTotalLength)return t.getTotalLength();switch(t.tagName.toLowerCase()){case"circle":return function(t){return 2*Math.PI*P(t,"r")}(t);case"rect":return function(t){return 2*P(t,"width")+2*P(t,"height")}(t);case"line":return function(t){return q({x:P(t,"x1"),y:P(t,"y1")},{x:P(t,"x2"),y:P(t,"y2")})}(t);case"polyline":return B(t);case"polygon":return function(t){var e=t.points;return B(t)+q(e.getItem(e.numberOfItems-1),e.getItem(0))}(t)}}function H(t,e){var n=e||{},r=n.el||function(t){for(var e=t.parentNode;c.svg(e)&&c.svg(e.parentNode);)e=e.parentNode;return e}(t),a=r.getBoundingClientRect(),i=P(r,"viewBox"),o=a.width,s=a.height,l=n.viewBox||(i?i.split(" "):[0,0,o,s]);return{el:r,viewBox:l,x:l[0]/1,y:l[1]/1,w:o,h:s,vW:l[2],vH:l[3]}}function Y(t,e,n){function r(n){void 0===n&&(n=0);var r=e+n>=1?e+n:0;return t.el.getPointAtLength(r)}var a=H(t.el,t.svg),i=r(),o=r(-1),s=r(1),c=n?1:a.w/a.vW,l=n?1:a.h/a.vH;switch(t.property){case"x":return(i.x-a.x)*c;case"y":return(i.y-a.y)*l;case"angle":return 180*Math.atan2(s.y-o.y,s.x-o.x)/Math.PI}}function _(t,e){var n=/[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g,r=T(c.pth(t)?t.totalLength:t,e)+"";return{original:r,numbers:r.match(n)?r.match(n).map(Number):[0],strings:c.str(t)||e?r.split(n):[]}}function N(t){return w(t?y(c.arr(t)?t.map(b):b(t)):[],(function(t,e,n){return n.indexOf(t)===e}))}function j(t){var e=N(t);return e.map((function(t,n){return{target:t,id:n,total:e.length,transforms:{list:V(t)}}}))}function W(t,e){var n=I(e);if(/^spring/.test(n.easing)&&(n.duration=u(n.easing)),c.arr(t)){var r=t.length;2!==r||c.obj(t[0])?c.fnc(e.duration)||(n.duration=e.duration/r):t={value:t}}var a=c.arr(t)?t:[t];return a.map((function(t,n){var r=c.obj(t)&&!c.pth(t)?t:{value:t};return c.und(r.delay)&&(r.delay=n?0:e.delay),c.und(r.endDelay)&&(r.endDelay=n===a.length-1?e.endDelay:0),r})).map((function(t){return O(t,n)}))}var $={css:function(t,e,n){return t.style[e]=n},attribute:function(t,e,n){return t.setAttribute(e,n)},object:function(t,e,n){return t[e]=n},transform:function(t,e,n,r,a){if(r.list.set(e,n),e===r.last||a){var i="";r.list.forEach((function(t,e){i+=e+"("+t+") "})),t.style.transform=i}}};function z(t,e){j(t).forEach((function(t){for(var n in e){var r=M(e[n],t),a=t.target,i=S(r),o=A(a,n,i,t),s=F(T(r,i||S(o)),o),c=E(a,n);$[c](a,n,s,t.transforms,!0)}}))}function R(t,e){return w(y(t.map((function(t){return e.map((function(e){return function(t,e){var n=E(t.target,e.name);if(n){var r=function(t,e){var n;return t.tweens.map((function(r){var a=function(t,e){var n={};for(var r in t){var a=M(t[r],e);c.arr(a)&&1===(a=a.map((function(t){return M(t,e)}))).length&&(a=a[0]),n[r]=a}return n.duration=parseFloat(n.duration),n.delay=parseFloat(n.delay),n}(r,e),i=a.value,o=c.arr(i)?i[1]:i,s=S(o),l=A(e.target,t.name,s,e),u=n?n.to.original:l,d=c.arr(i)?i[0]:u,h=S(d)||S(l),f=s||h;return c.und(o)&&(o=u),a.from=_(d,f),a.to=_(F(o,d),f),a.start=n?n.end:0,a.end=a.start+a.delay+a.duration+a.endDelay,a.easing=p(a.easing,a.duration),a.isPath=c.pth(i),a.isPathTargetInsideSVG=a.isPath&&c.svg(e.target),a.isColor=c.col(a.from.original),a.isColor&&(a.round=1),n=a,a}))}(e,t),a=r[r.length-1];return{type:n,property:e.name,animatable:t,tweens:r,duration:a.end,delay:r[0].delay,endDelay:a.endDelay}}}(t,e)}))}))),(function(t){return!c.und(t)}))}function J(t,e){var n=t.length,r=function(t){return t.timelineOffset?t.timelineOffset:0},a={};return a.duration=n?Math.max.apply(Math,t.map((function(t){return r(t)+t.duration}))):e.duration,a.delay=n?Math.min.apply(Math,t.map((function(t){return r(t)+t.delay}))):e.delay,a.endDelay=n?a.duration-Math.max.apply(Math,t.map((function(t){return r(t)+t.duration-t.endDelay}))):e.endDelay,a}var X=0,Z=[],G=function(){var t;function e(n){for(var r=Z.length,a=0;a<r;){var i=Z[a];i.paused?(Z.splice(a,1),r--):(i.tick(n),a++)}t=a>0?requestAnimationFrame(e):void 0}return"undefined"!=typeof document&&document.addEventListener("visibilitychange",(function(){U.suspendWhenDocumentHidden&&(Q()?t=cancelAnimationFrame(t):(Z.forEach((function(t){return t._onDocumentVisibility()})),G()))})),function(){t||Q()&&U.suspendWhenDocumentHidden||!(Z.length>0)||(t=requestAnimationFrame(e))}}();function Q(){return!!document&&document.hidden}function U(t){void 0===t&&(t={});var r,a=0,o=0,s=0,l=0,u=null;function d(t){var e=window.Promise&&new Promise((function(t){return u=t}));return t.finished=e,e}var h=function(t){var r=D(e,t),a=D(n,t),i=function(t,e){var n=[],r=e.keyframes;for(var a in r&&(e=O(function(t){for(var e=w(y(t.map((function(t){return Object.keys(t)}))),(function(t){return c.key(t)})).reduce((function(t,e){return t.indexOf(e)<0&&t.push(e),t}),[]),n={},r=function(r){var a=e[r];n[a]=t.map((function(t){var e={};for(var n in t)c.key(n)?n==a&&(e.value=t[n]):e[n]=t[n];return e}))},a=0;a<e.length;a++)r(a);return n}(r),e)),e)c.key(a)&&n.push({name:a,tweens:W(e[a],t)});return n}(a,t),o=j(t.targets),s=R(o,i),l=J(s,a),u=X;return X++,O(r,{id:u,children:[],animatables:o,animations:s,duration:l.duration,delay:l.delay,endDelay:l.endDelay})}(t);function f(){var t=h.direction;"alternate"!==t&&(h.direction="normal"!==t?"normal":"reverse"),h.reversed=!h.reversed,r.forEach((function(t){return t.reversed=h.reversed}))}function g(t){return h.reversed?h.duration-t:t}function m(){a=0,o=g(h.currentTime)*(1/U.speed)}function p(t,e){e&&e.seek(t-e.timelineOffset)}function v(t){for(var e=0,n=h.animations,r=n.length;e<r;){var a=n[e],o=a.animatable,s=a.tweens,c=s.length-1,l=s[c];c&&(l=w(s,(function(e){return t<e.end}))[0]||l);for(var u=i(t-l.start-l.delay,0,l.duration)/l.duration,d=isNaN(u)?1:l.easing(u),f=l.to.strings,g=l.round,m=[],p=l.to.numbers.length,v=void 0,y=0;y<p;y++){var b=void 0,x=l.to.numbers[y],I=l.from.numbers[y]||0;b=l.isPath?Y(l.value,d*x,l.isPathTargetInsideSVG):I+d*(x-I),g&&(l.isColor&&y>2||(b=Math.round(b*g)/g)),m.push(b)}var D=f.length;if(D){v=f[0];for(var O=0;O<D;O++){f[O];var S=f[O+1],M=m[O];isNaN(M)||(v+=S?M+S:M+" ")}}else v=m[0];$[a.type](o.target,a.property,v,o.transforms),a.currentValue=v,e++}}function b(t){h[t]&&!h.passThrough&&h[t](h)}function x(t){var e=h.duration,n=h.delay,c=e-h.endDelay,m=g(t);h.progress=i(m/e*100,0,100),h.reversePlayback=m<h.currentTime,r&&function(t){if(h.reversePlayback)for(var e=l;e--;)p(t,r[e]);else for(var n=0;n<l;n++)p(t,r[n])}(m),!h.began&&h.currentTime>0&&(h.began=!0,b("begin")),!h.loopBegan&&h.currentTime>0&&(h.loopBegan=!0,b("loopBegin")),m<=n&&0!==h.currentTime&&v(0),(m>=c&&h.currentTime!==e||!e)&&v(e),m>n&&m<c?(h.changeBegan||(h.changeBegan=!0,h.changeCompleted=!1,b("changeBegin")),b("change"),v(m)):h.changeBegan&&(h.changeCompleted=!0,h.changeBegan=!1,b("changeComplete")),h.currentTime=i(m,0,e),h.began&&b("update"),t>=e&&(o=0,h.remaining&&!0!==h.remaining&&h.remaining--,h.remaining?(a=s,b("loopComplete"),h.loopBegan=!1,"alternate"===h.direction&&f()):(h.paused=!0,h.completed||(h.completed=!0,b("loopComplete"),b("complete"),!h.passThrough&&"Promise"in window&&(u(),d(h)))))}return d(h),h.reset=function(){var t=h.direction;h.passThrough=!1,h.currentTime=0,h.progress=0,h.paused=!0,h.began=!1,h.loopBegan=!1,h.changeBegan=!1,h.completed=!1,h.changeCompleted=!1,h.reversePlayback=!1,h.reversed="reverse"===t,h.remaining=h.loop,r=h.children;for(var e=l=r.length;e--;)h.children[e].reset();(h.reversed&&!0!==h.loop||"alternate"===t&&1===h.loop)&&h.remaining++,v(h.reversed?h.duration:0)},h._onDocumentVisibility=m,h.set=function(t,e){return z(t,e),h},h.tick=function(t){s=t,a||(a=s),x((s+(o-a))*U.speed)},h.seek=function(t){x(g(t))},h.pause=function(){h.paused=!0,m()},h.play=function(){h.paused&&(h.completed&&h.reset(),h.paused=!1,Z.push(h),m(),G())},h.reverse=function(){f(),h.completed=!h.reversed,m()},h.restart=function(){h.reset(),h.play()},h.remove=function(t){tt(N(t),h)},h.reset(),h.autoplay&&h.play(),h}function K(t,e){for(var n=e.length;n--;)x(t,e[n].animatable.target)&&e.splice(n,1)}function tt(t,e){var n=e.animations,r=e.children;K(t,n);for(var a=r.length;a--;){var i=r[a],o=i.animations;K(t,o),o.length||i.children.length||r.splice(a,1)}n.length||r.length||e.pause()}U.version="3.2.1",U.speed=1,U.suspendWhenDocumentHidden=!0,U.running=Z,U.remove=function(t){for(var e=N(t),n=Z.length;n--;)tt(e,Z[n])},U.get=A,U.set=z,U.convertPx=k,U.path=function(t,e){var n=c.str(t)?v(t)[0]:t,r=e||100;return function(t){return{property:t,el:n,svg:H(n),totalLength:L(n)*(r/100)}}},U.setDashoffset=function(t){var e=L(t);return t.setAttribute("stroke-dasharray",e),e},U.stagger=function(t,e){void 0===e&&(e={});var n=e.direction||"normal",r=e.easing?p(e.easing):null,a=e.grid,i=e.axis,o=e.from||0,s="first"===o,l="center"===o,u="last"===o,d=c.arr(t),h=d?parseFloat(t[0]):parseFloat(t),f=d?parseFloat(t[1]):0,g=S(d?t[1]:t)||0,m=e.start||0+(d?h:0),v=[],w=0;return function(t,e,c){if(s&&(o=0),l&&(o=(c-1)/2),u&&(o=c-1),!v.length){for(var p=0;p<c;p++){if(a){var y=l?(a[0]-1)/2:o%a[0],b=l?(a[1]-1)/2:Math.floor(o/a[0]),x=y-p%a[0],I=b-Math.floor(p/a[0]),D=Math.sqrt(x*x+I*I);"x"===i&&(D=-x),"y"===i&&(D=-I),v.push(D)}else v.push(Math.abs(o-p));w=Math.max.apply(Math,v)}r&&(v=v.map((function(t){return r(t/w)*w}))),"reverse"===n&&(v=v.map((function(t){return i?t<0?-1*t:-t:Math.abs(w-t)})))}return m+(d?(f-h)/w:h)*(Math.round(100*v[e])/100)+g}},U.timeline=function(t){void 0===t&&(t={});var e=U(t);return e.duration=0,e.add=function(r,a){var i=Z.indexOf(e),o=e.children;function s(t){t.passThrough=!0}i>-1&&Z.splice(i,1);for(var l=0;l<o.length;l++)s(o[l]);var u=O(r,D(n,t));u.targets=u.targets||t.targets;var d=e.duration;u.autoplay=!1,u.direction=e.direction,u.timelineOffset=c.und(a)?d:F(a,d),s(e),e.seek(u.timelineOffset);var h=U(u);s(h),o.push(h);var f=J(o,t);return e.delay=f.delay,e.endDelay=f.endDelay,e.duration=f.duration,e.seek(0),e.reset(),e.autoplay&&e.play(),e},e},U.easing=p,U.penner=m,U.random=function(t,e){return Math.floor(Math.random()*(e-t+1))+t};const et=U,nt={rootMargin:"0px",threshold:[0]},rt="onwheel"in document.createElement("div")?"wheel":void 0!==document.onmousewheel?"mousewheel":"DOMMouseScroll";class at{constructor(e){var n=this;t(this,"getElelementData",(function(t){let e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"data";if(t){let n=[];n=t.split(";").map((t=>t.split(":")));const r={};return n.forEach(((t,n)=>{"style"===e?r[n]={property:t[0],value:t[1]}:r[t[0]]=t[1]})),r}return!1})),t(this,"delay",(t=>new Promise((e=>setTimeout(e,t))))),t(this,"unmount",(t=>{t.unWatch()})),t(this,"parallaxController",(t=>{this.parallaxed[t.target.sscItemData.sscItem]=t.target,this.parallaxed.length&&this.parallax(),"leave"===t.target.action&&(this.parallaxed=this.parallaxed.filter((e=>e.sscItemData.sscItem!==t.target.sscItemData.sscItem)),console.log(`ssc-${t.target.sscItemData.sscItem} will be unwatched. current list`,this.parallaxed))})),t(this,"init",(()=>{this.collected=this.page.querySelectorAll(".ssc"),this.updateScreenSize(),console.log("SSC ready"),"IntersectionObserver"in window?(this.observer=new IntersectionObserver(this.screenControl,{root:null,rootMargin:nt.rootMargin,threshold:nt.threshold}),this.collected.forEach((function(t,e){t.dataset.sscItem=e,t.unWatch=this.observer.unobserve(t),t.sscItemData=t.dataset,t.sscItemOpts=this.getElelementData(t.dataset.sscProps,"sscSequence"===t.sscItemData.sscAnimation?"style":"data"),this.observer.observe(t)}),this),this.parallax(),window.addEventListener("resize",this.updateScreenSize)):console.warn("IntersectionObserver could not enabled")})),t(this,"screenControl",((t,e)=>{this.scrollDirection(),t.forEach((t=>{if(t.target.dataset.lock)return!0;if(t.target.dataset.intersection=this.windowData.viewHeight/2>t.boundingClientRect.top?"up":"down",t.target.action=t.isIntersecting!==t.target.dataset.visible?t.isIntersecting?"enter":"leave":null,t.target.dataset.visible=t.isIntersecting?"true":"false",t.target.action)switch(console.log(`SSC: ${t.target.sscItemData.sscItem} is entering with args `,t.target.sscItemOpts),t.target.sscItemData.sscAnimation){case"sscParallax":this.parallaxController(t);break;case"sscAnimation":this.handleAnimation(t,t.target.action);break;case"sscSequence":this.animationSequence(t,t.target.action);break;case"sscSvgPath":t.target.style.opacity=0,t.target.style.transition="350ms",this.animationSvgPath(t,t.target.action);break;case"sscScreenJacker":t.target.style.minHeight="100.5vh",t.target.style.margin=0,this.screenJacker(t);break;case"sscCounter":this.animateCountUp(t);break;case"sscVideoFocusPlay":this.videoFocusPlay(t);break;case"sscVideoControl":this.parallaxVideoController(t);break;case"sscVideoScroll":this.videoWheelController(t);break;case"ssc360":this.video360Controller(t);break;case"sscLevitate":this.itemLevition(t);break;default:console.log(`JS action ${t.target.sscItemData.sscAnimation} missing for ${t.target.sscItemData.sscItem}`)}})),this.windowData.lastScrollPosition=window.pageYOffset})),t(this,"videoFocusPlay",(t=>{const e=t.target.querySelector("video");return"true"===t.target.dataset.visible?this.playVideo(e):e.ended?this.stopVideo(e):e.pause()})),t(this,"playVideo",(t=>t.play())),t(this,"stopVideo",(t=>{t.pause(),t.currentTime=0})),t(this,"handleAnimation",((t,e)=>{"enter"===e&&this.checkVisibility(t.target,"between",50)?(t.target.classList.remove("animate__animated","animate__"+t.target.sscItemOpts.animationExit),t.target.classList.add("animate__animated","animate__"+t.target.sscItemOpts.animationEnter),e="leave"):"leave"!==e||this.checkVisibility(t.target,"between",50)||(t.target.classList.remove("animate__animated","animate__"+t.target.sscItemOpts.animationEnter),t.target.sscItemOpts.animationExit&&t.target.classList.add("animate__animated","animate__"+t.target.sscItemOpts.animationExit),e="enter"),this.checkVisibility(t.target,"partiallyVisible")&&this.delay(100).then((()=>{this.handleAnimation(t,e)}))})),t(this,"animationSequence",((t,e)=>{const n=t.target.sscItemOpts;if(!this.animations[t.target.sscItemData.sscItem]){let e=0;const r={};if(Object.entries(n).forEach((t=>{"duration"===t[1].property?(r[e]={...r[e],duration:t[1].value+"ms"},e++):r[e]={...r[e],[t[1].property]:t[1].value}})),r[0]){const e=et.timeline({targets:t.target,autoplay:!1,easing:"easeOutExpo",direction:"normal",complete(e){console.log(e),t.target.removeAttribute("data-visible"),t.target.removeAttribute("data-ssc-lock")}});Object.entries(r).forEach((t=>{e.add(t[1])})),this.animations[t.target.sscItemData.sscItem]=e}}"enter"===e&&this.checkVisibility(t.target,"between",25)?(e="leave",this.animations[t.target.sscItemData.sscItem].play()):"leave"!==e||this.checkVisibility(t.target,"between",25)||(e="enter",this.animations[t.target.sscItemData.sscItem].pause()),this.checkVisibility(t.target,"partiallyVisible")&&this.delay(100).then((()=>{this.animationSequence(t,e)}))})),t(this,"animationSvgPath",(function(t,e){let r=arguments.length>2&&void 0!==arguments[2]&&arguments[2],a=r||et;const i=t.target.querySelectorAll("path");"enter"===e&&n.checkVisibility(t.target,"between",25)?(t.target.style.opacity=1,e="leave",a.began&&0!==a.currentTime?a.reverse():a=et({targets:i,strokeDashoffset:[et.setDashoffset,0],easing:"easeInOutSine",duration:t.target.sscItemOpts.duration,delay:(e,n)=>n*t.target.sscItemOpts.duration/i.length,direction:"normal"})):"leave"!==e||n.checkVisibility(t.target,"between",25)||(e="enter",a.completed||"function"!=typeof a.reverse?a=et({targets:i,strokeDashoffset:[et.setDashoffset,0],easing:"easeInOutSine",duration:t.target.sscItemOpts.duration,delay:(e,n)=>n*t.target.sscItemOpts.duration/i.length,direction:"reverse",complete:()=>{if("leave"===e)return t.target.style.opacity=0}}):a.reverse()),n.checkVisibility(t.target,"partiallyVisible")&&n.delay(100).then((()=>{n.animationSvgPath(t,e,a)}))})),t(this,"itemLevition",(t=>t.target.style.backgroundColor="red")),t(this,"image360",(t=>t.target.style.backgroundColor="red")),t(this,"screenJacker",(t=>{if("enter"===t.target.action){if(this.checkVisibility(t.target,"between",10))return this.scrollToElement(t.target);this.delay(100).then((()=>{this.screenJacker(t)}))}})),t(this,"videoOnWheel",(t=>{t.preventDefault();const e=t.target;if(e.currentTime<=0&&t.deltaY<0||e.currentTime===e.duration&&t.deltaY>0)return console.log("unlocked"),e.removeEventListener(rt,this.videoOnWheel),!0;e.readyState>=1&&window.requestAnimationFrame((()=>{const n=t.deltaY>0?1/29.7:1/29.7*-1;e.currentTime=e.currentTime+n}))})),t(this,"scaleImage",(t=>new Promise((e=>{let n=1;return t.onmousewheel=e=>{e.preventDefault(),n+=-.01*e.deltaY,n=Math.min(Math.max(.125,n),4),t.style.transform=`scale(${n})`},e})))),this.page=e.page||document.body,this.touchPos,this.updateScreenSize=this.updateScreenSize.bind(this),this.observer=[],this.collected=[],this.scheduledAnimationFrame=!1,this.parallaxed=[],this.parallax=this.parallax.bind(this),this.parallaxFrameID=0,this.videoParallaxed=[],this.videoParallaxFrameID=0,this.parallaxVideo=this.parallaxVideo.bind(this),this.animations=[],this.video360=[],this.refreshIntervalID=0,this.scrollAnim=0,this.windowData={viewHeight:window.screen.height,lastScrollPosition:window.pageYOffset},this.page.ontouchstart=this.touchstartEvent.bind(this),this.page.ontouchmove=this.ontouchmoveEvent.bind(this),this.init()}touchstartEvent(t){this.touchPos=t.changedTouches[0].clientY}ontouchmoveEvent(t){const e=t.changedTouches[0].clientY;e>this.touchPos&&console.log("finger moving down"),e<this.touchPos&&console.log("finger moving up")}updateScreenSize(){(async()=>await(()=>console.log("Old Screensize",this.windowData)))().then((()=>this.delay(250))).then((()=>{this.windowData={viewHeight:window.screen.height,lastScrollPosition:window.pageYOffset},console.warn("New Screensize",this.windowData)}))}checkVisibility(t){let e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:"crossing",n=arguments.length>2&&void 0!==arguments[2]?arguments[2]:100;const r=t.getBoundingClientRect();switch(e){case"partiallyVisible":return this.isPartiallyVisible(r);case"visible":return this.isFullyVisible(r);case"crossing":return this.isCrossing(r,n);case"between":return this.isBeetween(r,n)}}isPartiallyVisible(t){return t.top<this.windowData.viewHeight&&t.bottom>0}isFullyVisible(t){return t.top>=0&&t.bottom<=this.windowData.viewHeight}isCrossing(t,e){const n=this.windowData.viewHeight*(.01*e);return t.top<n&&t.bottom>n}isBeetween(t,e){const n=this.windowData.viewHeight*(.005*e),r=t.top+.5*t.height;return r>n&&r<this.windowData.viewHeight-n}scrollDirection(){this.windowData.lastScrollPosition<window.pageYOffset?document.body.dataset.direction="down":this.windowData.lastScrollPosition>window.pageYOffset&&(document.body.dataset.direction="up")}parallax(){if(void 0!==this.parallaxed&&this.parallaxed.length){if(window.pageYOffset===this.windowData.lastScrollPosition)return void(this.parallaxFrameID=window.requestAnimationFrame(this.parallax));this.parallaxed.forEach((t=>{const e=this.windowData.viewHeight-t.getBoundingClientRect().top;if(e>0){const n=t.sscItemOpts.speed*t.sscItemOpts.level*e*-.2;t.style.transform="translate3d("+("Y"===t.sscItemOpts.direction?"0,"+n+"px":n+"px,0")+",0)"}this.parallaxFrameID=window.requestAnimationFrame(this.parallax),this.windowData.lastScrollPosition=window.pageYOffset}))}return!1}handleRefreshInterval(){}initMutationObserver(t,e){t.forEach((function(t){t.addedNodes.forEach((function(t){if("function"!=typeof t.getElementsByTagName)return;const e=t.querySelectorAll(".ssc");e.length&&e.forEach((function(t){this.observer.observe(t)}))}))}))}interceptor(t){this.mutationObserver=new MutationObserver(this.initMutationObserver),this.mutationObserver.observe(t,{attributes:!1,childList:!0,subtree:!0})}animateCountUp(t){if(t.target.dataset.sscCount)return!0;let e=0;const n=t.target.sscItemOpts.duration||5e3,r=1e3/60,a=t.target.lastChild,i=parseInt(a.innerHTML,10)||100,o=Math.round(n/r);t.target.dataset.sscCount="true";const s=setInterval((()=>{e++;const n=(r=e/o)*(2-r);var r;a.innerHTML=Math.round(i*n),e===o&&(t.target.removeAttribute("data-ssc-count"),clearInterval(s))}),r)}onScroll(t){let e=!1,n=0;const r=document.body,a=document.documentElement,i=Math.max(r.scrollHeight,r.offsetHeight,a.clientHeight,a.scrollHeight,a.offsetHeight);function o(){n=window.scrollY,t&&t(n,i),e||window.requestAnimationFrame(s),e=!0}function s(){e=!1,this.windowData.scrollOffset=n}o(),window.onscroll=o}scrollToElement(t,e){const n=e||0,r=t.getBoundingClientRect(),a=r.top+n;("down"===document.body.dataset.direction&&r.top+window.scrollY>this.windowData.lastScrollPosition||"up"===document.body.dataset.direction&&r.top+window.scrollY<this.windowData.lastScrollPosition)&&et({targets:[window.document.scrollingElement||window.document.body||window.document.documentElement],scrollTop:"+="+a,easing:"easeInOutSine",duration:1600})}parallaxVideo(){if(void 0!==this.videoParallaxed||Object.keys(this.videoParallaxed).length){if(window.pageYOffset===this.windowData.lastScrollPosition)return void(this.videoParallaxFrameID=window.requestAnimationFrame(this.parallaxVideo));this.windowData.lastScrollPosition=window.pageYOffset,this.videoParallaxed.forEach((t=>{if(t.readyState<3)return window.requestAnimationFrame(this.parallaxVideo);const e=t.getBoundingClientRect();t.currentTime=((1+-(e.top+this.windowData.viewHeight)/(2*this.windowData.viewHeight))*t.videoLenght).toFixed(2).toString(),this.videoParallaxFrameID=window.requestAnimationFrame(this.parallaxVideo)}))}return!1}parallaxVideoController(t){const e=t.target.querySelector("video");"enter"===t.target.action?(this.videoParallaxed[t.target.sscItemData.sscItem]=e,this.videoParallaxed[t.target.sscItemData.sscItem].videoLenght=e.duration,this.videoParallaxed[t.target.sscItemData.sscItem].sscItemData=t.target.sscItemData,this.parallaxVideo()):"leave"===t.target.action&&(this.videoParallaxed=this.videoParallaxed.filter((e=>e.sscItemData.sscItem!==t.target.sscItemData.sscItem)))}hasMouseOver(t){const e=t,n=t,r=t.target.getBoundingClientRect();return r.left<e<r.right&&r.top<n<r.bottom}videoWheelController(t){const e=t.target.querySelector("video");e.controls=!1,e.muted=!0,e.pause(),e.addEventListener(rt,this.videoOnWheel)}handleVideo360(t){const e=t.target;window.requestAnimationFrame((function(){const n=e.getBoundingClientRect();e.readyState>1&&(e.currentTime=(t.clientX-n.left)/n.width*e.duration)}))}video360Controller(t){const e=t.target.querySelector("video");"enter"===t.target.action?e.onmousemove=this.handleVideo360:"leave"===t.target.action&&(e.onmousemove=null)}}window.addEventListener("load",(()=>{const t={page:document.querySelector(".wp-site-blocks")};window.screenControl,window.screenControl=new at(t)}))})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./node_modules/animejs/lib/anime.es.js":
+/*!**********************************************!*\
+  !*** ./node_modules/animejs/lib/anime.es.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/*
+ * anime.js v3.2.1
+ * (c) 2020 Julian Garnier
+ * Released under the MIT license
+ * animejs.com
+ */
+
+// Defaults
+
+var defaultInstanceSettings = {
+  update: null,
+  begin: null,
+  loopBegin: null,
+  changeBegin: null,
+  change: null,
+  changeComplete: null,
+  loopComplete: null,
+  complete: null,
+  loop: 1,
+  direction: 'normal',
+  autoplay: true,
+  timelineOffset: 0
+};
+
+var defaultTweenSettings = {
+  duration: 1000,
+  delay: 0,
+  endDelay: 0,
+  easing: 'easeOutElastic(1, .5)',
+  round: 0
+};
+
+var validTransforms = ['translateX', 'translateY', 'translateZ', 'rotate', 'rotateX', 'rotateY', 'rotateZ', 'scale', 'scaleX', 'scaleY', 'scaleZ', 'skew', 'skewX', 'skewY', 'perspective', 'matrix', 'matrix3d'];
+
+// Caching
+
+var cache = {
+  CSS: {},
+  springs: {}
+};
+
+// Utils
+
+function minMax(val, min, max) {
+  return Math.min(Math.max(val, min), max);
+}
+
+function stringContains(str, text) {
+  return str.indexOf(text) > -1;
+}
+
+function applyArguments(func, args) {
+  return func.apply(null, args);
+}
+
+var is = {
+  arr: function (a) { return Array.isArray(a); },
+  obj: function (a) { return stringContains(Object.prototype.toString.call(a), 'Object'); },
+  pth: function (a) { return is.obj(a) && a.hasOwnProperty('totalLength'); },
+  svg: function (a) { return a instanceof SVGElement; },
+  inp: function (a) { return a instanceof HTMLInputElement; },
+  dom: function (a) { return a.nodeType || is.svg(a); },
+  str: function (a) { return typeof a === 'string'; },
+  fnc: function (a) { return typeof a === 'function'; },
+  und: function (a) { return typeof a === 'undefined'; },
+  nil: function (a) { return is.und(a) || a === null; },
+  hex: function (a) { return /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(a); },
+  rgb: function (a) { return /^rgb/.test(a); },
+  hsl: function (a) { return /^hsl/.test(a); },
+  col: function (a) { return (is.hex(a) || is.rgb(a) || is.hsl(a)); },
+  key: function (a) { return !defaultInstanceSettings.hasOwnProperty(a) && !defaultTweenSettings.hasOwnProperty(a) && a !== 'targets' && a !== 'keyframes'; },
+};
+
+// Easings
+
+function parseEasingParameters(string) {
+  var match = /\(([^)]+)\)/.exec(string);
+  return match ? match[1].split(',').map(function (p) { return parseFloat(p); }) : [];
+}
+
+// Spring solver inspired by Webkit Copyright © 2016 Apple Inc. All rights reserved. https://webkit.org/demos/spring/spring.js
+
+function spring(string, duration) {
+
+  var params = parseEasingParameters(string);
+  var mass = minMax(is.und(params[0]) ? 1 : params[0], .1, 100);
+  var stiffness = minMax(is.und(params[1]) ? 100 : params[1], .1, 100);
+  var damping = minMax(is.und(params[2]) ? 10 : params[2], .1, 100);
+  var velocity =  minMax(is.und(params[3]) ? 0 : params[3], .1, 100);
+  var w0 = Math.sqrt(stiffness / mass);
+  var zeta = damping / (2 * Math.sqrt(stiffness * mass));
+  var wd = zeta < 1 ? w0 * Math.sqrt(1 - zeta * zeta) : 0;
+  var a = 1;
+  var b = zeta < 1 ? (zeta * w0 + -velocity) / wd : -velocity + w0;
+
+  function solver(t) {
+    var progress = duration ? (duration * t) / 1000 : t;
+    if (zeta < 1) {
+      progress = Math.exp(-progress * zeta * w0) * (a * Math.cos(wd * progress) + b * Math.sin(wd * progress));
+    } else {
+      progress = (a + b * progress) * Math.exp(-progress * w0);
+    }
+    if (t === 0 || t === 1) { return t; }
+    return 1 - progress;
+  }
+
+  function getDuration() {
+    var cached = cache.springs[string];
+    if (cached) { return cached; }
+    var frame = 1/6;
+    var elapsed = 0;
+    var rest = 0;
+    while(true) {
+      elapsed += frame;
+      if (solver(elapsed) === 1) {
+        rest++;
+        if (rest >= 16) { break; }
+      } else {
+        rest = 0;
+      }
+    }
+    var duration = elapsed * frame * 1000;
+    cache.springs[string] = duration;
+    return duration;
+  }
+
+  return duration ? solver : getDuration;
+
+}
+
+// Basic steps easing implementation https://developer.mozilla.org/fr/docs/Web/CSS/transition-timing-function
+
+function steps(steps) {
+  if ( steps === void 0 ) steps = 10;
+
+  return function (t) { return Math.ceil((minMax(t, 0.000001, 1)) * steps) * (1 / steps); };
+}
+
+// BezierEasing https://github.com/gre/bezier-easing
+
+var bezier = (function () {
+
+  var kSplineTableSize = 11;
+  var kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
+
+  function A(aA1, aA2) { return 1.0 - 3.0 * aA2 + 3.0 * aA1 }
+  function B(aA1, aA2) { return 3.0 * aA2 - 6.0 * aA1 }
+  function C(aA1)      { return 3.0 * aA1 }
+
+  function calcBezier(aT, aA1, aA2) { return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT }
+  function getSlope(aT, aA1, aA2) { return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1) }
+
+  function binarySubdivide(aX, aA, aB, mX1, mX2) {
+    var currentX, currentT, i = 0;
+    do {
+      currentT = aA + (aB - aA) / 2.0;
+      currentX = calcBezier(currentT, mX1, mX2) - aX;
+      if (currentX > 0.0) { aB = currentT; } else { aA = currentT; }
+    } while (Math.abs(currentX) > 0.0000001 && ++i < 10);
+    return currentT;
+  }
+
+  function newtonRaphsonIterate(aX, aGuessT, mX1, mX2) {
+    for (var i = 0; i < 4; ++i) {
+      var currentSlope = getSlope(aGuessT, mX1, mX2);
+      if (currentSlope === 0.0) { return aGuessT; }
+      var currentX = calcBezier(aGuessT, mX1, mX2) - aX;
+      aGuessT -= currentX / currentSlope;
+    }
+    return aGuessT;
+  }
+
+  function bezier(mX1, mY1, mX2, mY2) {
+
+    if (!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) { return; }
+    var sampleValues = new Float32Array(kSplineTableSize);
+
+    if (mX1 !== mY1 || mX2 !== mY2) {
+      for (var i = 0; i < kSplineTableSize; ++i) {
+        sampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
+      }
+    }
+
+    function getTForX(aX) {
+
+      var intervalStart = 0;
+      var currentSample = 1;
+      var lastSample = kSplineTableSize - 1;
+
+      for (; currentSample !== lastSample && sampleValues[currentSample] <= aX; ++currentSample) {
+        intervalStart += kSampleStepSize;
+      }
+
+      --currentSample;
+
+      var dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
+      var guessForT = intervalStart + dist * kSampleStepSize;
+      var initialSlope = getSlope(guessForT, mX1, mX2);
+
+      if (initialSlope >= 0.001) {
+        return newtonRaphsonIterate(aX, guessForT, mX1, mX2);
+      } else if (initialSlope === 0.0) {
+        return guessForT;
+      } else {
+        return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
+      }
+
+    }
+
+    return function (x) {
+      if (mX1 === mY1 && mX2 === mY2) { return x; }
+      if (x === 0 || x === 1) { return x; }
+      return calcBezier(getTForX(x), mY1, mY2);
+    }
+
+  }
+
+  return bezier;
+
+})();
+
+var penner = (function () {
+
+  // Based on jQuery UI's implemenation of easing equations from Robert Penner (http://www.robertpenner.com/easing)
+
+  var eases = { linear: function () { return function (t) { return t; }; } };
+
+  var functionEasings = {
+    Sine: function () { return function (t) { return 1 - Math.cos(t * Math.PI / 2); }; },
+    Circ: function () { return function (t) { return 1 - Math.sqrt(1 - t * t); }; },
+    Back: function () { return function (t) { return t * t * (3 * t - 2); }; },
+    Bounce: function () { return function (t) {
+      var pow2, b = 4;
+      while (t < (( pow2 = Math.pow(2, --b)) - 1) / 11) {}
+      return 1 / Math.pow(4, 3 - b) - 7.5625 * Math.pow(( pow2 * 3 - 2 ) / 22 - t, 2)
+    }; },
+    Elastic: function (amplitude, period) {
+      if ( amplitude === void 0 ) amplitude = 1;
+      if ( period === void 0 ) period = .5;
+
+      var a = minMax(amplitude, 1, 10);
+      var p = minMax(period, .1, 2);
+      return function (t) {
+        return (t === 0 || t === 1) ? t : 
+          -a * Math.pow(2, 10 * (t - 1)) * Math.sin((((t - 1) - (p / (Math.PI * 2) * Math.asin(1 / a))) * (Math.PI * 2)) / p);
+      }
+    }
+  };
+
+  var baseEasings = ['Quad', 'Cubic', 'Quart', 'Quint', 'Expo'];
+
+  baseEasings.forEach(function (name, i) {
+    functionEasings[name] = function () { return function (t) { return Math.pow(t, i + 2); }; };
+  });
+
+  Object.keys(functionEasings).forEach(function (name) {
+    var easeIn = functionEasings[name];
+    eases['easeIn' + name] = easeIn;
+    eases['easeOut' + name] = function (a, b) { return function (t) { return 1 - easeIn(a, b)(1 - t); }; };
+    eases['easeInOut' + name] = function (a, b) { return function (t) { return t < 0.5 ? easeIn(a, b)(t * 2) / 2 : 
+      1 - easeIn(a, b)(t * -2 + 2) / 2; }; };
+    eases['easeOutIn' + name] = function (a, b) { return function (t) { return t < 0.5 ? (1 - easeIn(a, b)(1 - t * 2)) / 2 : 
+      (easeIn(a, b)(t * 2 - 1) + 1) / 2; }; };
+  });
+
+  return eases;
+
+})();
+
+function parseEasings(easing, duration) {
+  if (is.fnc(easing)) { return easing; }
+  var name = easing.split('(')[0];
+  var ease = penner[name];
+  var args = parseEasingParameters(easing);
+  switch (name) {
+    case 'spring' : return spring(easing, duration);
+    case 'cubicBezier' : return applyArguments(bezier, args);
+    case 'steps' : return applyArguments(steps, args);
+    default : return applyArguments(ease, args);
+  }
+}
+
+// Strings
+
+function selectString(str) {
+  try {
+    var nodes = document.querySelectorAll(str);
+    return nodes;
+  } catch(e) {
+    return;
+  }
+}
+
+// Arrays
+
+function filterArray(arr, callback) {
+  var len = arr.length;
+  var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+  var result = [];
+  for (var i = 0; i < len; i++) {
+    if (i in arr) {
+      var val = arr[i];
+      if (callback.call(thisArg, val, i, arr)) {
+        result.push(val);
+      }
+    }
+  }
+  return result;
+}
+
+function flattenArray(arr) {
+  return arr.reduce(function (a, b) { return a.concat(is.arr(b) ? flattenArray(b) : b); }, []);
+}
+
+function toArray(o) {
+  if (is.arr(o)) { return o; }
+  if (is.str(o)) { o = selectString(o) || o; }
+  if (o instanceof NodeList || o instanceof HTMLCollection) { return [].slice.call(o); }
+  return [o];
+}
+
+function arrayContains(arr, val) {
+  return arr.some(function (a) { return a === val; });
+}
+
+// Objects
+
+function cloneObject(o) {
+  var clone = {};
+  for (var p in o) { clone[p] = o[p]; }
+  return clone;
+}
+
+function replaceObjectProps(o1, o2) {
+  var o = cloneObject(o1);
+  for (var p in o1) { o[p] = o2.hasOwnProperty(p) ? o2[p] : o1[p]; }
+  return o;
+}
+
+function mergeObjects(o1, o2) {
+  var o = cloneObject(o1);
+  for (var p in o2) { o[p] = is.und(o1[p]) ? o2[p] : o1[p]; }
+  return o;
+}
+
+// Colors
+
+function rgbToRgba(rgbValue) {
+  var rgb = /rgb\((\d+,\s*[\d]+,\s*[\d]+)\)/g.exec(rgbValue);
+  return rgb ? ("rgba(" + (rgb[1]) + ",1)") : rgbValue;
+}
+
+function hexToRgba(hexValue) {
+  var rgx = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  var hex = hexValue.replace(rgx, function (m, r, g, b) { return r + r + g + g + b + b; } );
+  var rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  var r = parseInt(rgb[1], 16);
+  var g = parseInt(rgb[2], 16);
+  var b = parseInt(rgb[3], 16);
+  return ("rgba(" + r + "," + g + "," + b + ",1)");
+}
+
+function hslToRgba(hslValue) {
+  var hsl = /hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g.exec(hslValue) || /hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)/g.exec(hslValue);
+  var h = parseInt(hsl[1], 10) / 360;
+  var s = parseInt(hsl[2], 10) / 100;
+  var l = parseInt(hsl[3], 10) / 100;
+  var a = hsl[4] || 1;
+  function hue2rgb(p, q, t) {
+    if (t < 0) { t += 1; }
+    if (t > 1) { t -= 1; }
+    if (t < 1/6) { return p + (q - p) * 6 * t; }
+    if (t < 1/2) { return q; }
+    if (t < 2/3) { return p + (q - p) * (2/3 - t) * 6; }
+    return p;
+  }
+  var r, g, b;
+  if (s == 0) {
+    r = g = b = l;
+  } else {
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return ("rgba(" + (r * 255) + "," + (g * 255) + "," + (b * 255) + "," + a + ")");
+}
+
+function colorToRgb(val) {
+  if (is.rgb(val)) { return rgbToRgba(val); }
+  if (is.hex(val)) { return hexToRgba(val); }
+  if (is.hsl(val)) { return hslToRgba(val); }
+}
+
+// Units
+
+function getUnit(val) {
+  var split = /[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?(%|px|pt|em|rem|in|cm|mm|ex|ch|pc|vw|vh|vmin|vmax|deg|rad|turn)?$/.exec(val);
+  if (split) { return split[1]; }
+}
+
+function getTransformUnit(propName) {
+  if (stringContains(propName, 'translate') || propName === 'perspective') { return 'px'; }
+  if (stringContains(propName, 'rotate') || stringContains(propName, 'skew')) { return 'deg'; }
+}
+
+// Values
+
+function getFunctionValue(val, animatable) {
+  if (!is.fnc(val)) { return val; }
+  return val(animatable.target, animatable.id, animatable.total);
+}
+
+function getAttribute(el, prop) {
+  return el.getAttribute(prop);
+}
+
+function convertPxToUnit(el, value, unit) {
+  var valueUnit = getUnit(value);
+  if (arrayContains([unit, 'deg', 'rad', 'turn'], valueUnit)) { return value; }
+  var cached = cache.CSS[value + unit];
+  if (!is.und(cached)) { return cached; }
+  var baseline = 100;
+  var tempEl = document.createElement(el.tagName);
+  var parentEl = (el.parentNode && (el.parentNode !== document)) ? el.parentNode : document.body;
+  parentEl.appendChild(tempEl);
+  tempEl.style.position = 'absolute';
+  tempEl.style.width = baseline + unit;
+  var factor = baseline / tempEl.offsetWidth;
+  parentEl.removeChild(tempEl);
+  var convertedUnit = factor * parseFloat(value);
+  cache.CSS[value + unit] = convertedUnit;
+  return convertedUnit;
+}
+
+function getCSSValue(el, prop, unit) {
+  if (prop in el.style) {
+    var uppercasePropName = prop.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    var value = el.style[prop] || getComputedStyle(el).getPropertyValue(uppercasePropName) || '0';
+    return unit ? convertPxToUnit(el, value, unit) : value;
+  }
+}
+
+function getAnimationType(el, prop) {
+  if (is.dom(el) && !is.inp(el) && (!is.nil(getAttribute(el, prop)) || (is.svg(el) && el[prop]))) { return 'attribute'; }
+  if (is.dom(el) && arrayContains(validTransforms, prop)) { return 'transform'; }
+  if (is.dom(el) && (prop !== 'transform' && getCSSValue(el, prop))) { return 'css'; }
+  if (el[prop] != null) { return 'object'; }
+}
+
+function getElementTransforms(el) {
+  if (!is.dom(el)) { return; }
+  var str = el.style.transform || '';
+  var reg  = /(\w+)\(([^)]*)\)/g;
+  var transforms = new Map();
+  var m; while (m = reg.exec(str)) { transforms.set(m[1], m[2]); }
+  return transforms;
+}
+
+function getTransformValue(el, propName, animatable, unit) {
+  var defaultVal = stringContains(propName, 'scale') ? 1 : 0 + getTransformUnit(propName);
+  var value = getElementTransforms(el).get(propName) || defaultVal;
+  if (animatable) {
+    animatable.transforms.list.set(propName, value);
+    animatable.transforms['last'] = propName;
+  }
+  return unit ? convertPxToUnit(el, value, unit) : value;
+}
+
+function getOriginalTargetValue(target, propName, unit, animatable) {
+  switch (getAnimationType(target, propName)) {
+    case 'transform': return getTransformValue(target, propName, animatable, unit);
+    case 'css': return getCSSValue(target, propName, unit);
+    case 'attribute': return getAttribute(target, propName);
+    default: return target[propName] || 0;
+  }
+}
+
+function getRelativeValue(to, from) {
+  var operator = /^(\*=|\+=|-=)/.exec(to);
+  if (!operator) { return to; }
+  var u = getUnit(to) || 0;
+  var x = parseFloat(from);
+  var y = parseFloat(to.replace(operator[0], ''));
+  switch (operator[0][0]) {
+    case '+': return x + y + u;
+    case '-': return x - y + u;
+    case '*': return x * y + u;
+  }
+}
+
+function validateValue(val, unit) {
+  if (is.col(val)) { return colorToRgb(val); }
+  if (/\s/g.test(val)) { return val; }
+  var originalUnit = getUnit(val);
+  var unitLess = originalUnit ? val.substr(0, val.length - originalUnit.length) : val;
+  if (unit) { return unitLess + unit; }
+  return unitLess;
+}
+
+// getTotalLength() equivalent for circle, rect, polyline, polygon and line shapes
+// adapted from https://gist.github.com/SebLambla/3e0550c496c236709744
+
+function getDistance(p1, p2) {
+  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+}
+
+function getCircleLength(el) {
+  return Math.PI * 2 * getAttribute(el, 'r');
+}
+
+function getRectLength(el) {
+  return (getAttribute(el, 'width') * 2) + (getAttribute(el, 'height') * 2);
+}
+
+function getLineLength(el) {
+  return getDistance(
+    {x: getAttribute(el, 'x1'), y: getAttribute(el, 'y1')}, 
+    {x: getAttribute(el, 'x2'), y: getAttribute(el, 'y2')}
+  );
+}
+
+function getPolylineLength(el) {
+  var points = el.points;
+  var totalLength = 0;
+  var previousPos;
+  for (var i = 0 ; i < points.numberOfItems; i++) {
+    var currentPos = points.getItem(i);
+    if (i > 0) { totalLength += getDistance(previousPos, currentPos); }
+    previousPos = currentPos;
+  }
+  return totalLength;
+}
+
+function getPolygonLength(el) {
+  var points = el.points;
+  return getPolylineLength(el) + getDistance(points.getItem(points.numberOfItems - 1), points.getItem(0));
+}
+
+// Path animation
+
+function getTotalLength(el) {
+  if (el.getTotalLength) { return el.getTotalLength(); }
+  switch(el.tagName.toLowerCase()) {
+    case 'circle': return getCircleLength(el);
+    case 'rect': return getRectLength(el);
+    case 'line': return getLineLength(el);
+    case 'polyline': return getPolylineLength(el);
+    case 'polygon': return getPolygonLength(el);
+  }
+}
+
+function setDashoffset(el) {
+  var pathLength = getTotalLength(el);
+  el.setAttribute('stroke-dasharray', pathLength);
+  return pathLength;
+}
+
+// Motion path
+
+function getParentSvgEl(el) {
+  var parentEl = el.parentNode;
+  while (is.svg(parentEl)) {
+    if (!is.svg(parentEl.parentNode)) { break; }
+    parentEl = parentEl.parentNode;
+  }
+  return parentEl;
+}
+
+function getParentSvg(pathEl, svgData) {
+  var svg = svgData || {};
+  var parentSvgEl = svg.el || getParentSvgEl(pathEl);
+  var rect = parentSvgEl.getBoundingClientRect();
+  var viewBoxAttr = getAttribute(parentSvgEl, 'viewBox');
+  var width = rect.width;
+  var height = rect.height;
+  var viewBox = svg.viewBox || (viewBoxAttr ? viewBoxAttr.split(' ') : [0, 0, width, height]);
+  return {
+    el: parentSvgEl,
+    viewBox: viewBox,
+    x: viewBox[0] / 1,
+    y: viewBox[1] / 1,
+    w: width,
+    h: height,
+    vW: viewBox[2],
+    vH: viewBox[3]
+  }
+}
+
+function getPath(path, percent) {
+  var pathEl = is.str(path) ? selectString(path)[0] : path;
+  var p = percent || 100;
+  return function(property) {
+    return {
+      property: property,
+      el: pathEl,
+      svg: getParentSvg(pathEl),
+      totalLength: getTotalLength(pathEl) * (p / 100)
+    }
+  }
+}
+
+function getPathProgress(path, progress, isPathTargetInsideSVG) {
+  function point(offset) {
+    if ( offset === void 0 ) offset = 0;
+
+    var l = progress + offset >= 1 ? progress + offset : 0;
+    return path.el.getPointAtLength(l);
+  }
+  var svg = getParentSvg(path.el, path.svg);
+  var p = point();
+  var p0 = point(-1);
+  var p1 = point(+1);
+  var scaleX = isPathTargetInsideSVG ? 1 : svg.w / svg.vW;
+  var scaleY = isPathTargetInsideSVG ? 1 : svg.h / svg.vH;
+  switch (path.property) {
+    case 'x': return (p.x - svg.x) * scaleX;
+    case 'y': return (p.y - svg.y) * scaleY;
+    case 'angle': return Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180 / Math.PI;
+  }
+}
+
+// Decompose value
+
+function decomposeValue(val, unit) {
+  // const rgx = /-?\d*\.?\d+/g; // handles basic numbers
+  // const rgx = /[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g; // handles exponents notation
+  var rgx = /[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g; // handles exponents notation
+  var value = validateValue((is.pth(val) ? val.totalLength : val), unit) + '';
+  return {
+    original: value,
+    numbers: value.match(rgx) ? value.match(rgx).map(Number) : [0],
+    strings: (is.str(val) || unit) ? value.split(rgx) : []
+  }
+}
+
+// Animatables
+
+function parseTargets(targets) {
+  var targetsArray = targets ? (flattenArray(is.arr(targets) ? targets.map(toArray) : toArray(targets))) : [];
+  return filterArray(targetsArray, function (item, pos, self) { return self.indexOf(item) === pos; });
+}
+
+function getAnimatables(targets) {
+  var parsed = parseTargets(targets);
+  return parsed.map(function (t, i) {
+    return {target: t, id: i, total: parsed.length, transforms: { list: getElementTransforms(t) } };
+  });
+}
+
+// Properties
+
+function normalizePropertyTweens(prop, tweenSettings) {
+  var settings = cloneObject(tweenSettings);
+  // Override duration if easing is a spring
+  if (/^spring/.test(settings.easing)) { settings.duration = spring(settings.easing); }
+  if (is.arr(prop)) {
+    var l = prop.length;
+    var isFromTo = (l === 2 && !is.obj(prop[0]));
+    if (!isFromTo) {
+      // Duration divided by the number of tweens
+      if (!is.fnc(tweenSettings.duration)) { settings.duration = tweenSettings.duration / l; }
+    } else {
+      // Transform [from, to] values shorthand to a valid tween value
+      prop = {value: prop};
+    }
+  }
+  var propArray = is.arr(prop) ? prop : [prop];
+  return propArray.map(function (v, i) {
+    var obj = (is.obj(v) && !is.pth(v)) ? v : {value: v};
+    // Default delay value should only be applied to the first tween
+    if (is.und(obj.delay)) { obj.delay = !i ? tweenSettings.delay : 0; }
+    // Default endDelay value should only be applied to the last tween
+    if (is.und(obj.endDelay)) { obj.endDelay = i === propArray.length - 1 ? tweenSettings.endDelay : 0; }
+    return obj;
+  }).map(function (k) { return mergeObjects(k, settings); });
+}
+
+
+function flattenKeyframes(keyframes) {
+  var propertyNames = filterArray(flattenArray(keyframes.map(function (key) { return Object.keys(key); })), function (p) { return is.key(p); })
+  .reduce(function (a,b) { if (a.indexOf(b) < 0) { a.push(b); } return a; }, []);
+  var properties = {};
+  var loop = function ( i ) {
+    var propName = propertyNames[i];
+    properties[propName] = keyframes.map(function (key) {
+      var newKey = {};
+      for (var p in key) {
+        if (is.key(p)) {
+          if (p == propName) { newKey.value = key[p]; }
+        } else {
+          newKey[p] = key[p];
+        }
+      }
+      return newKey;
+    });
+  };
+
+  for (var i = 0; i < propertyNames.length; i++) loop( i );
+  return properties;
+}
+
+function getProperties(tweenSettings, params) {
+  var properties = [];
+  var keyframes = params.keyframes;
+  if (keyframes) { params = mergeObjects(flattenKeyframes(keyframes), params); }
+  for (var p in params) {
+    if (is.key(p)) {
+      properties.push({
+        name: p,
+        tweens: normalizePropertyTweens(params[p], tweenSettings)
+      });
+    }
+  }
+  return properties;
+}
+
+// Tweens
+
+function normalizeTweenValues(tween, animatable) {
+  var t = {};
+  for (var p in tween) {
+    var value = getFunctionValue(tween[p], animatable);
+    if (is.arr(value)) {
+      value = value.map(function (v) { return getFunctionValue(v, animatable); });
+      if (value.length === 1) { value = value[0]; }
+    }
+    t[p] = value;
+  }
+  t.duration = parseFloat(t.duration);
+  t.delay = parseFloat(t.delay);
+  return t;
+}
+
+function normalizeTweens(prop, animatable) {
+  var previousTween;
+  return prop.tweens.map(function (t) {
+    var tween = normalizeTweenValues(t, animatable);
+    var tweenValue = tween.value;
+    var to = is.arr(tweenValue) ? tweenValue[1] : tweenValue;
+    var toUnit = getUnit(to);
+    var originalValue = getOriginalTargetValue(animatable.target, prop.name, toUnit, animatable);
+    var previousValue = previousTween ? previousTween.to.original : originalValue;
+    var from = is.arr(tweenValue) ? tweenValue[0] : previousValue;
+    var fromUnit = getUnit(from) || getUnit(originalValue);
+    var unit = toUnit || fromUnit;
+    if (is.und(to)) { to = previousValue; }
+    tween.from = decomposeValue(from, unit);
+    tween.to = decomposeValue(getRelativeValue(to, from), unit);
+    tween.start = previousTween ? previousTween.end : 0;
+    tween.end = tween.start + tween.delay + tween.duration + tween.endDelay;
+    tween.easing = parseEasings(tween.easing, tween.duration);
+    tween.isPath = is.pth(tweenValue);
+    tween.isPathTargetInsideSVG = tween.isPath && is.svg(animatable.target);
+    tween.isColor = is.col(tween.from.original);
+    if (tween.isColor) { tween.round = 1; }
+    previousTween = tween;
+    return tween;
+  });
+}
+
+// Tween progress
+
+var setProgressValue = {
+  css: function (t, p, v) { return t.style[p] = v; },
+  attribute: function (t, p, v) { return t.setAttribute(p, v); },
+  object: function (t, p, v) { return t[p] = v; },
+  transform: function (t, p, v, transforms, manual) {
+    transforms.list.set(p, v);
+    if (p === transforms.last || manual) {
+      var str = '';
+      transforms.list.forEach(function (value, prop) { str += prop + "(" + value + ") "; });
+      t.style.transform = str;
+    }
+  }
+};
+
+// Set Value helper
+
+function setTargetsValue(targets, properties) {
+  var animatables = getAnimatables(targets);
+  animatables.forEach(function (animatable) {
+    for (var property in properties) {
+      var value = getFunctionValue(properties[property], animatable);
+      var target = animatable.target;
+      var valueUnit = getUnit(value);
+      var originalValue = getOriginalTargetValue(target, property, valueUnit, animatable);
+      var unit = valueUnit || getUnit(originalValue);
+      var to = getRelativeValue(validateValue(value, unit), originalValue);
+      var animType = getAnimationType(target, property);
+      setProgressValue[animType](target, property, to, animatable.transforms, true);
+    }
+  });
+}
+
+// Animations
+
+function createAnimation(animatable, prop) {
+  var animType = getAnimationType(animatable.target, prop.name);
+  if (animType) {
+    var tweens = normalizeTweens(prop, animatable);
+    var lastTween = tweens[tweens.length - 1];
+    return {
+      type: animType,
+      property: prop.name,
+      animatable: animatable,
+      tweens: tweens,
+      duration: lastTween.end,
+      delay: tweens[0].delay,
+      endDelay: lastTween.endDelay
+    }
+  }
+}
+
+function getAnimations(animatables, properties) {
+  return filterArray(flattenArray(animatables.map(function (animatable) {
+    return properties.map(function (prop) {
+      return createAnimation(animatable, prop);
+    });
+  })), function (a) { return !is.und(a); });
+}
+
+// Create Instance
+
+function getInstanceTimings(animations, tweenSettings) {
+  var animLength = animations.length;
+  var getTlOffset = function (anim) { return anim.timelineOffset ? anim.timelineOffset : 0; };
+  var timings = {};
+  timings.duration = animLength ? Math.max.apply(Math, animations.map(function (anim) { return getTlOffset(anim) + anim.duration; })) : tweenSettings.duration;
+  timings.delay = animLength ? Math.min.apply(Math, animations.map(function (anim) { return getTlOffset(anim) + anim.delay; })) : tweenSettings.delay;
+  timings.endDelay = animLength ? timings.duration - Math.max.apply(Math, animations.map(function (anim) { return getTlOffset(anim) + anim.duration - anim.endDelay; })) : tweenSettings.endDelay;
+  return timings;
+}
+
+var instanceID = 0;
+
+function createNewInstance(params) {
+  var instanceSettings = replaceObjectProps(defaultInstanceSettings, params);
+  var tweenSettings = replaceObjectProps(defaultTweenSettings, params);
+  var properties = getProperties(tweenSettings, params);
+  var animatables = getAnimatables(params.targets);
+  var animations = getAnimations(animatables, properties);
+  var timings = getInstanceTimings(animations, tweenSettings);
+  var id = instanceID;
+  instanceID++;
+  return mergeObjects(instanceSettings, {
+    id: id,
+    children: [],
+    animatables: animatables,
+    animations: animations,
+    duration: timings.duration,
+    delay: timings.delay,
+    endDelay: timings.endDelay
+  });
+}
+
+// Core
+
+var activeInstances = [];
+
+var engine = (function () {
+  var raf;
+
+  function play() {
+    if (!raf && (!isDocumentHidden() || !anime.suspendWhenDocumentHidden) && activeInstances.length > 0) {
+      raf = requestAnimationFrame(step);
+    }
+  }
+  function step(t) {
+    // memo on algorithm issue:
+    // dangerous iteration over mutable `activeInstances`
+    // (that collection may be updated from within callbacks of `tick`-ed animation instances)
+    var activeInstancesLength = activeInstances.length;
+    var i = 0;
+    while (i < activeInstancesLength) {
+      var activeInstance = activeInstances[i];
+      if (!activeInstance.paused) {
+        activeInstance.tick(t);
+        i++;
+      } else {
+        activeInstances.splice(i, 1);
+        activeInstancesLength--;
+      }
+    }
+    raf = i > 0 ? requestAnimationFrame(step) : undefined;
+  }
+
+  function handleVisibilityChange() {
+    if (!anime.suspendWhenDocumentHidden) { return; }
+
+    if (isDocumentHidden()) {
+      // suspend ticks
+      raf = cancelAnimationFrame(raf);
+    } else { // is back to active tab
+      // first adjust animations to consider the time that ticks were suspended
+      activeInstances.forEach(
+        function (instance) { return instance ._onDocumentVisibility(); }
+      );
+      engine();
+    }
+  }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  }
+
+  return play;
+})();
+
+function isDocumentHidden() {
+  return !!document && document.hidden;
+}
+
+// Public Instance
+
+function anime(params) {
+  if ( params === void 0 ) params = {};
+
+
+  var startTime = 0, lastTime = 0, now = 0;
+  var children, childrenLength = 0;
+  var resolve = null;
+
+  function makePromise(instance) {
+    var promise = window.Promise && new Promise(function (_resolve) { return resolve = _resolve; });
+    instance.finished = promise;
+    return promise;
+  }
+
+  var instance = createNewInstance(params);
+  var promise = makePromise(instance);
+
+  function toggleInstanceDirection() {
+    var direction = instance.direction;
+    if (direction !== 'alternate') {
+      instance.direction = direction !== 'normal' ? 'normal' : 'reverse';
+    }
+    instance.reversed = !instance.reversed;
+    children.forEach(function (child) { return child.reversed = instance.reversed; });
+  }
+
+  function adjustTime(time) {
+    return instance.reversed ? instance.duration - time : time;
+  }
+
+  function resetTime() {
+    startTime = 0;
+    lastTime = adjustTime(instance.currentTime) * (1 / anime.speed);
+  }
+
+  function seekChild(time, child) {
+    if (child) { child.seek(time - child.timelineOffset); }
+  }
+
+  function syncInstanceChildren(time) {
+    if (!instance.reversePlayback) {
+      for (var i = 0; i < childrenLength; i++) { seekChild(time, children[i]); }
+    } else {
+      for (var i$1 = childrenLength; i$1--;) { seekChild(time, children[i$1]); }
+    }
+  }
+
+  function setAnimationsProgress(insTime) {
+    var i = 0;
+    var animations = instance.animations;
+    var animationsLength = animations.length;
+    while (i < animationsLength) {
+      var anim = animations[i];
+      var animatable = anim.animatable;
+      var tweens = anim.tweens;
+      var tweenLength = tweens.length - 1;
+      var tween = tweens[tweenLength];
+      // Only check for keyframes if there is more than one tween
+      if (tweenLength) { tween = filterArray(tweens, function (t) { return (insTime < t.end); })[0] || tween; }
+      var elapsed = minMax(insTime - tween.start - tween.delay, 0, tween.duration) / tween.duration;
+      var eased = isNaN(elapsed) ? 1 : tween.easing(elapsed);
+      var strings = tween.to.strings;
+      var round = tween.round;
+      var numbers = [];
+      var toNumbersLength = tween.to.numbers.length;
+      var progress = (void 0);
+      for (var n = 0; n < toNumbersLength; n++) {
+        var value = (void 0);
+        var toNumber = tween.to.numbers[n];
+        var fromNumber = tween.from.numbers[n] || 0;
+        if (!tween.isPath) {
+          value = fromNumber + (eased * (toNumber - fromNumber));
+        } else {
+          value = getPathProgress(tween.value, eased * toNumber, tween.isPathTargetInsideSVG);
+        }
+        if (round) {
+          if (!(tween.isColor && n > 2)) {
+            value = Math.round(value * round) / round;
+          }
+        }
+        numbers.push(value);
+      }
+      // Manual Array.reduce for better performances
+      var stringsLength = strings.length;
+      if (!stringsLength) {
+        progress = numbers[0];
+      } else {
+        progress = strings[0];
+        for (var s = 0; s < stringsLength; s++) {
+          var a = strings[s];
+          var b = strings[s + 1];
+          var n$1 = numbers[s];
+          if (!isNaN(n$1)) {
+            if (!b) {
+              progress += n$1 + ' ';
+            } else {
+              progress += n$1 + b;
+            }
+          }
+        }
+      }
+      setProgressValue[anim.type](animatable.target, anim.property, progress, animatable.transforms);
+      anim.currentValue = progress;
+      i++;
+    }
+  }
+
+  function setCallback(cb) {
+    if (instance[cb] && !instance.passThrough) { instance[cb](instance); }
+  }
+
+  function countIteration() {
+    if (instance.remaining && instance.remaining !== true) {
+      instance.remaining--;
+    }
+  }
+
+  function setInstanceProgress(engineTime) {
+    var insDuration = instance.duration;
+    var insDelay = instance.delay;
+    var insEndDelay = insDuration - instance.endDelay;
+    var insTime = adjustTime(engineTime);
+    instance.progress = minMax((insTime / insDuration) * 100, 0, 100);
+    instance.reversePlayback = insTime < instance.currentTime;
+    if (children) { syncInstanceChildren(insTime); }
+    if (!instance.began && instance.currentTime > 0) {
+      instance.began = true;
+      setCallback('begin');
+    }
+    if (!instance.loopBegan && instance.currentTime > 0) {
+      instance.loopBegan = true;
+      setCallback('loopBegin');
+    }
+    if (insTime <= insDelay && instance.currentTime !== 0) {
+      setAnimationsProgress(0);
+    }
+    if ((insTime >= insEndDelay && instance.currentTime !== insDuration) || !insDuration) {
+      setAnimationsProgress(insDuration);
+    }
+    if (insTime > insDelay && insTime < insEndDelay) {
+      if (!instance.changeBegan) {
+        instance.changeBegan = true;
+        instance.changeCompleted = false;
+        setCallback('changeBegin');
+      }
+      setCallback('change');
+      setAnimationsProgress(insTime);
+    } else {
+      if (instance.changeBegan) {
+        instance.changeCompleted = true;
+        instance.changeBegan = false;
+        setCallback('changeComplete');
+      }
+    }
+    instance.currentTime = minMax(insTime, 0, insDuration);
+    if (instance.began) { setCallback('update'); }
+    if (engineTime >= insDuration) {
+      lastTime = 0;
+      countIteration();
+      if (!instance.remaining) {
+        instance.paused = true;
+        if (!instance.completed) {
+          instance.completed = true;
+          setCallback('loopComplete');
+          setCallback('complete');
+          if (!instance.passThrough && 'Promise' in window) {
+            resolve();
+            promise = makePromise(instance);
+          }
+        }
+      } else {
+        startTime = now;
+        setCallback('loopComplete');
+        instance.loopBegan = false;
+        if (instance.direction === 'alternate') {
+          toggleInstanceDirection();
+        }
+      }
+    }
+  }
+
+  instance.reset = function() {
+    var direction = instance.direction;
+    instance.passThrough = false;
+    instance.currentTime = 0;
+    instance.progress = 0;
+    instance.paused = true;
+    instance.began = false;
+    instance.loopBegan = false;
+    instance.changeBegan = false;
+    instance.completed = false;
+    instance.changeCompleted = false;
+    instance.reversePlayback = false;
+    instance.reversed = direction === 'reverse';
+    instance.remaining = instance.loop;
+    children = instance.children;
+    childrenLength = children.length;
+    for (var i = childrenLength; i--;) { instance.children[i].reset(); }
+    if (instance.reversed && instance.loop !== true || (direction === 'alternate' && instance.loop === 1)) { instance.remaining++; }
+    setAnimationsProgress(instance.reversed ? instance.duration : 0);
+  };
+
+  // internal method (for engine) to adjust animation timings before restoring engine ticks (rAF)
+  instance._onDocumentVisibility = resetTime;
+
+  // Set Value helper
+
+  instance.set = function(targets, properties) {
+    setTargetsValue(targets, properties);
+    return instance;
+  };
+
+  instance.tick = function(t) {
+    now = t;
+    if (!startTime) { startTime = now; }
+    setInstanceProgress((now + (lastTime - startTime)) * anime.speed);
+  };
+
+  instance.seek = function(time) {
+    setInstanceProgress(adjustTime(time));
+  };
+
+  instance.pause = function() {
+    instance.paused = true;
+    resetTime();
+  };
+
+  instance.play = function() {
+    if (!instance.paused) { return; }
+    if (instance.completed) { instance.reset(); }
+    instance.paused = false;
+    activeInstances.push(instance);
+    resetTime();
+    engine();
+  };
+
+  instance.reverse = function() {
+    toggleInstanceDirection();
+    instance.completed = instance.reversed ? false : true;
+    resetTime();
+  };
+
+  instance.restart = function() {
+    instance.reset();
+    instance.play();
+  };
+
+  instance.remove = function(targets) {
+    var targetsArray = parseTargets(targets);
+    removeTargetsFromInstance(targetsArray, instance);
+  };
+
+  instance.reset();
+
+  if (instance.autoplay) { instance.play(); }
+
+  return instance;
+
+}
+
+// Remove targets from animation
+
+function removeTargetsFromAnimations(targetsArray, animations) {
+  for (var a = animations.length; a--;) {
+    if (arrayContains(targetsArray, animations[a].animatable.target)) {
+      animations.splice(a, 1);
+    }
+  }
+}
+
+function removeTargetsFromInstance(targetsArray, instance) {
+  var animations = instance.animations;
+  var children = instance.children;
+  removeTargetsFromAnimations(targetsArray, animations);
+  for (var c = children.length; c--;) {
+    var child = children[c];
+    var childAnimations = child.animations;
+    removeTargetsFromAnimations(targetsArray, childAnimations);
+    if (!childAnimations.length && !child.children.length) { children.splice(c, 1); }
+  }
+  if (!animations.length && !children.length) { instance.pause(); }
+}
+
+function removeTargetsFromActiveInstances(targets) {
+  var targetsArray = parseTargets(targets);
+  for (var i = activeInstances.length; i--;) {
+    var instance = activeInstances[i];
+    removeTargetsFromInstance(targetsArray, instance);
+  }
+}
+
+// Stagger helpers
+
+function stagger(val, params) {
+  if ( params === void 0 ) params = {};
+
+  var direction = params.direction || 'normal';
+  var easing = params.easing ? parseEasings(params.easing) : null;
+  var grid = params.grid;
+  var axis = params.axis;
+  var fromIndex = params.from || 0;
+  var fromFirst = fromIndex === 'first';
+  var fromCenter = fromIndex === 'center';
+  var fromLast = fromIndex === 'last';
+  var isRange = is.arr(val);
+  var val1 = isRange ? parseFloat(val[0]) : parseFloat(val);
+  var val2 = isRange ? parseFloat(val[1]) : 0;
+  var unit = getUnit(isRange ? val[1] : val) || 0;
+  var start = params.start || 0 + (isRange ? val1 : 0);
+  var values = [];
+  var maxValue = 0;
+  return function (el, i, t) {
+    if (fromFirst) { fromIndex = 0; }
+    if (fromCenter) { fromIndex = (t - 1) / 2; }
+    if (fromLast) { fromIndex = t - 1; }
+    if (!values.length) {
+      for (var index = 0; index < t; index++) {
+        if (!grid) {
+          values.push(Math.abs(fromIndex - index));
+        } else {
+          var fromX = !fromCenter ? fromIndex%grid[0] : (grid[0]-1)/2;
+          var fromY = !fromCenter ? Math.floor(fromIndex/grid[0]) : (grid[1]-1)/2;
+          var toX = index%grid[0];
+          var toY = Math.floor(index/grid[0]);
+          var distanceX = fromX - toX;
+          var distanceY = fromY - toY;
+          var value = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+          if (axis === 'x') { value = -distanceX; }
+          if (axis === 'y') { value = -distanceY; }
+          values.push(value);
+        }
+        maxValue = Math.max.apply(Math, values);
+      }
+      if (easing) { values = values.map(function (val) { return easing(val / maxValue) * maxValue; }); }
+      if (direction === 'reverse') { values = values.map(function (val) { return axis ? (val < 0) ? val * -1 : -val : Math.abs(maxValue - val); }); }
+    }
+    var spacing = isRange ? (val2 - val1) / maxValue : val1;
+    return start + (spacing * (Math.round(values[i] * 100) / 100)) + unit;
+  }
+}
+
+// Timeline
+
+function timeline(params) {
+  if ( params === void 0 ) params = {};
+
+  var tl = anime(params);
+  tl.duration = 0;
+  tl.add = function(instanceParams, timelineOffset) {
+    var tlIndex = activeInstances.indexOf(tl);
+    var children = tl.children;
+    if (tlIndex > -1) { activeInstances.splice(tlIndex, 1); }
+    function passThrough(ins) { ins.passThrough = true; }
+    for (var i = 0; i < children.length; i++) { passThrough(children[i]); }
+    var insParams = mergeObjects(instanceParams, replaceObjectProps(defaultTweenSettings, params));
+    insParams.targets = insParams.targets || params.targets;
+    var tlDuration = tl.duration;
+    insParams.autoplay = false;
+    insParams.direction = tl.direction;
+    insParams.timelineOffset = is.und(timelineOffset) ? tlDuration : getRelativeValue(timelineOffset, tlDuration);
+    passThrough(tl);
+    tl.seek(insParams.timelineOffset);
+    var ins = anime(insParams);
+    passThrough(ins);
+    children.push(ins);
+    var timings = getInstanceTimings(children, params);
+    tl.delay = timings.delay;
+    tl.endDelay = timings.endDelay;
+    tl.duration = timings.duration;
+    tl.seek(0);
+    tl.reset();
+    if (tl.autoplay) { tl.play(); }
+    return tl;
+  };
+  return tl;
+}
+
+anime.version = '3.2.1';
+anime.speed = 1;
+// TODO:#review: naming, documentation
+anime.suspendWhenDocumentHidden = true;
+anime.running = activeInstances;
+anime.remove = removeTargetsFromActiveInstances;
+anime.get = getOriginalTargetValue;
+anime.set = setTargetsValue;
+anime.convertPx = convertPxToUnit;
+anime.path = getPath;
+anime.setDashoffset = setDashoffset;
+anime.stagger = stagger;
+anime.timeline = timeline;
+anime.easing = parseEasings;
+anime.penner = penner;
+anime.random = function (min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; };
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (anime);
+
+
+/***/ }),
+
+/***/ "./src/data.js":
+/*!*********************!*\
+  !*** ./src/data.js ***!
+  \*********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "actionsTemplate": () => (/* binding */ actionsTemplate),
+/* harmony export */   "animationEasings": () => (/* binding */ animationEasings),
+/* harmony export */   "animationList": () => (/* binding */ animationList),
+/* harmony export */   "animationTypes": () => (/* binding */ animationTypes),
+/* harmony export */   "textStaggerPresets": () => (/* binding */ textStaggerPresets)
+/* harmony export */ });
+const actionsTemplate = [{
+  actionLabel: 'Duration',
+  action: 'duration',
+  valueType: 'int',
+  valueDefault: '500'
+}, {
+  actionLabel: 'Opacity',
+  action: 'opacity',
+  valueType: 'int',
+  valueDefault: '1'
+}, {
+  actionLabel: 'translateY',
+  action: 'translateY',
+  valueType: 'string',
+  valueDefault: '100px'
+}, {
+  actionLabel: 'translateX',
+  action: 'translateX',
+  valueType: 'string',
+  valueDefault: '100px'
+}, {
+  actionLabel: 'Rotate',
+  action: 'rotate',
+  valueType: 'string',
+  valueDefault: '45deg'
+}, {
+  actionLabel: 'Scale',
+  action: 'scale',
+  valueType: 'number',
+  valueDefault: '1.5'
+}, {
+  actionLabel: 'Background',
+  action: 'background',
+  valueType: 'color',
+  valueDefault: '#888'
+}, {
+  actionLabel: 'Color',
+  action: 'color',
+  valueType: 'color',
+  valueDefault: '#f00'
+}, {
+  actionLabel: 'CSS Animation',
+  action: 'cssAnimation',
+  valueType: 'string',
+  valueDefault: 'fadeIn 5s linear 2s infinite alternate'
+}];
+const animationEasings = [{
+  label: 'Linear',
+  value: 'linear'
+}, {
+  label: 'elastic',
+  value: 'elastic'
+}, {
+  label: 'easeInQuad',
+  value: 'easeInQuad'
+}, {
+  label: 'easeOutQuad',
+  value: 'easeOutQuad'
+}, {
+  label: 'easeInOutQuad',
+  value: 'easeInOutQuad'
+}, {
+  label: 'easeOutInQuad',
+  value: 'easeOutInQuad'
+}, {
+  label: 'easeInCubic',
+  value: 'easeInCubic'
+}, {
+  label: 'easeOutCubic',
+  value: 'easeOutCubic'
+}, {
+  label: 'easeInOutCubic',
+  value: 'easeInOutCubic'
+}, {
+  label: 'easeOutInCubic',
+  value: 'easeOutInCubic'
+}];
+const animationTypes = [{
+  label: 'Animation',
+  value: 'sscAnimation',
+  default: {
+    animationEnter: 'fadeIn',
+    animationExit: 'fadeOut',
+    position: '50'
+  }
+}, {
+  label: 'Parallax',
+  value: 'sscParallax',
+  default: {
+    direction: 'Y',
+    level: '1',
+    speed: '1',
+    motion: '50'
+  }
+}, {
+  label: 'Levitate',
+  value: 'sscLevitate',
+  default: {}
+}, {
+  label: '360 image',
+  value: 'ssc360',
+  default: {}
+}, {
+  label: 'Play video on scroll over',
+  value: 'sscVideoScroll',
+  default: {}
+}, {
+  label: 'Video parallax',
+  value: 'sscVideoControl',
+  default: {}
+}, {
+  label: 'Play video on screen',
+  value: 'sscVideoFocusPlay',
+  default: {}
+}, {
+  label: 'Svg Path Animation',
+  value: 'sscSvgPath',
+  default: {
+    duration: 5000,
+    easing: 'easeInOutExpo'
+  }
+}, {
+  label: 'Create your own animation',
+  value: 'sscSequence',
+  default: {
+    duration: 2000,
+    easing: 'easeInOutQuad',
+    steps: []
+  }
+}, {
+  label: 'ScreenJacker',
+  value: 'sscScreenJacker',
+  default: {
+    intersection: 50,
+    duration: 1000,
+    easing: 'easeInOutExpo'
+  }
+}, {
+  label: 'Counter',
+  value: 'sscCounter',
+  default: {
+    duration: 8000,
+    easing: 'easeInOutExpo'
+  }
+}, {
+  label: 'Text Stagger',
+  value: 'sscTextStagger',
+  default: {
+    duration: 5000,
+    easing: 'easeInOutQuad'
+  }
+}];
+const animationList = [{
+  label: 'bounce',
+  value: 'bounce'
+}, {
+  label: 'flash',
+  value: 'flash'
+}, {
+  label: 'pulse',
+  value: 'pulse'
+}, {
+  label: 'rubberBand',
+  value: 'rubberBand'
+}, {
+  label: 'rubberBand',
+  value: 'rubberBand'
+}, {
+  label: 'shakeX',
+  value: 'shakeX'
+}, {
+  label: 'shakeY',
+  value: 'shakeY'
+}, {
+  label: 'headShake',
+  value: 'headShake'
+}, {
+  label: 'swing',
+  value: 'swing'
+}, {
+  label: 'tada',
+  value: 'tada'
+}, {
+  label: 'wobble',
+  value: 'wobble'
+}, {
+  label: 'jello',
+  value: 'jello'
+}, {
+  label: 'heartBeat',
+  value: 'heartBeat'
+}, {
+  label: 'flash',
+  value: 'flash'
+}, {
+  label: 'hinge',
+  value: 'hinge'
+}, {
+  label: 'jackInTheBox',
+  value: 'jackInTheBox'
+}, {
+  label: 'rollIn',
+  value: 'rollIn'
+}, {
+  label: 'rollOut',
+  value: 'rollOut'
+}, // Fade
+{
+  label: 'fadeIn',
+  value: 'fadeIn'
+}, {
+  label: 'fadeInDown',
+  value: 'fadeInDown'
+}, {
+  label: 'fadeInDownBig',
+  value: 'fadeInDownBig'
+}, {
+  label: 'fadeInLeft',
+  value: 'fadeInLeft'
+}, {
+  label: 'fadeInLeftBig',
+  value: 'fadeInLeftBig'
+}, {
+  label: 'fadeInRight',
+  value: 'fadeInRight'
+}, {
+  label: 'fadeInRightBig',
+  value: 'fadeInRightBig'
+}, {
+  label: 'fadeInUp',
+  value: 'fadeInUp'
+}, {
+  label: 'fadeInUpBig',
+  value: 'fadeInUpBig'
+}, {
+  label: 'fadeInTopLeft',
+  value: 'fadeInTopLeft'
+}, {
+  label: 'fadeInTopRight',
+  value: 'fadeInTopRight'
+}, {
+  label: 'fadeInTopRight',
+  value: 'fadeInTopRight'
+}, {
+  label: 'fadeInBottomLeft',
+  value: 'fadeInBottomLeft'
+}, // fade exit
+{
+  label: 'fadeOut',
+  value: 'fadeOut'
+}, {
+  label: 'fadeOutDown',
+  value: 'fadeOutDown'
+}, {
+  label: 'fadeOutDownBig',
+  value: 'fadeOutDownBig'
+}, {
+  label: 'fadeOutLeft',
+  value: 'fadeOutLeft'
+}, {
+  label: 'fadeOutLeftBig',
+  value: 'fadeOutLeftBig'
+}, {
+  label: 'fadeOutRight',
+  value: 'fadeOutRight'
+}, {
+  label: 'fadeOutRightBig',
+  value: 'fadeOutRightBig'
+}, {
+  label: 'fadeOutUp',
+  value: 'fadeOutUp'
+}, {
+  label: 'fadeOutUpBig',
+  value: 'fadeOutUpBig'
+}, {
+  label: 'fadeOutTopLeft',
+  value: 'fadeOutTopLeft'
+}, {
+  label: 'fadeOutTopRight',
+  value: 'fadeOutTopRight'
+}, {
+  label: 'fadeOutTopRight',
+  value: 'fadeOutTopRight'
+}, {
+  label: 'fadeOutBottomLeft',
+  value: 'fadeOutBottomLeft'
+}];
+const textStaggerPresets = {
+  default: [{
+    translateY: ['1.1em', 0],
+    translateZ: 0,
+    duration: 750,
+    delay: (el, i) => 50 * i
+  }, {
+    opacity: 0,
+    duration: 1000,
+    easing: 'easeOutExpo',
+    delay: 1000
+  }],
+  expo: [{
+    scale: [14, 1],
+    opacity: [0, 1],
+    easing: 'easeOutCirc',
+    duration: 750,
+    delay: (el, i) => 750 * i
+  }, {
+    opacity: 0,
+    duration: 1000,
+    easing: 'easeOutExpo',
+    delay: 1000
+  }]
+};
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/esm/defineProperty.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ _defineProperty)
+/* harmony export */ });
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!********************!*\
+  !*** ./src/ssc.js ***!
+  \********************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/esm/defineProperty.js");
+/* harmony import */ var animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! animejs/lib/anime.es.js */ "./node_modules/animejs/lib/anime.es.js");
+/* harmony import */ var _data__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./data */ "./src/data.js");
+
+
+
+
+
+const intersectionPrecision = 5;
+const sscOptions = {
+  rootMargin: '0px',
+  // the IntersectionObserver root margin
+  // threshold: [ ...Array( intersectionPrecision + 1 ).keys() ].map( ( x ) => x / intersectionPrecision ), // 1-100 the precision of intersections (higher number increase cpu usage - use with care!)
+  threshold: [0]
+}; // detect available wheel event
+
+const mouseWheel = 'onwheel' in document.createElement('div') ? 'wheel' // Modern browsers support "wheel"
+: document.onmousewheel !== undefined ? 'mousewheel' // Webkit and IE support at least "mousewheel"
+: 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
+// An ease-out function that slows the count as it progresses
+
+const easeOutQuad = t => t * (2 - t);
+
+class _ssc {
+  constructor(options) {
+    var _this = this;
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "getElelementData", function (opts) {
+      let type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'data';
+
+      if (opts) {
+        const rawArgs = opts.split(';');
+        let parsedArgs = [];
+        parsedArgs = rawArgs.map(arg => arg.split(':'));
+        const args = {};
+        parsedArgs.forEach((el, index) => {
+          if (type === 'style') {
+            args[index] = {
+              property: el[0],
+              value: el[1]
+            };
+          } else {
+            args[el[0]] = el[1];
+          }
+        });
+        return args;
+      }
+
+      return false;
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "delay", ms => new Promise(r => setTimeout(r, ms)));
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "unmount", el => {
+      el.unWatch();
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "parallaxController", entry => {
+      // add this object to the watched list
+      this.parallaxed[entry.target.sscItemData.sscItem] = entry.target; // if the parallax function wasn't running before so we need to start it
+
+      if (this.parallaxed.length) {
+        this.parallax();
+      }
+
+      if (entry.target.action === 'leave') {
+        // remove the animated item from the watched list
+        this.parallaxed = this.parallaxed.filter(item => item.sscItemData.sscItem !== entry.target.sscItemData.sscItem);
+        console.log(`ssc-${entry.target.sscItemData.sscItem} will be unwatched. current list`, this.parallaxed);
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "init", () => {
+      //this.page.style.overflow = 'auto';
+      this.collected = this.page.querySelectorAll('.ssc');
+      this.updateScreenSize();
+      console.log('SSC ready');
+
+      if ('IntersectionObserver' in window) {
+        this.observer = new IntersectionObserver(this.screenControl, {
+          root: null,
+          rootMargin: sscOptions.rootMargin,
+          threshold: sscOptions.threshold
+        }); // Let's start the intersection observer
+
+        this.collected.forEach(function (el, index) {
+          // add a class to acknowledge about initialization
+          el.dataset.sscItem = index;
+          el.unWatch = this.observer.unobserve(el);
+          el.sscItemData = el.dataset;
+          el.sscItemOpts = el.dataset.sscProps ? this.getElelementData(el.dataset.sscProps, 'data') : null;
+          el.sscSequence = el.dataset && el.dataset.sscSequence ? this.getElelementData(el.dataset.sscSequence, 'style') : null; // watch the elements to detect the screen margins intersection
+
+          this.observer.observe(el);
+        }, this); // maybe it may seem like an unconventional method but this way this (quite heavy) file is loaded only there is a need
+
+        const hasAnimate = Object.values(this.collected).filter(observed => observed.sscItemData.sscAnimation === 'sscAnimation');
+
+        if (hasAnimate) {
+          const animateCSS = document.createElement('link');
+          animateCSS.rel = 'stylesheet';
+          animateCSS.id = 'ssc_animate-css';
+          animateCSS.href = 'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+          document.head.appendChild(animateCSS);
+        }
+
+        this.parallax(); // watch for new objects added to the DOM
+
+        this.interceptor(this.page); // setup the page variables
+
+        window.addEventListener('resize', this.updateScreenSize);
+      } else {
+        console.warn('IntersectionObserver could not enabled');
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "screenControl", (entries, observer) => {
+      // store the scroll direction into body
+      this.scrollDirection();
+      entries.forEach(entry => {
+        if (entry.target.dataset.lock) {
+          return true;
+        } // stores the direction from which the element appeared
+
+
+        entry.target.dataset.intersection = this.windowData.viewHeight / 2 > entry.boundingClientRect.top ? 'up' : 'down'; // check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
+        // eslint-disable-next-line no-nested-ternary
+
+        entry.target.action = entry.isIntersecting !== entry.target.dataset.visible ? entry.isIntersecting ? 'enter' : 'leave' : 'inViewport'; // is colliding with borders
+
+        entry.target.dataset.visible = entry.isIntersecting ? 'true' : 'false'; // this item is entering the view
+
+        if (entry.target.action) {
+          // console.log( `SSC: ${ entry.target.sscItemData.sscItem } is entering with args `, entry.target.sscItemOpts );
+          switch (entry.target.sscItemData.sscAnimation) {
+            case 'sscParallax':
+              this.parallaxController(entry); // yup
+
+              break;
+
+            case 'sscAnimation':
+              this.handleAnimation(entry, entry.target.action);
+              break;
+
+            case 'sscSequence':
+              this.animationSequence(entry, entry.target.action);
+              break;
+
+            case 'sscSvgPath':
+              entry.target.style.opacity = 0;
+              entry.target.style.transition = '350ms';
+              this.animationSvgPath(entry, entry.target.action); // yup (missing some options)
+
+              break;
+
+            case 'sscScreenJacker':
+              entry.target.style.minHeight = '100.5vh';
+              entry.target.style.margin = 0;
+              this.screenJacker(entry); // yup
+
+              break;
+
+            case 'sscCounter':
+              this.animateCount(entry); // yup
+
+              break;
+
+            case 'sscVideoFocusPlay':
+              this.videoFocusPlay(entry); // yup, but needs to be inline and muted
+
+              break;
+
+            case 'sscVideoControl':
+              this.parallaxVideoController(entry); // yup
+
+              break;
+
+            case 'sscVideoScroll':
+              this.videoWheelController(entry); // NO
+
+              break;
+
+            case 'ssc360':
+              this.video360Controller(entry); // NO
+
+              break;
+
+            case 'sscLevitate':
+              this.itemLevition(entry); // NO
+
+              break;
+
+            case 'sscTextStagger':
+              this.textStagger(entry); // NO
+
+              break;
+
+            default:
+              // err
+              console.log(`JS action ${entry.target.sscItemData.sscAnimation} missing for ${entry.target.sscItemData.sscItem}`);
+              break;
+          }
+        }
+      }); // store the last scroll position
+
+      this.windowData.lastScrollPosition = window.pageYOffset;
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "videoFocusPlay", entry => {
+      const video = entry.target.querySelector('video');
+
+      if (entry.target.dataset.visible === 'true') {
+        return this.playVideo(video);
+      }
+
+      if (!video.ended) {
+        return video.pause();
+      }
+
+      return this.stopVideo(video);
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "playVideo", el => el.play());
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "stopVideo", el => {
+      el.pause();
+      el.currentTime = 0;
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "handleAnimation", (entry, action) => {
+      if (action === 'enter' && this.checkVisibility(entry.target, 'between', 50)) {
+        // check if the action needed is enter and if the element is in the range
+        // trigger the enter animation
+        entry.target.classList.remove('animate__animated', 'animate__' + entry.target.sscItemOpts.animationExit);
+        entry.target.classList.add('animate__animated', 'animate__' + entry.target.sscItemOpts.animationEnter);
+        action = 'leave';
+      } else if (action === 'leave' && !this.checkVisibility(entry.target, 'between', 50)) {
+        // check if the action needed is the leave animation and if the element is outside the range
+        // trigger the exit animation
+        entry.target.classList.remove('animate__animated', 'animate__' + entry.target.sscItemOpts.animationEnter);
+
+        if (entry.target.sscItemOpts.animationExit) {
+          entry.target.classList.add('animate__animated', 'animate__' + entry.target.sscItemOpts.animationExit);
+        }
+
+        action = 'enter';
+      } // if none of the previous condition is met but the element is still in the viewport delay this function
+
+
+      if (this.checkVisibility(entry.target, 'partiallyVisible')) {
+        this.delay(100).then(() => {
+          this.handleAnimation(entry, action);
+        });
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "animationSequence", (entry, action) => {
+      const animation = entry.target.sscSequence || {}; // build the animation if isn't already stored
+
+      if (!this.animations[entry.target.sscItemData.sscItem]) {
+        let i = 0;
+        const currentStep = {}; // loop into animation object in order to create the animation timeline
+
+        Object.entries(animation).forEach(step => {
+          // we use the duration as a "marker" for the next step
+          if (step[1].property === 'duration') {
+            currentStep[i] = { ...currentStep[i],
+              duration: step[1].value + 'ms'
+            };
+            i++;
+          } else {
+            // otherwise store the step and contiue the loop
+            currentStep[i] = { ...currentStep[i],
+              [step[1].property]: step[1].value
+            };
+          }
+        });
+
+        if (currentStep[0]) {
+          // creates the animation initializer
+          const a = animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"].timeline({
+            targets: entry.target,
+            autoplay: false,
+            easing: 'easeOutExpo',
+            // Can be inherited
+            direction: 'normal',
+
+            // Is not inherited
+            complete(anim) {
+              console.log(anim);
+              entry.target.removeAttribute('data-visible');
+              entry.target.removeAttribute('data-ssc-lock');
+            }
+
+          }); // loop into the rest of the actions adding the timelines step to sequence
+
+          Object.entries(currentStep).forEach(step => {
+            a.add(step[1]);
+          });
+          this.animations[entry.target.sscItemData.sscItem] = a;
+        }
+      } // The Enter animation sequence
+
+
+      if (action === 'enter' && this.checkVisibility(entry.target, 'between', 25)) {
+        action = 'leave';
+        this.animations[entry.target.sscItemData.sscItem].play();
+      } else if (action === 'leave' && !this.checkVisibility(entry.target, 'between', 25)) {
+        action = 'enter';
+        this.animations[entry.target.sscItemData.sscItem].pause();
+      }
+
+      if (this.checkVisibility(entry.target, 'partiallyVisible')) {
+        this.delay(100).then(() => {
+          this.animationSequence(entry, action);
+        });
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "animationSvgPath", function (entry, action) {
+      let animationInstance = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+      let animation = animationInstance ? animationInstance : animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"];
+      const path = entry.target.querySelectorAll('path');
+
+      if (action === 'enter' && _this.checkVisibility(entry.target, 'between', 25)) {
+        entry.target.style.opacity = 1;
+        action = 'leave';
+
+        if (animation.began && animation.currentTime !== 0) {
+          animation.reverse();
+        } else {
+          animation = (0,animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            targets: path,
+            strokeDashoffset: [animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"].setDashoffset, 0],
+            easing: 'easeInOutSine',
+            duration: entry.target.sscItemOpts.duration || 5000,
+
+            delay(el, i) {
+              return i * entry.target.sscItemOpts.duration / path.length;
+            },
+
+            direction: 'normal'
+          });
+        }
+      } else if (action === 'leave' && !_this.checkVisibility(entry.target, 'between', 25)) {
+        action = 'enter';
+
+        if (!animation.completed && typeof animation.reverse === 'function') {
+          animation.reverse();
+        } else {
+          animation = (0,animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"])({
+            targets: path,
+            strokeDashoffset: [animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"].setDashoffset, 0],
+            easing: 'easeInOutSine',
+            duration: entry.target.sscItemOpts.duration,
+
+            delay(el, i) {
+              return i * entry.target.sscItemOpts.duration / path.length;
+            },
+
+            direction: 'reverse',
+            complete: () => {
+              if (action === 'leave') {
+                return entry.target.style.opacity = 0;
+              }
+            }
+          });
+        }
+      }
+
+      if (_this.checkVisibility(entry.target, 'partiallyVisible')) {
+        _this.delay(100).then(() => {
+          _this.animationSvgPath(entry, action, animation);
+        });
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "itemLevition", el => el.target.style.backgroundColor = 'red');
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "screenJacker", entry => {
+      // if there aren't any defined target, store this one
+      if (entry.target.action === 'enter' && this.hasScrolling === false) {
+        this.hasScrolling = entry.target.sscItemOpts.sscItem;
+      } // after leaving remove the flag to re-enable the scrolljack
+
+
+      if (entry.target.action === 'leave') {
+        this.delay(500).then(() => {
+          entry.target.classList.remove('sscLastScrolled');
+        });
+      }
+
+      const disableWheel = e => {
+        e.preventDefault();
+      };
+
+      const screenJackTo = el => {
+        if (this.isScrolling > Date.now() || this.checkVisibility(el.target, 'between', el.target.sscItemOpts.intersection)) return; // disable the mouse wheel during scrolling to avoid flickering
+
+        window.addEventListener('mousewheel', disableWheel, {
+          passive: false
+        }); // stores the last scrolling time in order to avoid consequent jumps
+
+        this.isScrolling = Date.now() + parseInt(el.target.sscItemOpts.duration, 10) + 100; // add a flag to avoid a back jump into this element
+
+        el.target.classList.add('sscLastScrolled'); // remove any previous animation
+
+        animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"].remove();
+        (0,animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"])({
+          targets: [window.document.scrollingElement || window.document.body || window.document.documentElement],
+          scrollTop: el.target.offsetTop,
+          easing: el.target.sscItemOpts.easing || 'linear',
+          duration: el.target.sscItemOpts.duration || 500,
+          complete: () => {
+            window.removeEventListener('mousewheel', disableWheel, {
+              passive: false
+            });
+            window.scroll(0, el.target.offsetTop); // this.windowData.lastScrollPosition = window.pageYOffset;
+            // window.pageYOffset = el.target.offsetTop;
+
+            this.hasScrolling = false;
+          }
+        });
+      };
+
+      if (this.checkVisibility(entry.target, 'partiallyVisible')) {
+        screenJackTo(entry);
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "videoOnWheel", event => {
+      event.preventDefault();
+      const videoEl = event.target;
+
+      if (videoEl.currentTime <= 0 && event.deltaY < 0 || videoEl.currentTime === videoEl.duration && event.deltaY > 0) {
+        console.log('unlocked');
+        videoEl.removeEventListener(mouseWheel, this.videoOnWheel);
+        return true;
+      }
+
+      if (videoEl.readyState >= 1) {
+        window.requestAnimationFrame(() => {
+          // set the current frame
+          const Offset = event.deltaY > 0 ? 1 / 29.7 : 1 / 29.7 * -1; // e.deltaY is the direction
+
+          videoEl.currentTime = videoEl.currentTime + Offset;
+        });
+      }
+    });
+
+    (0,_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "scaleImage", el => new Promise(f => {
+      let scale = 1;
+
+      el.onmousewheel = event => {
+        event.preventDefault();
+        scale += event.deltaY * -0.01; // Restrict scale
+
+        scale = Math.min(Math.max(0.125, scale), 4); // Apply scale transform
+
+        el.style.transform = `scale(${scale})`;
+      };
+
+      return f;
+    }));
+
+    this.page = options.page || document.body; // store the touch position
+
+    this.touchPos; //screen stuff
+
+    this.updateScreenSize = this.updateScreenSize.bind(this); // will hold the intersection observer
+
+    this.observer = []; // the ssc enabled elements found in this page it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
+
+    this.collected = [];
+    this.scheduledAnimationFrame = false; // parallax handler
+
+    this.parallaxed = [];
+    this.parallax = this.parallax.bind(this);
+    this.videoParallaxed = [];
+    this.parallaxVideo = this.parallaxVideo.bind(this);
+    this.animations = []; // avoid scrolling before the page has been loaded
+
+    this.hasScrolling = false;
+    this.isScrolling = Date.now() + 2000;
+    this.windowData = {
+      viewHeight: window.innerHeight,
+      lastScrollPosition: window.pageYOffset
+    };
+    this.page.ontouchstart = this.touchstartEvent.bind(this);
+    this.page.ontouchmove = this.ontouchmoveEvent.bind(this);
+    this.init();
+  } // store the touching position at the start of each touch
+
+
+  touchstartEvent(e) {
+    this.touchPos = e.changedTouches[0].clientY;
+  } // detect weather the "old" touchPos is
+  // greater or smaller than the newTouchPos
+
+
+  ontouchmoveEvent(e) {
+    const newTouchPos = e.changedTouches[0].clientY;
+
+    if (newTouchPos > this.touchPos) {
+      console.log('finger moving down');
+    }
+
+    if (newTouchPos < this.touchPos) {
+      console.log('finger moving up');
+    }
+  } // UTILS.js
+  // parse data stored with wp editor into element dataset and transform into properties / style to provide a faster access
+
+
+  // wait for resize to be completely done
+  updateScreenSize() {
+    (async () => await (() => console.log('Old Screensize', this.windowData)))().then(() => {
+      return this.delay(250);
+    }).then(() => {
+      this.windowData = {
+        viewHeight: window.innerHeight,
+        lastScrollPosition: window.pageYOffset
+      };
+      console.warn('New Screensize', this.windowData);
+    });
+  }
+
+  checkVisibility(el) {
+    let state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'crossing';
+    let position = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 100;
+    const rect = el.getBoundingClientRect();
+
+    switch (state) {
+      case 'partiallyVisible':
+        return this.isPartiallyVisible(rect);
+
+      case 'visible':
+        return this.isFullyVisible(rect);
+
+      case 'crossing':
+        return this.isCrossing(rect, position);
+
+      case 'between':
+        return this.isBeetween(rect, position);
+    }
+  }
+
+  isPartiallyVisible(rect) {
+    return rect.top < this.windowData.viewHeight && rect.bottom > 0;
+  }
+
+  isFullyVisible(rect) {
+    return rect.top >= 0 && rect.bottom <= this.windowData.viewHeight;
+  }
+
+  isCrossing(rect, rangePosition) {
+    const center = this.windowData.viewHeight * (rangePosition * 0.01);
+    return rect.top < center && rect.bottom > center;
+  }
+
+  isBeetween(rect, rangePosition) {
+    const limit = this.windowData.viewHeight * (rangePosition * 0.005); // 20% of 1000px is 100px from top and 100px from bottom
+
+    const elementCenter = rect.top + rect.height * 0.5;
+    return elementCenter > limit && elementCenter < this.windowData.viewHeight - limit;
+  } // Detach an element from screen control
+
+
+  scrollDirection() {
+    if (this.windowData.lastScrollPosition < window.pageYOffset) {
+      document.body.dataset.direction = 'down';
+    } else if (this.windowData.lastScrollPosition > window.pageYOffset) {
+      document.body.dataset.direction = 'up';
+    }
+  } // Parallax.js
+  // The parallax function
+
+
+  parallax() {
+    if (typeof this.parallaxed !== 'undefined' && this.parallaxed.length) {
+      // if last position is the same as current
+      if (window.pageYOffset === this.windowData.lastScrollPosition) {
+        // callback the animationFrame and exit the current loop
+        window.requestAnimationFrame(this.parallax);
+        return;
+      }
+
+      this.parallaxed.forEach(element => {
+        // apply the parallax style (use the element get getBoundingClientRect since we need updated data)
+        const motion = this.windowData.viewHeight - element.getBoundingClientRect().top;
+
+        if (motion > 0) {
+          const styleValue = element.sscItemOpts.speed * element.sscItemOpts.level * motion * -0.2;
+          element.style.transform = 'translate3d(' + (element.sscItemOpts.direction === 'Y' ? '0,' + styleValue + 'px' : styleValue + 'px,0') + ',0)';
+        } // requestAnimationFrame callback
+
+
+        window.requestAnimationFrame(this.parallax); // Store the last position
+
+        this.windowData.lastScrollPosition = window.pageYOffset;
+      });
+    }
+
+    return false;
+  }
+
+  handleRefreshInterval() {}
+
+  initMutationObserver(mutationsList, mutationObserver) {
+    //for every mutation
+    mutationsList.forEach(function (mutation) {
+      //for every added element
+      mutation.addedNodes.forEach(function (node) {
+        // Check if we appended a node type that isn't
+        // an element that we can search for images inside,
+        // like a text node.
+        if (typeof node.getElementsByTagName !== 'function') {
+          return;
+        }
+
+        const objCollection = node.querySelectorAll('.ssc');
+
+        if (objCollection.length) {
+          objCollection.forEach(function (el) {
+            this.observer.observe(el);
+          });
+        }
+      });
+    });
+  } // the page mutation observer
+
+
+  interceptor(content) {
+    // Create an observer instance linked to the callback function
+    this.mutationObserver = new MutationObserver(this.initMutationObserver); // Start observing the target node for configured mutations
+
+    this.mutationObserver.observe(content, {
+      attributes: false,
+      childList: true,
+      subtree: true
+    });
+  } // ACTIONS.js
+  // video playback
+  // VIDEO
+
+
+  animateCount(el) {
+    if (el.target.dataset.sscCount) {
+      return true;
+    }
+
+    el.target.dataset.sscCount = 'true';
+    (0,animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"])({
+      targets: el.target || el.target.lastChild,
+      textContent: [0, parseInt(el.target.lastChild.textContent, 10)],
+      round: 1,
+      duration: el.target.sscItemOpts.duration || 5000,
+      easing: 'easeInOutExpo',
+      complete: () => el.target.removeAttribute('data-ssc-count')
+    });
+  }
+  /**
+   * Animate Numbers
+   *
+   * @param {Object} el Element to animate.
+   */
+
+
+  animateCountUp(el) {
+    if (el.target.dataset.sscCount) {
+      return true;
+    }
+
+    const item = el.target;
+    const number = item.lastChild.textContent;
+    let frame = 0; // How long you want the animation to take, in ms
+
+    const animationDuration = el.target.sscItemOpts.duration || 5000; // Calculate how long each ‘frame’ should last in order to update the animation 60 times per second (1000ms / 60fps)
+
+    const frameDuration = 1000 / 60;
+    const countTo = parseInt(number, 10) || 100;
+    const totalFrames = Math.round(animationDuration / frameDuration);
+    el.target.dataset.sscCount = 'true'; // Start the animation running 60 times per second.
+
+    const counter = setInterval(() => {
+      frame++; // Calculate our progress as a value between 0 and 1
+      // Pass that value to our easing function to get our
+      // progress on a curve
+
+      const progress = easeOutQuad(frame / totalFrames); // Use the progress value to calculate the current count
+
+      item.lastChild.textContent = Math.round(countTo * progress); // If we’ve reached our last frame, stop the animation
+
+      if (frame === totalFrames) {
+        el.target.removeAttribute('data-ssc-count');
+        clearInterval(counter);
+      }
+    }, frameDuration);
+  }
+
+  textStagger(entry) {
+    const item = entry.target;
+
+    if (item.lastChild.innerHTML) {
+      item.lastChild.innerHTML = item.lastChild.textContent.replace(/\S/g, "<span class='letter' style='display:inline-block;position:relative'>$&</span>");
+    } else {
+      item.innerHTML = item.textContent.replace(/\S/g, "<span class='letter' style='display:inline-block;position:relative'>$&</span>");
+    }
+
+    animejs_lib_anime_es_js__WEBPACK_IMPORTED_MODULE_1__["default"].timeline({
+      loop: true
+    }).add({ ..._data__WEBPACK_IMPORTED_MODULE_2__.textStaggerPresets["default"][0],
+      targets: item.querySelectorAll('.letter')
+    }).add({ ..._data__WEBPACK_IMPORTED_MODULE_2__.textStaggerPresets["default"][1],
+      targets: 'item'
+    });
+  }
+
+  parallaxVideo() {
+    if (typeof this.videoParallaxed !== 'undefined' || Object.keys(this.videoParallaxed).length) {
+      if (window.pageYOffset === this.windowData.lastScrollPosition) {
+        // callback the animationFrame and exit the current loop
+        window.requestAnimationFrame(this.parallaxVideo);
+        return;
+      } // Store the last position
+
+
+      this.windowData.lastScrollPosition = window.pageYOffset;
+      this.videoParallaxed.forEach(video => {
+        // TODO: tween playback with current_frame = (previous value + new_value) in Arduino style
+        if (video.readyState > 1) {
+          const rect = video.getBoundingClientRect();
+          video.currentTime = ((1 + -(rect.top + this.windowData.viewHeight) / (this.windowData.viewHeight * 2)) * video.videoLenght).toFixed(2).toString();
+        }
+
+        return window.requestAnimationFrame(this.parallaxVideo);
+      });
+    }
+
+    return false;
+  }
+
+  parallaxVideoController(entry) {
+    const videoEl = entry.target.querySelector('video');
+
+    if (entry.target.action === 'enter') {
+      this.videoParallaxed[entry.target.sscItemData.sscItem] = videoEl;
+      this.videoParallaxed[entry.target.sscItemData.sscItem].videoLenght = videoEl.duration;
+      this.videoParallaxed[entry.target.sscItemData.sscItem].sscItemData = entry.target.sscItemData;
+      this.parallaxVideo();
+    } else if (entry.target.action === 'leave') {
+      this.videoParallaxed = this.videoParallaxed.filter(item => item.sscItemData.sscItem !== entry.target.sscItemData.sscItem);
+    }
+  }
+
+  hasMouseOver(e) {
+    const mouseX = e;
+    const mouseY = e;
+    const rect = e.target.getBoundingClientRect();
+    return rect.left < mouseX < rect.right && rect.top < mouseY < rect.bottom;
+  } // Listens mouse scroll wheel
+
+
+  videoWheelController(el) {
+    const videoEl = el.target.querySelector('video');
+    videoEl.controls = false;
+    videoEl.muted = true;
+    videoEl.pause();
+    videoEl.addEventListener(mouseWheel, this.videoOnWheel);
+  }
+
+  handleVideo360(e) {
+    const video = e.target;
+
+    function changeAngle() {
+      const rect = video.getBoundingClientRect();
+
+      if (video.readyState > 1) {
+        video.currentTime = (e.clientX - rect.left) / rect.width * video.duration;
+      }
+    }
+
+    window.requestAnimationFrame(changeAngle);
+  }
+
+  video360Controller(entry) {
+    const videoEl = entry.target.querySelector('video');
+
+    if (entry.target.action === 'enter') {
+      videoEl.onmousemove = this.handleVideo360;
+    } else if (entry.target.action === 'leave') {
+      videoEl.onmousemove = null;
+    }
+  }
+
+} // THIS FILE.js
+// on script load trigger immediately ssc
+
+
+window.addEventListener('load', () => {
+  // const content = document.getElementById( 'page' );
+  const content = document.querySelector('.wp-site-blocks');
+  const options = {
+    page: content
+  };
+  typeof window.screenControl ? window.screenControl = new _ssc(options) : console.low('unable to load multiple ssc instances');
+});
+})();
+
+/******/ })()
+;
+//# sourceMappingURL=ssc.js.map

@@ -6,6 +6,10 @@ textarea.ssc-codebox {
 
 .block-editor-block-inspector div.row {
   display: flex;
+  div.col {
+    display: flex;
+
+  }
 }
 
 .block-editor-block-inspector div.row .components-base-control {

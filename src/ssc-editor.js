@@ -6,6 +6,13 @@ import { addFilter } from '@wordpress/hooks';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { Fragment, useState } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
+import {
+	actionsTemplate,
+	animationTypes,
+	animationList,
+	textStaggerPresets,
+	animationEasings,
+} from './data';
 import './editor.scss';
 
 import {
@@ -29,9 +36,11 @@ import {
 	PanelBody,
 	ToggleControl,
 	SelectControl,
+	RangeControl,
 	Button,
 	TextControl,
-	Icon, TextareaControl,
+	Icon,
+	TextareaControl,
 } from '@wordpress/components';
 
 import classnames from 'classnames';
@@ -93,7 +102,7 @@ function addAttributes( settings ) {
 			},
 			sscAnimationType: {
 				type: 'string',
-				default: 'ssc-display',
+				default: false,
 			},
 			sscAnimationOptions: {
 				type: 'object',
@@ -144,33 +153,35 @@ function ActionRow( props ) {
 				icon={ HandleIcon }
 				style={ { height: 'auto', padding: '4px 0', width: '30px' } }
 			/>
-			<SelectControl
-				name={ 'action' }
-				value={ props.action }
-				options={ props.actionList }
-				id={ props.id + '-action' }
-				onChange={ ( e ) =>
-					props.handleChange( e, {
-						id: props.id,
-						changed: 'action',
-						action: props.action,
-						value: props.value,
-					} )
-				}
-			></SelectControl>
-			<TextControl
-				name={ 'value' }
-				value={ props.value }
-				id={ props.id + '-value' }
-				onChange={ ( e ) =>
-					props.handleChange( e, {
-						id: props.id,
-						changed: 'value',
-						action: props.action,
-						value: props.value,
-					} )
-				}
-			/>
+			<div className={ 'col' }>
+				<SelectControl
+					name={ 'action' }
+					value={ props.action }
+					options={ props.actionList }
+					id={ props.id + '-action' }
+					onChange={ ( e ) =>
+						props.handleChange( e, {
+							id: props.id,
+							changed: 'action',
+							action: props.action,
+							value: props.value,
+						} )
+					}
+				></SelectControl>
+				<TextControl
+					name={ 'value' }
+					value={ props.value }
+					id={ props.id + '-value' }
+					onChange={ ( e ) =>
+						props.handleChange( e, {
+							id: props.id,
+							changed: 'value',
+							action: props.action,
+							value: props.value,
+						} )
+					}
+				/>
+			</div>
 			<Button
 				icon={ 'remove' }
 				onClick={ () => props.removeAction( props.id ) }
@@ -181,69 +192,13 @@ function ActionRow( props ) {
 
 function ActionList( props ) {
 	const [ animationProps, setAnimationProps ] = useState( props.data || [] );
+
 	const sensors = useSensors(
 		useSensor( MyPointerSensor ),
 		useSensor( KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		} )
 	);
-
-	const actionsTemplate = [
-		{
-			actionLabel: 'Duration',
-			action: 'duration',
-			valueType: 'int',
-			valueDefault: '500',
-		},
-		{
-			actionLabel: 'Opacity',
-			action: 'opacity',
-			valueType: 'int',
-			valueDefault: '1',
-		},
-		{
-			actionLabel: 'translateY',
-			action: 'translateY',
-			valueType: 'string',
-			valueDefault: '100px',
-		},
-		{
-			actionLabel: 'translateX',
-			action: 'translateX',
-			valueType: 'string',
-			valueDefault: '100px',
-		},
-		{
-			actionLabel: 'Rotate',
-			action: 'rotate',
-			valueType: 'string',
-			valueDefault: '45deg',
-		},
-		{
-			actionLabel: 'Scale',
-			action: 'scale',
-			valueType: 'number',
-			valueDefault: '1.5',
-		},
-		{
-			actionLabel: 'Background',
-			action: 'background',
-			valueType: 'color',
-			valueDefault: '#888',
-		},
-		{
-			actionLabel: 'Color',
-			action: 'color',
-			valueType: 'color',
-			valueDefault: '#f00',
-		},
-		{
-			actionLabel: 'CSS Animation',
-			action: 'cssAnimation',
-			valueType: 'string',
-			valueDefault: 'fadeIn 5s linear 2s infinite alternate',
-		},
-	];
 
 	const provideSelectOptions = ( array, label, value ) => {
 		return array.map( ( item ) => {
@@ -258,7 +213,9 @@ function ActionList( props ) {
 
 		if ( active.id !== over.id ) {
 			setAnimationProps( ( items ) => {
-				const oldIndex = items.map( ( o ) => o.id ).indexOf( active.id );
+				const oldIndex = items
+					.map( ( o ) => o.id )
+					.indexOf( active.id );
 				const newIndex = items.map( ( x ) => x.id ).indexOf( over.id );
 
 				return arrayMove( items, oldIndex, newIndex );
@@ -294,7 +251,9 @@ function ActionList( props ) {
 
 	function handleChange( ev, data ) {
 		const newAnimationProps = animationProps;
-		const selectedItem = animationProps.map( ( x ) => x.id ).indexOf( data.id );
+		const selectedItem = animationProps
+			.map( ( x ) => x.id )
+			.indexOf( data.id );
 		if ( data.changed === 'action' ) {
 			newAnimationProps[ selectedItem ].action = ev;
 			newAnimationProps[ selectedItem ].value = actionsTemplate.find(
@@ -354,269 +313,12 @@ function ActionList( props ) {
  * @return {Function} BlockEdit Modified block edit component.
  */
 const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
-	const animationTypes = [
-		{
-			label: 'Parallax',
-			value: 'sscParallax',
-			default: {
-				direction: 'Y',
-				level: '1',
-				speed: '1',
-				motion: '350ms',
-			},
-		},
-		{
-			label: 'Sequence',
-			value: 'sscSequence',
-			default: [],
-		},
-		{
-			label: 'Animation',
-			value: 'sscAnimation',
-			default: {
-				animationEnter: 'fadeIn',
-				animationExit: 'fadeOut',
-				position: '50',
-			},
-		},
-		{
-			label: 'Svg Path Animation',
-			value: 'sscSvgPath',
-			default: {
-				duration: '1500',
-			},
-		},
-		{
-			label: 'Play video on scroll over',
-			value: 'sscVideoScroll',
-			default: {},
-		},
-		{
-			label: 'Video parallax',
-			value: 'sscVideoControl',
-			default: {},
-		},
-		{
-			label: 'Play video on screen',
-			value: 'sscVideoFocusPlay',
-			default: {},
-		},
-		{
-			label: '360 image',
-			value: 'ssc360',
-			default: {
-				video: '',
-			},
-		},
-		{
-			label: 'ScreenJacker',
-			value: 'sscScreenJacker',
-			default: {
-				intersection: 50,
-			},
-		},
-		{
-			label: 'Levitate',
-			value: 'sscLevitate',
-			default: {},
-		},
-		{
-			label: 'Counter',
-			value: 'sscCounter',
-			default: {
-				duration: '5000',
-			},
-		},
-	];
-
-	const animationList = [
-		{
-			label: 'bounce',
-			value: 'bounce',
-		},
-		{
-			label: 'flash',
-			value: 'flash',
-		},
-		{
-			label: 'pulse',
-			value: 'pulse',
-		},
-		{
-			label: 'rubberBand',
-			value: 'rubberBand',
-		},
-		{
-			label: 'rubberBand',
-			value: 'rubberBand',
-		},
-		{
-			label: 'shakeX',
-			value: 'shakeX',
-		},
-		{
-			label: 'shakeY',
-			value: 'shakeY',
-		},
-		{
-			label: 'headShake',
-			value: 'headShake',
-		},
-		{
-			label: 'swing',
-			value: 'swing',
-		},
-		{
-			label: 'tada',
-			value: 'tada',
-		},
-		{
-			label: 'wobble',
-			value: 'wobble',
-		},
-		{
-			label: 'jello',
-			value: 'jello',
-		},
-		{
-			label: 'heartBeat',
-			value: 'heartBeat',
-		},
-		{
-			label: 'flash',
-			value: 'flash',
-		},
-		{
-			label: 'hinge',
-			value: 'hinge',
-		},
-		{
-			label: 'jackInTheBox',
-			value: 'jackInTheBox',
-		},
-		{
-			label: 'rollIn',
-			value: 'rollIn',
-		},
-		{
-			label: 'rollOut',
-			value: 'rollOut',
-		},
-
-		// Fade
-		{
-			label: 'fadeIn',
-			value: 'fadeIn',
-		},
-		{
-			label: 'fadeInDown',
-			value: 'fadeInDown',
-		},
-		{
-			label: 'fadeInDownBig',
-			value: 'fadeInDownBig',
-		},
-		{
-			label: 'fadeInLeft',
-			value: 'fadeInLeft',
-		},
-		{
-			label: 'fadeInLeftBig',
-			value: 'fadeInLeftBig',
-		},
-		{
-			label: 'fadeInRight',
-			value: 'fadeInRight',
-		},
-		{
-			label: 'fadeInRightBig',
-			value: 'fadeInRightBig',
-		},
-		{
-			label: 'fadeInUp',
-			value: 'fadeInUp',
-		},
-		{
-			label: 'fadeInUpBig',
-			value: 'fadeInUpBig',
-		},
-		{
-			label: 'fadeInTopLeft',
-			value: 'fadeInTopLeft',
-		},
-		{
-			label: 'fadeInTopRight',
-			value: 'fadeInTopRight',
-		},
-		{
-			label: 'fadeInTopRight',
-			value: 'fadeInTopRight',
-		},
-		{
-			label: 'fadeInBottomLeft',
-			value: 'fadeInBottomLeft',
-		},
-		// fade exit
-		{
-			label: 'fadeOut',
-			value: 'fadeOut',
-		},
-		{
-			label: 'fadeOutDown',
-			value: 'fadeOutDown',
-		},
-		{
-			label: 'fadeOutDownBig',
-			value: 'fadeOutDownBig',
-		},
-		{
-			label: 'fadeOutLeft',
-			value: 'fadeOutLeft',
-		},
-		{
-			label: 'fadeOutLeftBig',
-			value: 'fadeOutLeftBig',
-		},
-		{
-			label: 'fadeOutRight',
-			value: 'fadeOutRight',
-		},
-		{
-			label: 'fadeOutRightBig',
-			value: 'fadeOutRightBig',
-		},
-		{
-			label: 'fadeOutUp',
-			value: 'fadeOutUp',
-		},
-		{
-			label: 'fadeOutUpBig',
-			value: 'fadeOutUpBig',
-		},
-		{
-			label: 'fadeOutTopLeft',
-			value: 'fadeOutTopLeft',
-		},
-		{
-			label: 'fadeOutTopRight',
-			value: 'fadeOutTopRight',
-		},
-		{
-			label: 'fadeOutTopRight',
-			value: 'fadeOutTopRight',
-		},
-		{
-			label: 'fadeOutBottomLeft',
-			value: 'fadeOutBottomLeft',
-		},
-
-	];
-
 	return ( props ) => {
 		const {
 			name,
 			setAttributes,
 			isSelected,
+			className,
 			attributes: {
 				initialCSS,
 				sscAnimated,
@@ -626,15 +328,7 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			},
 		} = props;
 
-		const pullData = ( data, type = 'sscSequence' ) => {
-			setAttributes( {
-				sscAnimationOptions: {
-					...sscAnimationOptions,
-					[ type ]: data,
-				},
-			} );
-		};
-
+		// get default setting
 		const getDefaults = ( opt ) => {
 			const animationType = animationTypes.filter( ( animation ) => {
 				return animation.value === opt;
@@ -642,21 +336,7 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			return animationType[ 0 ].default || {};
 		};
 
-		const updateAnimation = ( attr ) => {
-			const animationOptions = sscAnimationOptions;
-
-			// get default data the animation isn't initialized
-			if ( ! animationOptions[ attr ] ) {
-				const selectedAnimation = getDefaults( attr );
-				animationOptions[ attr ] = selectedAnimation;
-			}
-
-			return setAttributes( {
-				sscAnimationType: attr,
-				sscAnimationOptions: animationOptions,
-			} );
-		};
-
+		// set the animation options
 		const setOption = ( event, prop, type ) => {
 			setAttributes( {
 				sscAnimationOptions: {
@@ -669,6 +349,28 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 			} );
 		};
 
+		// animation sequence setter
+		const pullData = ( data, type = 'sscSequence' ) => {
+			setOption( data, 'steps', type );
+		};
+
+		// set the animation
+		const updateAnimation = ( attr ) => {
+			const animationOptions = sscAnimationOptions[ attr ] || {};
+
+			// get default options if the animation isn't initialized
+			const defaults = getDefaults( attr );
+			animationOptions[ attr ] = {
+				...defaults,
+				...animationOptions,
+			};
+
+			setAttributes( {
+				sscAnimationType: attr,
+				sscAnimationOptions: animationOptions,
+			} );
+		};
+
 		return (
 			<Fragment>
 				<BlockEdit { ...props } />
@@ -678,17 +380,6 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 						icon="visibility"
 						title={ __( 'Screen Control' ) }
 					>
-						<TextareaControl
-							label={ __( 'Initial CSS' ) }
-							value={ initialCSS || '' }
-							className={ 'ssc-codebox' }
-							onChange={ ( attr ) =>
-								setAttributes( {
-									initialCSS: attr,
-								} )
-							}
-						/>
-
 						{ isSelected && (
 							<>
 								<ToggleControl
@@ -701,27 +392,15 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 									}
 									help={
 										!! sscAnimated
-											? __( 'Please choose an animation from the select input below.' )
+											? __(
+													'Please choose an animation from the select input below.'
+											  )
 											: __( 'Not Animated.' )
 									}
 								/>
 
 								{ sscAnimated && (
 									<>
-										<ToggleControl
-											label={ __( 'Reiterate' ) }
-											checked={ sscReiterate }
-											onChange={ () =>
-												setAttributes( {
-													sscReiterate: ! sscReiterate,
-												} )
-											}
-											help={
-												!! sscReiterate
-													? __( 'Iterate the animation each time the object enters the screen' )
-													: __( "After the object has done it's job unmount it" )
-											}
-										/>
 										<SelectControl
 											label={
 												'Choose an animation type for ' +
@@ -729,116 +408,304 @@ const withAdvancedControls = createHigherOrderComponent( ( BlockEdit ) => {
 											}
 											value={ sscAnimationType }
 											options={ animationTypes }
-											onChange={ ( e ) => updateAnimation( e ) }
+											onChange={ ( e ) =>
+												updateAnimation( e )
+											}
 										></SelectControl>
+
+										<ToggleControl
+											label={ __( 'Reiterate' ) }
+											checked={ sscReiterate }
+											onChange={ () =>
+												setAttributes( {
+													sscReiterate:
+														! sscReiterate,
+												} )
+											}
+											help={
+												!! sscReiterate
+													? __(
+															'Iterate the animation each time the object enters the screen'
+													  )
+													: __(
+															"After the object has done it's job unmount it"
+													  )
+											}
+										/>
+
+										{ [
+											'sscSvgPath',
+											'sscSequence',
+											'sscVideoFocusPlay',
+											'sscScreenJacker',
+											'sscCounter',
+											'sscTextStagger',
+										].includes( sscAnimationType ) && (
+											<>
+												<RangeControl
+													label={ 'Duration (ms)' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].duration
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'duration',
+															sscAnimationType
+														)
+													}
+													min={ 0 }
+													max={ 10000 }
+													step={ 10 }
+												/>
+												<SelectControl
+													label={ 'Easing' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].easing
+													}
+													options={ animationEasings }
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'easing',
+															sscAnimationType
+														)
+													}
+												></SelectControl>
+											</>
+										) }
+										{ sscAnimationType ===
+											'sscSequence' && (
+											<ActionList
+												data={
+													sscAnimationOptions[
+														sscAnimationType
+													].steps
+												}
+												type={ sscAnimationType }
+												func={ pullData }
+											/>
+										) }
+										{ sscAnimationType ===
+											'sscParallax' && (
+											<>
+												<TextControl
+													label={
+														'The speed of the parallaxed object (expressed in pixels - negative value enabled)'
+													}
+													type={ 'number' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].speed
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'speed',
+															sscAnimationType
+														)
+													}
+												/>
+												<SelectControl
+													label={ 'Direction' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].direction
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'direction',
+															sscAnimationType
+														)
+													}
+													options={ [
+														{
+															label: 'vertical',
+															value: 'y',
+														},
+														{
+															label: 'horizontal',
+															value: 'x',
+														},
+													] }
+												/>
+												<TextControl
+													label={ 'Level' }
+													type={ 'number' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].level
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'level',
+															sscAnimationType
+														)
+													}
+												/>
+												<TextControl
+													label={ 'Motion (in ms)' }
+													type={ 'number' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].motion
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'motion',
+															sscAnimationType
+														)
+													}
+												/>
+											</>
+										) }
+										{ sscAnimationType === 'sscAnimation' &&
+											sscAnimationOptions[
+												sscAnimationType
+											] && (
+												<>
+													<SelectControl
+														label={
+															'Entering animation name'
+														}
+														options={
+															animationList
+														}
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].animationEnter
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'animationEnter',
+																sscAnimationType
+															)
+														}
+													/>
+													<SelectControl
+														label={
+															'Exiting animation name (checkout animate.css)'
+														}
+														options={
+															animationList
+														}
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].animationExit
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'animationExit',
+																sscAnimationType
+															)
+														}
+													/>
+													<TextControl
+														label={
+															'Enter Position (% from top)'
+														}
+														type={ 'number' }
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].position
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'position',
+																sscAnimationType
+															)
+														}
+													/>
+												</>
+											) }
+										{ sscAnimationType ===
+											'sscTextStagger' &&
+											sscAnimationOptions[
+												sscAnimationType
+											] && (
+												<>
+													<SelectControl
+														label={ 'preset' }
+														options={ Object.keys(
+															textStaggerPresets
+														) }
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].preset
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'preset',
+																sscAnimationType
+															)
+														}
+													/>
+												</>
+											) }
+										{ sscAnimationType ===
+											'sscScreenJacker' &&
+											sscAnimationOptions[
+												sscAnimationType
+											] && (
+												<>
+													<TextControl
+														label={
+															'Page Coverage (in %) needed before scroll-lock'
+														}
+														type={ 'number' }
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].intersection
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'intersection',
+																sscAnimationType
+															)
+														}
+													/>
+												</>
+											) }
+										<p>
+											{ JSON.stringify(
+												sscAnimationOptions
+											) }
+										</p>
 									</>
 								) }
-
-								{ sscAnimationType === 'sscSequence' && (
-									<ActionList
-										data={ sscAnimationOptions[ sscAnimationType ] }
-										type={ sscAnimationType }
-										func={ pullData }
-									/>
-								) }
-
-								{ sscAnimationType === 'sscParallax' && (
-									<>
-										<TextControl
-											label={ 'The speed of the parallaxed object (expressed in pixels - negative value enabled)' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].speed }
-											onChange={ ( e ) => setOption( e, 'speed', sscAnimationType ) }
-										/>
-										<SelectControl
-											label={ 'Direction' }
-											value={ sscAnimationOptions[ sscAnimationType ].direction }
-											onChange={ ( e ) => setOption( e, 'direction', sscAnimationType ) }
-											options={ [
-												{
-													label: 'vertical',
-													value: 'y',
-												},
-												{
-													label: 'horizontal',
-													value: 'x',
-												},
-											] }
-										/>
-										<TextControl
-											label={ 'Level' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].level }
-											onChange={ ( e ) => setOption( e, 'level', sscAnimationType ) }
-										/>
-										<TextControl
-											label={ 'Motion' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].motion }
-											onChange={ ( e ) => setOption( e, 'motion', sscAnimationType ) }
-										/>
-									</>
-								) }
-
-								{ sscAnimationType === 'sscAnimation' && sscAnimationOptions[ sscAnimationType ] && (
-									<>
-										<SelectControl
-											label={ 'Entering animation name' }
-											options={ animationList }
-											value={ sscAnimationOptions[ sscAnimationType ].animationEnter }
-											onChange={ ( e ) => setOption( e, 'animationEnter', sscAnimationType ) }
-										/>
-										<SelectControl
-											label={ 'Exiting animation name (checkout animate.css)' }
-											options={ animationList }
-											value={ sscAnimationOptions[ sscAnimationType ].animationExit }
-											onChange={ ( e ) => setOption( e, 'animationExit', sscAnimationType ) }
-										/>
-										<TextControl
-											label={ 'Enter Position (% from top)' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].position }
-											onChange={ ( e ) => setOption( e, 'position', sscAnimationType ) }
-										/>
-									</>
-								) }
-
-								{ sscAnimationType === 'sscCounter' && sscAnimationOptions[ sscAnimationType ] && (
-									<>
-										<TextControl
-											label={ 'Duration' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].duration }
-											onChange={ ( e ) => setOption( e, 'duration', sscAnimationType ) }
-										/>
-									</>
-								) }
-
-								{ sscAnimationType === 'sscSvgPath' && sscAnimationOptions[ sscAnimationType ] && (
-									<>
-										<TextControl
-											label={ 'Duration' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].duration }
-											onChange={ ( e ) => setOption( e, 'duration', sscAnimationType ) }
-										/>
-									</>
-								) }
-
-								{ sscAnimationType === 'sscScreenJacker' && sscAnimationOptions[ sscAnimationType ] && (
-									<>
-										<TextControl
-											label={ 'Lock the screen if the element interset the page. has to be used with large containers for a better effect' }
-											type={ 'number' }
-											value={ sscAnimationOptions[ sscAnimationType ].intersection }
-											onChange={ ( e ) => setOption( e, 'intersection', sscAnimationType ) }
-										/>
-									</>
-								) }
-
-								{ JSON.stringify( sscAnimationOptions ) }
 							</>
 						) }
+						<TextareaControl
+							label={ __( 'Initial CSS' ) }
+							value={ initialCSS || '' }
+							className={ 'ssc-codebox' }
+							onChange={ ( attr ) =>
+								setAttributes( {
+									initialCSS: attr,
+								} )
+							}
+						/>
 					</PanelBody>
 				</InspectorControls>
 			</Fragment>
@@ -854,13 +721,14 @@ addFilter(
 
 function dataStringify( data, type ) {
 	let csv = '';
+
 	csv += Object.entries( data )
 		.map( ( item ) => {
-			return ( type === 'sscSequence' )
-			// sequence is stored like this   [{"id":1,"key":1,"action":"transform - translateY","value":"translateY(100px)"},{"id":3,"key":3,"action":"Delay","value":"500ms"}, {"id":2,"key":2,"action":"Delay","value":"500ms"}]
-				? item[ 1 ].action + ':' + item[ 1 ].value
-			// other are like    {"direction":"Y","level":"1","speed":"5"}
-				: item[ 0 ] + ':' + item[ 1 ];
+			if ( type === 'sequence' ) {
+				return item[ 1 ].action + ':' + item[ 1 ].value;
+			}
+			// delete data.steps;
+			return ! data.steps ? item[ 0 ] + ':' + item[ 1 ] : null;
 		} )
 		.join( ';' );
 	return csv || null;
@@ -908,33 +776,55 @@ const addExtraProps = ( extraProps, blockType, attributes ) => {
 		extraProps[ 'data-ssc-animation' ] = sscAnimationType;
 		extraProps[ 'data-ssc-reiterate' ] =
 			sscAnimated && sscReiterate ? 'true' : 'false';
-	}
 
-	// map the original array into a single key value object
-  const selected = sscAnimationOptions[ sscAnimationType ] || false;
-	if ( Object.keys(sscAnimationOptions).length && selected ) {
-		extraProps[ 'data-ssc-props' ] = dataStringify( selected, sscAnimationType );
-	}
+		const options = sscAnimationOptions[ sscAnimationType ] || false;
+		if ( options && Object.keys( options ).length ) {
+			extraProps[ 'data-ssc-props' ] = dataStringify(
+				options,
+				sscAnimationType
+			);
+		}
 
-	//check if attribute exists for old Gutenberg version compatibility
-	//add class only when visibleOnMobile = false
-	//add allowedBlocks restriction
-	const hasTransition = sscAnimationOptions[ sscAnimationType ] ? sscAnimationOptions[ sscAnimationType ].motion + 'ms' : false;
-	const CustomStyle = sscAnimated
-		? { transition: hasTransition || sscAnimated ? '350ms' : 0 }
-		: {};
+		// map the original array into a single key value object
+		if ( sscAnimationType === 'sscSequence' ) {
+			const selected =
+				sscAnimationOptions[ sscAnimationType ].steps || false;
+			if (
+				selected &&
+				Object.keys( sscAnimationOptions[ sscAnimationType ] ).length
+			) {
+				extraProps[ 'data-ssc-sequence' ] = dataStringify(
+					selected,
+					'sequence'
+				);
+			}
+		}
 
-	const initialStyle = initialCSS ? cssize( initialCSS ) : false;
+		//check if attribute exists for old Gutenberg version compatibility
+		//add class only when visibleOnMobile = false
+		//add allowedBlocks restriction
+		const hasTransition =
+			sscAnimationOptions[ sscAnimationType ] &&
+			sscAnimationOptions[ sscAnimationType ].motion
+				? sscAnimationOptions[ sscAnimationType ].motion + 'ms'
+				: false;
 
-	const classes = sscAnimated ? 'ssc' : '';
+		// css style
+		const CustomStyle = sscAnimated
+			? { transition: hasTransition || sscAnimated ? '350ms' : 0 }
+			: {};
+		const initialStyle = initialCSS ? cssize( initialCSS ) : [];
 
-	return Object.assign(
-		extraProps,
-		{
+		// element classes
+		const classes = sscAnimated ? 'ssc' : '';
+
+		return Object.assign( extraProps, {
 			className: classnames( extraProps.className, classes ),
 			style: { ...initialStyle, ...CustomStyle, ...extraProps.style },
-		}
-	);
+		} );
+	}
+
+	return extraProps;
 };
 
 addFilter(
