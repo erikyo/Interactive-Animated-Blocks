@@ -2,7 +2,8 @@ import { cssize, dataStringify, getDefaults } from './utils/fn';
 import classnames from 'classnames';
 
 /**
- * Add custom element class in save element.
+ * I know this is not the save function but is a hook to change some data before
+ * Add custom dataset to element before save.
  *
  * @param {Object} extraProps Block element.
  * @param {Object} blockType  Blocks object.

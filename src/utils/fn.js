@@ -1,4 +1,4 @@
-import { animationTypes } from '../utils/data';
+import { animationTypes } from './data';
 
 export function dataStringify( data, type ) {
 	let csv = '';
@@ -16,8 +16,7 @@ export function dataStringify( data, type ) {
 }
 
 export function cssize( style ) {
-	// split css rule and
-	// remove line breaks
+	// split css rule and remove line breaks
 	style = style.replace( /(\r\n|\n|\r)/gm, '' );
 	const styleParsed = style.split( ';' ).filter( ( element ) => element );
 
@@ -35,6 +34,25 @@ export function cssize( style ) {
 	return Stylejs;
 }
 
+// parse data stored with wp editor into element dataset and transform into properties / style to provide a faster access
+export const getElelementData = ( opts, type = 'data' ) => {
+	if ( opts ) {
+		const rawArgs = opts.split( ';' );
+		let parsedArgs = [];
+		parsedArgs = rawArgs.map( ( arg ) => arg.split( ':' ) );
+		const args = {};
+		parsedArgs.forEach( ( el, index ) => {
+			if ( type === 'style' ) {
+				args[ index ] = { property: el[ 0 ], value: el[ 1 ] };
+			} else {
+				args[ el[ 0 ] ] = el[ 1 ];
+			}
+		} );
+		return args;
+	}
+	return false;
+};
+
 // get default setting
 export const getDefaults = ( opt ) => {
 	const animationType = animationTypes.filter( ( animation ) => {
@@ -42,3 +60,15 @@ export const getDefaults = ( opt ) => {
 	} );
 	return animationType[ 0 ].default || {};
 };
+
+
+// detect available wheel event
+export const mouseWheel =
+  'onwheel' in document.createElement( 'div' )
+    ? 'wheel' // Modern browsers support "wheel"
+    : document.onmousewheel !== undefined
+      ? 'mousewheel' // Webkit and IE support at least "mousewheel"
+      : 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
+
+// An ease-out function that slows the count as it progresses
+export const easeOutQuad = ( t ) => t * ( 2 - t );
