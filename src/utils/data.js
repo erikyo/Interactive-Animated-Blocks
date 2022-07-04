@@ -1,6 +1,6 @@
 export const actionsTemplate = [
 	{
-		actionLabel: 'Duration',
+		actionLabel: 'Keyframe (duration in ms)',
 		action: 'duration',
 		valueType: 'int',
 		valueDefault: '500',
@@ -24,10 +24,34 @@ export const actionsTemplate = [
 		valueDefault: '100px',
 	},
 	{
+		actionLabel: 'translateZ',
+		action: 'translateZ',
+		valueType: 'string',
+		valueDefault: '100px',
+	},
+	{
 		actionLabel: 'Rotate',
 		action: 'rotate',
 		valueType: 'string',
 		valueDefault: '45deg',
+	},
+	{
+		actionLabel: 'rotateY',
+		action: 'translateY',
+		valueType: 'string',
+		valueDefault: '100px',
+	},
+	{
+		actionLabel: 'rotateX',
+		action: 'translateX',
+		valueType: 'string',
+		valueDefault: '100px',
+	},
+	{
+		actionLabel: 'rotateZ',
+		action: 'translateZ',
+		valueType: 'string',
+		valueDefault: '100px',
 	},
 	{
 		actionLabel: 'Scale',
@@ -39,7 +63,7 @@ export const actionsTemplate = [
 		actionLabel: 'Background',
 		action: 'background',
 		valueType: 'color',
-		valueDefault: '#888',
+		valueDefault: '#000',
 	},
 	{
 		actionLabel: 'Color',
@@ -168,7 +192,9 @@ export const animationTypes = [
 	{
 		label: '360 image',
 		value: 'ssc360',
-		default: {},
+		default: {
+			spinRatio: 1,
+		},
 	},
 	{
 		label: 'Play video on scroll over',
@@ -178,7 +204,9 @@ export const animationTypes = [
 	{
 		label: 'Video parallax',
 		value: 'sscVideoControl',
-		default: {},
+		default: {
+			playbackRatio: 1,
+		},
 	},
 	{
 		label: 'Play video on screen',
@@ -194,7 +222,7 @@ export const animationTypes = [
 		},
 	},
 	{
-		label: 'Create your own animation',
+		label: 'Custom animation',
 		value: 'sscSequence',
 		default: {
 			duration: 2000,
@@ -203,12 +231,12 @@ export const animationTypes = [
 		},
 	},
 	{
-		label: 'ScreenJacker',
-		value: 'sscScreenJacker',
+		label: 'ScrollJacking',
+		value: 'sscScrollJacking',
 		default: {
 			intersection: 50,
-			duration: 1000,
-			easing: 'easeInOutExpo',
+			duration: 800,
+			easing: 'easeOutExpo',
 		},
 	},
 	{

@@ -1,8 +1,8 @@
 'use strict';
 
 import anime from 'animejs/lib/anime.es.js';
-import { textStaggerPresets } from './data';
-import './ssc.scss';
+import { textStaggerPresets } from './utils/data';
+import './style/ssc.scss';
 
 const intersectionPrecision = 5;
 const sscOptions = {
@@ -322,7 +322,7 @@ class _ssc {
 					? entry.isIntersecting
 						? 'enter'
 						: 'leave'
-					: 'inViewport';
+					: '';
 
 			// is colliding with borders
 			entry.target.dataset.visible = entry.isIntersecting
@@ -348,10 +348,10 @@ class _ssc {
 						entry.target.style.transition = '350ms';
 						this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
 						break;
-					case 'sscScreenJacker':
+					case 'sscScrollJacking':
 						entry.target.style.minHeight = '100.5vh';
 						entry.target.style.margin = 0;
-						this.screenJacker( entry ); // yup
+						this.scrollJacking( entry ); // yup
 						break;
 					case 'sscCounter':
 						this.animateCount( entry ); // yup
@@ -504,7 +504,7 @@ class _ssc {
 			textContent: [ 0, parseInt( el.target.lastChild.textContent, 10 ) ],
 			round: 1,
 			duration: el.target.sscItemOpts.duration || 5000,
-			easing: 'easeInOutExpo',
+			easing: el.target.sscItemOpts.easing,
 			complete: () => el.target.removeAttribute( 'data-ssc-count' ),
 		} );
 	}
@@ -762,7 +762,7 @@ class _ssc {
 	itemLevition = ( el ) => ( el.target.style.backgroundColor = 'red' );
 
 	// ScrollTo
-	screenJacker = ( entry ) => {
+	scrollJacking = ( entry ) => {
 		// if there aren't any defined target, store this one
 		if ( entry.target.action === 'enter' && this.hasScrolling === false ) {
 			this.hasScrolling = entry.target.sscItemOpts.sscItem;
@@ -901,7 +901,7 @@ class _ssc {
 			window.requestAnimationFrame( () => {
 				// set the current frame
 				const Offset = event.deltaY > 0 ? 1 / 29.7 : ( 1 / 29.7 ) * -1; // e.deltaY is the direction
-				videoEl.currentTime = videoEl.currentTime + Offset;
+				videoEl.currentTime = videoEl.currentTime + Offset * event.target.playbackRatio;
 			} );
 		}
 	};
@@ -919,6 +919,7 @@ class _ssc {
 	// Listens mouse scroll wheel
 	videoWheelController( el ) {
 		const videoEl = el.target.querySelector( 'video' );
+    videoEl.playbackRatio = el.target.sscItemOpts.playbackRatio;
 		videoEl.controls = false;
 		videoEl.muted = true;
 		videoEl.pause();
@@ -948,9 +949,9 @@ class _ssc {
 
 		function changeAngle() {
 			const rect = video.getBoundingClientRect();
-			if ( video.readyState > 1 ) {
+			if ( video.readyState > 2 ) {
 				video.currentTime =
-					( ( e.clientX - rect.left ) / rect.width ) * video.duration;
+					( ( e.clientX - rect.left ) / rect.width ) * video.duration * video.spinRatio;
 			}
 		}
 
@@ -959,6 +960,7 @@ class _ssc {
 
 	video360Controller( entry ) {
 		const videoEl = entry.target.querySelector( 'video' );
+    videoEl.spinRatio = entry.target.sscItemOpts.spinRatio;
 		if ( entry.target.action === 'enter' ) {
 			videoEl.onmousemove = this.handleVideo360;
 		} else if ( entry.target.action === 'leave' ) {
