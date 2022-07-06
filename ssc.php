@@ -1,6 +1,10 @@
 <?php
 /**
  * Plugin Name: Interactive Animated Blocks
+ * Plugin URI: https://github.com/erikyo/ssc
+ * Description: This plugin provides an additional panel to Wordpress block editor that enables object interactivity and complex animations.
+ * Version: 0.0.1
+ * Author: codekraft
  */
 function ssc_editor_scripts() {
 	$asset = include __DIR__ .'/build/ssc-editor.asset.php';

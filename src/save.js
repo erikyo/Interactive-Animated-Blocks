@@ -1,4 +1,4 @@
-import { cssize, dataStringify, getDefaults } from './utils/fn';
+import { dataStringify, getDefaults, styleObj2String } from './utils/fn';
 import classnames from 'classnames';
 
 /**
@@ -19,6 +19,8 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		sscAnimationType,
 		sscAnimationOptions,
 	} = attributes;
+
+	let hasMotion = {};
 
 	if ( sscAnimated && sscAnimationType ) {
 		const defaults = getDefaults( sscAnimationType );
@@ -57,34 +59,24 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		//check if attribute exists for old Gutenberg version compatibility
 		//add class only when visibleOnMobile = false
 		//add allowedBlocks restriction
-		const hasTransition =
+		hasMotion =
 			sscAnimationOptions[ sscAnimationType ] &&
 			sscAnimationOptions[ sscAnimationType ].motion
-				? sscAnimationOptions[ sscAnimationType ].motion + 'ms'
-				: false;
+				? {
+						transition:
+							sscAnimationOptions[ sscAnimationType ].motion +
+							'ms',
+				  }
+				: {};
 
-		// css style
-		const CustomStyle = sscAnimated
-			? { transition: hasTransition || sscAnimated ? '350ms' : 0 }
-			: {};
-
-		let initialStyle = '';
-		if ( initialCSS !== {} ) {
-			initialStyle = initialCSS.match( '\{([^)]+)\}' );
-			if ( initialStyle ) {
-				initialStyle = cssize( initialStyle[1] );
-			} else {
-				// maybe "this {}" has been removed but some style is present
-				initialStyle = cssize( initialCSS );
-			}
-		}
 		// element classes
-
 		const classes = sscAnimated ? 'ssc' : '';
 
-		return Object.assign( extraProps, {
+		// const startingCSS = styleObj2String(initialCSS)
+
+		Object.assign( extraProps, {
 			className: classnames( extraProps.className, classes ),
-			style: { ...initialStyle, ...CustomStyle, ...extraProps.style },
+			style: { ...initialCSS, ...hasMotion, ...extraProps.style },
 		} );
 	}
 

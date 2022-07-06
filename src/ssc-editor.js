@@ -1,11 +1,16 @@
 /**
  * WordPress Dependencies
  */
+
 import { addFilter } from '@wordpress/hooks';
-import './style/editor.scss';
+
+import { AnimationAdvancedControls } from './components/panelExtras';
+import { StyleAdvancedControls } from './components/codeBox';
 
 import { addExtraProps } from './save';
-import { withAdvancedControls } from './panelExtras';
+
+// css style
+import './style/editor.scss';
 
 /**
  * The ssc additional panel settings.
@@ -20,8 +25,8 @@ function addAttributes( settings ) {
 	if ( typeof settings.attributes !== 'undefined' ) {
 		settings.attributes = Object.assign( settings.attributes, {
 			initialCSS: {
-				type: 'string',
-				default: 'this {\n}',
+				type: 'object',
+				default: {},
 			},
 			sscAnimated: {
 				type: 'boolean',
@@ -53,8 +58,14 @@ addFilter(
 
 addFilter(
 	'editor.BlockEdit',
-	'sscEditor/with-advanced-controls',
-	withAdvancedControls
+	'sscEditor/advancedAnimationsControls',
+	AnimationAdvancedControls
+);
+
+addFilter(
+	'editor.BlockEdit',
+	'sscEditor/advancedStyleControls',
+	StyleAdvancedControls
 );
 
 addFilter(

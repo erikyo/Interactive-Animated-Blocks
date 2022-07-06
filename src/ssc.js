@@ -18,5 +18,5 @@ window.addEventListener( 'load', () => {
 
 	typeof window.screenControl
 		? ( window.screenControl = new _ssc( options ) )
-		: console.warn( 'unable to load multiple ssc instances' );
+		: console.warn( 'SSC ERROR: unable to load multiple instances' );
 } );

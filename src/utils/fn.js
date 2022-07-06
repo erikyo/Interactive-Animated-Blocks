@@ -9,30 +9,38 @@ export function dataStringify( data, type ) {
 				return item[ 1 ].action + ':' + item[ 1 ].value;
 			}
 			// delete data.steps;
-			return ! data.steps ? item[ 0 ] + ':' + item[ 1 ] : null;
+			return item[ 0 ] !== 'steps' ? item[ 0 ] + ':' + item[ 1 ] : null;
 		} )
 		.join( ';' );
 	return csv || null;
 }
 
-export function cssize( style ) {
-	// split css rule and remove line breaks
-	style = style.replace( /(\r\n|\n|\r)/gm, '' );
-	const styleParsed = style.split( ';' ).filter( ( element ) => element );
+export const css2obj = ( css ) => {
+	const r = /(?<=^|;)\s*([^:]+)\s*:\s*([^;]+)\s*/g,
+		o = {};
+	css.replace( r, ( m, p, v ) => ( o[ p ] = v ) );
+	return o;
+};
 
-	if ( ! styleParsed ) {
-		return false;
-	}
+// JSON style object to a CSS string?
+export const styleObj2String = ( style, indent = '  ' ) =>
+	Object.entries( style )
+		.map( ( [ k, v ] ) => indent + `${ k }: ${ v }` )
+		.join( ';' );
 
-	// parse each css rule gathered
-	const Styleraw = [];
-	styleParsed.forEach( ( rule ) => Styleraw.push( rule.split( ':' ) ) );
+// Replace any capital letter with dash lowercase letter
+export const capitalToloDash = ( k ) =>
+	k.replace( /[A-Z]/g, ( match ) => `-${ match.toLowerCase() }` );
 
-	const Stylejs = {};
-	Styleraw.forEach( ( rule ) => ( Stylejs[ rule[ 0 ] ] = rule[ 1 ] ) );
+// Replace any capital letter with dash lowercase letter
+export const loDashToCapital = ( k ) =>
+	k.replace( /-[a-z]/g, ( match ) => `${ match[ 1 ].toUpperCase() }` );
 
-	return Stylejs;
-}
+// Replace any capital letter with dash lowercase letter
+export const autoFormatCode = ( k ) =>
+	k.replace( /\;| \{/gi, function ( matched ) {
+		return matched + '\n';
+	} );
 
 // parse data stored with wp editor into element dataset and transform into properties / style to provide a faster access
 export const getElelementData = ( opts, type = 'data' ) => {
@@ -56,19 +64,18 @@ export const getElelementData = ( opts, type = 'data' ) => {
 // get default setting
 export const getDefaults = ( opt ) => {
 	const animationType = animationTypes.filter( ( animation ) => {
-		return animation.value === opt;
+		return animation.value ? animation.value === opt : null;
 	} );
-	return animationType[ 0 ].default || {};
+	return animationType[ 0 ] ? animationType[ 0 ].default : {};
 };
 
-
+// Safe event def
 // detect available wheel event
 export const mouseWheel =
-  'onwheel' in document.createElement( 'div' )
-    ? 'wheel' // Modern browsers support "wheel"
-    : document.onmousewheel !== undefined
-      ? 'mousewheel' // Webkit and IE support at least "mousewheel"
-      : 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
+	'onwheel' in document.createElement( 'div' )
+		? 'wheel' // Modern browsers support "wheel"
+		: document.onmousewheel !== undefined
+		? 'mousewheel' // Webkit and IE support at least "mousewheel"
+		: 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox
 
-// An ease-out function that slows the count as it progresses
-export const easeOutQuad = ( t ) => t * ( 2 - t );
+

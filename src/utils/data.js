@@ -171,7 +171,9 @@ export const animationTypes = [
 		default: {
 			animationEnter: 'fadeIn',
 			animationExit: 'fadeOut',
-			position: '50',
+			intersection: 50,
+			duration: 0,
+			delay: 0,
 		},
 	},
 	{
@@ -179,9 +181,9 @@ export const animationTypes = [
 		value: 'sscParallax',
 		default: {
 			direction: 'Y',
-			level: '1',
-			speed: '1',
-			motion: '50',
+			level: 1,
+			speed: 1,
+			motion: 50,
 		},
 	},
 	{
@@ -202,6 +204,13 @@ export const animationTypes = [
 		default: {},
 	},
 	{
+		label: 'Image Zoom',
+		value: 'sscImageZoom',
+		default: {
+			zoom: 1,
+		},
+	},
+	{
 		label: 'Video parallax',
 		value: 'sscVideoControl',
 		default: {
@@ -218,6 +227,7 @@ export const animationTypes = [
 		value: 'sscSvgPath',
 		default: {
 			duration: 5000,
+			delay: 500,
 			easing: 'easeInOutExpo',
 		},
 	},
@@ -226,6 +236,7 @@ export const animationTypes = [
 		value: 'sscSequence',
 		default: {
 			duration: 2000,
+			delay: 500,
 			easing: 'easeInOutQuad',
 			steps: [],
 		},
@@ -236,6 +247,7 @@ export const animationTypes = [
 		default: {
 			intersection: 50,
 			duration: 800,
+			delay: 0,
 			easing: 'easeOutExpo',
 		},
 	},
@@ -244,6 +256,7 @@ export const animationTypes = [
 		value: 'sscCounter',
 		default: {
 			duration: 8000,
+			delay: 0,
 			easing: 'easeInOutExpo',
 		},
 	},
@@ -252,6 +265,7 @@ export const animationTypes = [
 		value: 'sscTextStagger',
 		default: {
 			duration: 5000,
+			delay: 1000,
 			easing: 'easeInOutQuad',
 			preset: 'default',
 			splitBy: 'letter',

@@ -1,5 +1,4 @@
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { getDefaults } from './utils/fn';
 import { Fragment } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
 import {
@@ -10,14 +9,15 @@ import {
 	ToggleControl,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+
 import {
 	animationEasings,
 	animationList,
 	animationTypes,
 	textStaggerPresetsNames,
-} from './utils/data';
-import { ActionList } from './components/ActionList';
-import { CodeBox } from './components/CodeBox';
+} from '../utils/data';
+import { getDefaults } from '../utils/fn';
+import { ActionList } from './ActionList';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -26,7 +26,7 @@ import { CodeBox } from './components/CodeBox';
  *
  * @return {Function} BlockEdit Modified block edit component.
  */
-export const withAdvancedControls = createHigherOrderComponent(
+export const AnimationAdvancedControls = createHigherOrderComponent(
 	( BlockEdit ) => {
 		return ( props ) => {
 			const {
@@ -34,7 +34,6 @@ export const withAdvancedControls = createHigherOrderComponent(
 				setAttributes,
 				isSelected,
 				attributes: {
-					initialCSS,
 					sscAnimated,
 					sscReiterate,
 					sscAnimationType,
@@ -145,6 +144,7 @@ export const withAdvancedControls = createHigherOrderComponent(
 													'sscScrollJacking',
 													'sscCounter',
 													'sscTextStagger',
+													'sscAnimation',
 												].includes(
 													sscAnimationType
 												) && (
@@ -187,6 +187,26 @@ export const withAdvancedControls = createHigherOrderComponent(
 																)
 															}
 														></SelectControl>
+														<RangeControl
+															label={
+																'Delay (ms)'
+															}
+															value={
+																sscAnimationOptions[
+																	sscAnimationType
+																].delay
+															}
+															onChange={ ( e ) =>
+																setOption(
+																	e,
+																	'delay',
+																	sscAnimationType
+																)
+															}
+															min={ 0 }
+															max={ 10000 }
+															step={ 10 }
+														/>
 													</>
 												) }
 											{ sscAnimationType ===
@@ -379,12 +399,14 @@ export const withAdvancedControls = createHigherOrderComponent(
 															value={
 																sscAnimationOptions[
 																	sscAnimationType
-																].position
+																]
+																	.intersection ||
+																20
 															}
 															onChange={ ( e ) =>
 																setOption(
 																	e,
-																	'position',
+																	'intersection',
 																	sscAnimationType
 																)
 															}
@@ -469,14 +491,6 @@ export const withAdvancedControls = createHigherOrderComponent(
 									) }
 								</>
 							) }
-							<CodeBox
-								value={ initialCSS || 'this {}' }
-								onChange={ ( attr ) =>
-									setAttributes( {
-										initialCSS: attr,
-									} )
-								}
-							/>
 						</PanelBody>
 					</InspectorControls>
 				</Fragment>
