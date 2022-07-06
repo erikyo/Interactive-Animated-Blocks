@@ -140,7 +140,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												[
 													'sscSvgPath',
 													'sscSequence',
-													'sscVideoFocusPlay',
 													'sscScrollJacking',
 													'sscCounter',
 													'sscTextStagger',

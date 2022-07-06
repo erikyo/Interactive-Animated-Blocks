@@ -121,6 +121,16 @@ export default class _ssc {
 		);
 	}
 
+	hasMouseOver( e ) {
+		const mouseX = e;
+		const mouseY = e;
+		const rect = e.target.getBoundingClientRect();
+
+		return (
+			rect.left < mouseX < rect.right && rect.top < mouseY < rect.bottom
+		);
+	}
+
 	// Detach an element from screen control
 	unmount = ( el ) => {
 		el.unWatch();
@@ -313,28 +323,31 @@ export default class _ssc {
 					case 'sscScrollJacking':
 						entry.target.style.minHeight = 'calc(100vh + 2px)';
 						entry.target.style.margin = 0;
-						this.scrollJacking( entry ); // yup
+						this.scrollJacking( entry );
 						break;
 					case 'sscCounter':
-						this.animateCount( entry ); // yup
+						this.animateCount( entry );
 						break;
 					case 'sscVideoFocusPlay':
 						this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
 						break;
 					case 'sscVideoControl':
-						this.parallaxVideoController( entry ); // yup
+						this.parallaxVideoController( entry );
 						break;
 					case 'sscVideoScroll':
-						this.videoWheelController( entry ); // NO
+						this.videoWheelController( entry );
 						break;
 					case 'ssc360':
-						this.video360Controller( entry ); // NO
+						this.video360Controller( entry );
 						break;
 					case 'sscLevitate':
 						this.itemLevition( entry ); // NO
 						break;
+					case 'sscImageZoom':
+						this.imageScaleController( entry ); // NO
+						break;
 					case 'sscTextStagger':
-						this.textStagger( entry ); // NO
+						this.textStagger( entry );
 						break;
 					default:
 						// err
@@ -821,9 +834,7 @@ export default class _ssc {
 						-( rect.top + this.windowData.viewHeight ) /
 							( this.windowData.viewHeight * 2 ) ) *
 					video.videoLenght
-				)
-					.toFixed( 2 )
-					.toString();
+				).toString();
 
 				return window.requestAnimationFrame( this.parallaxVideo );
 			} );
@@ -864,25 +875,13 @@ export default class _ssc {
 			videoEl.removeEventListener( mouseWheel, this.videoOnWheel );
 			return true;
 		}
-		if ( videoEl.readyState >= 1 ) {
-			window.requestAnimationFrame( () => {
-				// set the current frame
-				const Offset = event.deltaY > 0 ? 1 / 29.7 : ( 1 / 29.7 ) * -1; // e.deltaY is the direction
-				videoEl.currentTime =
-					videoEl.currentTime + Offset * event.target.playbackRatio;
-			} );
-		}
+		window.requestAnimationFrame( () => {
+			// set the current frame
+			const Offset = event.deltaY > 0 ? 1 / 29.7 : ( 1 / 29.7 ) * -1; // e.deltaY is the direction
+			videoEl.currentTime =
+				videoEl.currentTime + Offset * event.target.playbackRatio;
+		} );
 	};
-
-	hasMouseOver( e ) {
-		const mouseX = e;
-		const mouseY = e;
-		const rect = e.target.getBoundingClientRect();
-
-		return (
-			rect.left < mouseX < rect.right && rect.top < mouseY < rect.bottom
-		);
-	}
 
 	// Listens mouse scroll wheel
 	videoWheelController( el ) {
@@ -894,30 +893,29 @@ export default class _ssc {
 		videoEl.addEventListener( mouseWheel, this.videoOnWheel );
 	}
 
-	imageScale = ( el ) =>
-		new Promise( ( f ) => {
-			let scale = 1;
+	imageScale = ( event ) => {
+		event.preventDefault();
+		window.requestAnimationFrame( () => {
+			let scale = parseFloat( event.target.dataset.sscZoom ) || 1;
+			scale += event.deltaY * -0.001;
 
-			el.onmousewheel = ( event ) => {
-				event.preventDefault();
+			// Restrict scale
+			// TODO: options
+			scale = Math.min( Math.max( 1, scale ), 4 );
 
-				scale += event.deltaY * -0.01;
+			event.target.dataset.sscZoom = scale;
 
-				// Restrict scale
-				scale = Math.min( Math.max( 0.125, scale ), 4 );
-
-				// Apply scale transform
-				el.style.transform = `scale(${ scale })`;
-			};
-			return f;
+			// Apply scale transform
+			event.target.style.transform = `scale(${ scale })`;
 		} );
+	};
 
 	imageScaleController( entry ) {
-		const videoEl = entry.target.querySelector( 'img' );
+		const imageEl = entry.target.querySelector( 'img' );
 		if ( entry.target.action === 'enter' ) {
-			videoEl.onmousemove = this.imageScale;
+			imageEl.addEventListener( mouseWheel, this.imageScale );
 		} else if ( entry.target.action === 'leave' ) {
-			videoEl.onmousemove = null;
+			imageEl.removeEventListener( mouseWheel, this.imageScale );
 		}
 	}
 
