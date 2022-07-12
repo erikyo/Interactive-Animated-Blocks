@@ -1,4 +1,4 @@
-import './style/ssc.scss';
+import './styles/ssc.scss';
 import _ssc from './frontend/_ssc';
 
 export const sscOptions = {

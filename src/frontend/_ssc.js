@@ -1,6 +1,11 @@
 import { textStaggerPresets } from '../utils/data';
-import { getElelementData, mouseWheel } from '../utils/fn';
+import { mouseWheel } from '../utils/compat';
+import { getElelementData } from '../utils/fn';
 import anime from 'animejs';
+import ScrollMagic from 'scrollmagic';
+import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
+
+ScrollMagicPluginIndicator( ScrollMagic );
 
 import { sscOptions } from '../ssc';
 
@@ -25,16 +30,23 @@ export default class _ssc {
 		// parallax handler
 		this.parallaxed = [];
 		this.parallax = this.parallax.bind( this );
+		this.initMutationObserver = this.initMutationObserver.bind( this );
 
 		this.videoParallaxed = [];
 		this.parallaxVideo = this.parallaxVideo.bind( this );
 
+		this.handleAnimation = this.handleAnimation.bind( this );
+
 		this.animations = [];
 		this.staggerPresets = textStaggerPresets;
 
+		this.scrollMagic = new ScrollMagic.Controller();
+
+		this.timelines = [];
+
 		// avoid scrolling before the page has been loaded
 		this.hasScrolling = false;
-		this.isScrolling = Date.now() + 2000;
+		this.isScrolling = Date.now() + 100;
 
 		this.windowData = {
 			viewHeight: window.innerHeight,
@@ -95,7 +107,7 @@ export default class _ssc {
 			case 'crossing':
 				return this.isCrossing( rect, position );
 			case 'between':
-				return this.isBeetween( rect, position );
+				return this.isBetween( rect, position );
 		}
 	}
 
@@ -112,7 +124,7 @@ export default class _ssc {
 		return rect.top < center && rect.bottom > center;
 	}
 
-	isBeetween( rect, rangePosition ) {
+	isBetween( rect, rangePosition ) {
 		const limit = this.windowData.viewHeight * ( rangePosition * 0.005 ); // 20% of 1000px is 100px from top and 100px from bottom
 		const elementCenter = rect.top + rect.height * 0.5;
 		return (
@@ -170,7 +182,7 @@ export default class _ssc {
 						-0.2;
 					element.style.transform =
 						'translate3d(' +
-						( element.sscItemOpts.direction === 'Y'
+						( element.sscItemOpts.direction === 'y'
 							? '0,' + styleValue + 'px'
 							: styleValue + 'px,0' ) +
 						',0)';
@@ -189,7 +201,7 @@ export default class _ssc {
 	parallaxController = ( entry ) => {
 		// add this object to the watched list
 		this.parallaxed[ entry.target.sscItemData.sscItem ] = entry.target;
-		// if the parallax function wasn't running before so we need to start it
+		// if the parallax function wasn't running before we need to start it
 		if ( this.parallaxed.length ) {
 			this.parallax();
 		}
@@ -204,6 +216,98 @@ export default class _ssc {
 				`ssc-${ entry.target.sscItemData.sscItem } will be unwatched. current list`,
 				this.parallaxed
 			);
+		}
+	};
+
+	// this will position with fixed an element for X scrolled pixels
+	scrollTimeline = ( el ) => {
+		// Add timeline
+		const timeline = anime.timeline( { autoplay: false } );
+
+		el.querySelectorAll( '.ssc-timeline-scene' ).forEach( ( scenes ) => {
+			const sceneData = JSON.parse( scenes.sscItemData.scene );
+			const sceneOpts = scenes.sscItemOpts;
+
+			const offset = parseInt( sceneOpts.offset, 10 );
+
+			const sceneOffset =
+				offset !== 0
+					? offset > 0
+						? '+=' + offset
+						: '-=' + offset
+					: null;
+
+			Object.values( sceneData ).forEach( ( scene ) => {
+				timeline.add(
+					{
+						targets: scenes,
+						delay: sceneOpts.delay,
+						duration: sceneOpts.duration,
+						easing: sceneOpts.easing,
+						...scene,
+					},
+					sceneOffset
+				);
+			} );
+		} );
+
+		// create a scene
+		this.timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
+			triggerElement: el,
+			duration: el.sscItemOpts.duration,
+			triggerHook: el.sscItemOpts.triggerHook || 0.25,
+		} )
+			// Add debug indicators
+			.addIndicators()
+			// Trigger animation timeline
+			.on( 'progress', function ( event ) {
+				timeline.seek( timeline.duration * event.progress );
+			} )
+			.setPin( el )
+			.addTo( this.scrollMagic );
+	};
+
+	addMetaToCollected = ( el, index ) => {
+		// add a class to acknowledge about initialization
+		el.dataset.sscItem = index;
+
+		el.unWatch = this.observer.unobserve( el );
+
+		el.sscItemData = el.dataset;
+
+		el.sscItemOpts = el.dataset.sscProps
+			? getElelementData( el.dataset.sscProps, 'data' )
+			: null;
+
+		el.sscSequence =
+			el.dataset && el.dataset.sscSequence
+				? getElelementData( el.dataset.sscSequence, 'style' )
+				: null;
+
+		el.sscScene =
+			el.dataset && el.dataset.sscSequence && el.dataset.sscSequence.scene
+				? el.dataset.sscSequence.scene
+				: null;
+
+		// scroll animated video needs custom settings
+		if (
+			[ 'sscVideoParallax', 'sscVideoScroll', 'ssc360' ].includes(
+				el.sscItemData.sscAnimation
+			)
+		) {
+			const videoEl = el.querySelector( 'video' );
+			videoEl.autoplay = false;
+			videoEl.controls = false;
+			videoEl.loop = false;
+			videoEl.muted = true;
+			videoEl.playsinline = true;
+			videoEl.pause();
+			el.classList.add( 'ssc-video' );
+		}
+
+		if ( el.sscItemData.sscAnimation === 'sscTimelineChild' ) {
+			// init ScrollMagic scene
+			el.classList.add( 'ssc-timeline-scene' );
 		}
 	};
 
@@ -226,31 +330,29 @@ export default class _ssc {
 
 			// Let's start the intersection observer
 			this.collected.forEach( function ( el, index ) {
-				// add a class to acknowledge about initialization
-				el.dataset.sscItem = index;
+				this.addMetaToCollected( el, index );
 
-				el.unWatch = this.observer.unobserve( el );
-
-				el.sscItemData = el.dataset;
-
-				el.sscItemOpts = el.dataset.sscProps
-					? getElelementData( el.dataset.sscProps, 'data' )
-					: null;
-
-				el.sscSequence =
-					el.dataset && el.dataset.sscSequence
-						? getElelementData( el.dataset.sscSequence, 'style' )
-						: null;
-
-				// watch the elements to detect the screen margins intersection
-				this.observer.observe( el );
+				if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
+					// init ScrollMagic
+					this.timelines[ el.sscItemData.sscItem ] = el;
+				} else {
+					// watch the elements to detect the screen margins intersection
+					this.observer.observe( el );
+				}
 			}, this );
+
+			// start timelines
+			this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
+
+			// start parallax
+			this.parallax();
 
 			// maybe it may seem like an unconventional method but this way this (quite heavy) file is loaded only there is a need
 			const hasAnimate = Object.values( this.collected ).filter(
 				( observed ) =>
 					observed.sscItemData.sscAnimation === 'sscAnimation'
 			);
+
 			if ( hasAnimate ) {
 				const animateCSS = document.createElement( 'link' );
 				animateCSS.rel = 'stylesheet';
@@ -259,8 +361,6 @@ export default class _ssc {
 					'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
 				document.head.appendChild( animateCSS );
 			}
-
-			this.parallax();
 
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
@@ -310,7 +410,7 @@ export default class _ssc {
 						this.parallaxController( entry ); // yup
 						break;
 					case 'sscAnimation':
-						this.handleAnimation( entry, entry.target.action );
+						this.handleAnimation( entry );
 						break;
 					case 'sscSequence':
 						this.animationSequence( entry, entry.target.action );
@@ -321,7 +421,7 @@ export default class _ssc {
 						this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
 						break;
 					case 'sscScrollJacking':
-						entry.target.style.minHeight = 'calc(100vh + 2px)';
+						entry.target.style.minHeight = 'calc(100vh + 4px)';
 						entry.target.style.margin = 0;
 						this.scrollJacking( entry );
 						break;
@@ -331,8 +431,8 @@ export default class _ssc {
 					case 'sscVideoFocusPlay':
 						this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
 						break;
-					case 'sscVideoControl':
-						this.parallaxVideoController( entry );
+					case 'sscVideoParallax':
+						this.videoParallaxController( entry );
 						break;
 					case 'sscVideoScroll':
 						this.videoWheelController( entry );
@@ -340,9 +440,9 @@ export default class _ssc {
 					case 'ssc360':
 						this.video360Controller( entry );
 						break;
-					case 'sscLevitate':
-						this.itemLevition( entry ); // NO
-						break;
+					// case 'sscScrollTimeline':
+					// 	this.scrollTimeline( entry ); // NO
+					// 	break;
 					case 'sscImageZoom':
 						this.imageScaleController( entry ); // NO
 						break;
@@ -381,7 +481,10 @@ export default class _ssc {
 
 				if ( objCollection.length ) {
 					objCollection.forEach( function ( el ) {
-						this.observer.observe( el );
+						this.addMetaToCollected( el, this.collected.length );
+
+						// watch the elements to detect the screen margins intersection
+						return this.observer.observe( el );
 					} );
 				}
 			} );
@@ -425,86 +528,97 @@ export default class _ssc {
 		el.currentTime = 0;
 	};
 
+	animateItem( el ) {
+		if (
+			el.action === 'enter' &&
+			this.checkVisibility( el.target, 'between', el.intersection )
+		) {
+			el.setMeta();
+			el.locked = true;
+			this.delay( el.target.delay ).then( () => {
+				// check if the action needed is "enter" and if the element is in viewport
+				el.removeCssClass( el.target.sscItemOpts.animationExit );
+				// trigger to enter animation
+				el.addCssClass( el.target.sscItemOpts.animationEnter );
+				this.delay( el.target.duration ).then( () => {
+					// after the animation has been completed unlock the element
+					el.locked = false;
+					el.action = 'leave';
+				} );
+			} );
+		} else if (
+			el.action === 'leave' &&
+			! this.checkVisibility( el.target, 'between', el.intersection )
+		) {
+			el.setMeta();
+			if ( el.target.sscItemOpts.animationExit ) {
+				el.locked = true;
+				this.delay( el.target.delay ).then( () => {
+					el.removeCssClass( el.target.sscItemOpts.animationEnter );
+					el.addCssClass( el.target.sscItemOpts.animationExit );
+					this.delay( el.target.duration ).then( () => {
+						el.locked = false;
+						el.action = 'enter';
+					} );
+				} );
+			}
+		}
+	}
+
 	/**
 	 * Animate Element using Anime.css
 	 *
-	 * @param {Object} el     Element to animate.
-	 * @param          entry
-	 * @param          action
+	 * @param  entry
 	 */
-	handleAnimation = ( entry, action ) => {
-		// applies custom style if needed
-		function setMeta() {
-			if ( entry.target.sscItemOpts.duration !== '0' )
-				entry.target.style.setProperty(
-					'--animate-duration',
-					entry.target.sscItemOpts.duration + 'ms'
-				);
-			if ( entry.target.sscItemOpts.delay !== '0' )
-				entry.target.style.setProperty(
-					'--animate-delay',
-					entry.target.sscItemOpts.delay + 'ms'
-				);
-		}
+	handleAnimation = ( entry ) => {
+		if ( ! this.animations[ entry.target.sscItemData.sscItem ] )
+			this.animations[ entry.target.sscItemData.sscItem ] = {
+				target: entry.target,
+				action: entry.target.action,
+				delay: entry.target.sscItemOpts.delay,
+				duration: entry.target.sscItemOpts.duration,
+				locked: false,
+				intersection:
+					parseInt( entry.target.sscItemOpts.intersection, 10 ) || 25,
+				addCssClass( cssClass ) {
+					this.target.classList.add(
+						'animate__animated',
+						'animate__' + cssClass
+					);
+				},
+				removeCssClass( cssClass ) {
+					this.target.classList.remove(
+						'animate__animated',
+						'animate__' + cssClass
+					);
+				},
+				// applies custom style if needed
+				setMeta() {
+					if ( this.target.duration )
+						this.target.style.setProperty(
+							'--animate-duration',
+							this.target.duration + 'ms'
+						);
+				},
+			};
 
 		if (
-			action === 'enter' &&
-			! entry.target.dataset.animationLock &&
 			this.checkVisibility(
-				entry.target,
-				'between',
-				parseInt( entry.target.sscItemOpts.intersection, 10 )
+				this.animations[ entry.target.sscItemData.sscItem ].target,
+				'partiallyVisible'
 			)
 		) {
-			setMeta();
-			entry.target.dataset.sscLock = 'true';
-			// check if the action needed is enter and if the element is in the range
-			// trigger to enter animation
-			entry.target.classList.remove(
-				'animate__animated',
-				'animate__' + entry.target.sscItemOpts.animationExit
-			);
-			entry.target.classList.add(
-				'animate__animated',
-				'animate__' + entry.target.sscItemOpts.animationEnter
-			);
-			this.delay( entry.target.sscItemOpts.duration ).then( () => {
-				entry.target.removeAttribute( 'data-ssc-lock' );
-			} );
-			action = 'leave';
-		} else if (
-			action === 'leave' &&
-			! entry.target.dataset.sscLock &&
-			! this.checkVisibility(
-				entry.target,
-				'between',
-				parseInt( entry.target.sscItemOpts.intersection, 10 )
-			)
-		) {
-			setMeta();
-			entry.target.dataset.sscLock = 'true';
-			// check if the action needed is the leave animation and if the element is outside the range
-			// trigger the exit animation
-			entry.target.classList.remove(
-				'animate__animated',
-				'animate__' + entry.target.sscItemOpts.animationEnter
-			);
-			if ( entry.target.sscItemOpts.animationExit ) {
-				entry.target.classList.add(
-					'animate__animated',
-					'animate__' + entry.target.sscItemOpts.animationExit
+			if (
+				! this.animations[ entry.target.sscItemData.sscItem ].locked
+			) {
+				this.animateItem(
+					this.animations[ entry.target.sscItemData.sscItem ]
 				);
-				this.delay( entry.target.sscItemOpts.duration ).then( () => {
-					entry.target.removeAttribute( 'data-ssc-lock' );
-				} );
 			}
-			action = 'enter';
-		}
-
-		// if none of the previous condition is met but the element is still in the viewport delay this function
-		if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
 			this.delay( 100 ).then( () => {
-				this.handleAnimation( entry, action );
+				this.handleAnimation(
+					this.animations[ entry.target.sscItemData.sscItem ]
+				);
 			} );
 		}
 	};
@@ -622,7 +736,7 @@ export default class _ssc {
 					};
 					i++;
 				} else {
-					// otherwise store the step and contiue the loop
+					// otherwise store the step and continue the loop
 					currentStep[ i ] = {
 						...currentStep[ i ],
 						[ step[ 1 ].property ]: step[ 1 ].value,
@@ -636,11 +750,11 @@ export default class _ssc {
 					targets: entry.target,
 					autoplay: false,
 					delay: entry.target.sscItemOpts.delay,
-					easing: 'easeOutExpo', // Can be inherited
+					duration: entry.target.sscItemOpts.duration,
+					easing: entry.target.sscItemOpts.easing, // Can be inherited
 					direction: 'normal', // Is not inherited
 					complete( anim ) {
 						console.log( anim );
-						entry.target.removeAttribute( 'data-visible' );
 						entry.target.removeAttribute( 'data-ssc-lock' );
 					},
 				} );
@@ -679,7 +793,11 @@ export default class _ssc {
 		const path = entry.target.querySelectorAll( 'path' );
 		if (
 			action === 'enter' &&
-			this.checkVisibility( entry.target, 'between', 25 )
+			this.checkVisibility(
+				entry.target,
+				'between',
+				entry.target.sscItemOpts.intersection
+			)
 		) {
 			entry.target.style.opacity = 1;
 			action = 'leave';
@@ -688,8 +806,9 @@ export default class _ssc {
 			} else {
 				animation = anime( {
 					targets: path,
+					direction: 'normal',
 					strokeDashoffset: [ anime.setDashoffset, 0 ],
-					easing: 'easeInOutSine',
+					easing: entry.target.sscItemOpts.easing || 'linear',
 					duration: entry.target.sscItemOpts.duration || 5000,
 					delay( el, i ) {
 						return (
@@ -697,12 +816,15 @@ export default class _ssc {
 							path.length
 						);
 					},
-					direction: 'normal',
 				} );
 			}
 		} else if (
 			action === 'leave' &&
-			! this.checkVisibility( entry.target, 'between', 25 )
+			! this.checkVisibility(
+				entry.target,
+				'between',
+				entry.target.sscItemOpts.intersection
+			)
 		) {
 			action = 'enter';
 			if (
@@ -714,7 +836,6 @@ export default class _ssc {
 				animation = anime( {
 					targets: path,
 					strokeDashoffset: [ anime.setDashoffset, 0 ],
-					easing: 'easeInOutSine',
 					duration: entry.target.sscItemOpts.duration,
 					delay( el, i ) {
 						return (
@@ -738,38 +859,26 @@ export default class _ssc {
 		}
 	};
 
-	// this will position with fixed an element for X scrolled pixels
-	itemLevition = ( el ) => ( el.target.style.backgroundColor = 'red' );
-
 	// ScrollTo
 	scrollJacking = ( entry ) => {
-		// if there aren't any defined target, store this one
-		if ( entry.target.action === 'enter' && this.hasScrolling === false ) {
-			this.hasScrolling = entry.target.sscItemOpts.sscItem;
-		}
-
 		// after leaving remove the flag to re-enable the scrolljack
-		if ( entry.target.action === 'leave' ) {
-			this.delay( 500 ).then( () => {
-				entry.target.classList.remove( 'sscLastScrolled' );
-			} );
-		}
+		// if ( entry.target.action === 'leave' ) {
+		// 	this.delay( 500 ).then( () => {
+		// 		entry.target.classList.remove( 'sscLastScrolled' );
+		// 	} );
+		// }
+
+		// if there aren't any defined target, store this one
+		if ( entry.target.action !== 'enter' || this.hasScrolling !== false )
+			return true;
+
+		this.hasScrolling = entry.target.sscItemData.sscItem;
 
 		const disableWheel = ( e ) => {
 			e.preventDefault();
 		};
 
 		const screenJackTo = ( el ) => {
-			if (
-				this.isScrolling > Date.now() ||
-				this.checkVisibility(
-					el.target,
-					'between',
-					el.target.sscItemOpts.intersection
-				)
-			)
-				return;
-
 			// disable the mouse wheel during scrolling to avoid flickering
 			window.addEventListener( mouseWheel, disableWheel, {
 				passive: false,
@@ -781,7 +890,7 @@ export default class _ssc {
 			this.isScrolling = Date.now() + duration + 100;
 
 			// add a flag to avoid a back jump into this element
-			el.target.classList.add( 'sscLastScrolled' );
+			// el.target.classList.add( 'sscLastScrolled' );
 
 			// remove any previous animation
 			anime.remove();
@@ -791,15 +900,16 @@ export default class _ssc {
 						window.document.body ||
 						window.document.documentElement,
 				],
-				scrollTop: el.target.offsetTop + 1,
+				scrollTop: el.target.offsetTop + 2,
 				easing: el.target.sscItemOpts.easing || 'linear',
 				duration: duration || 700,
 				delay: parseInt( el.target.sscItemOpts.delay, 10 ) || 0,
 				complete: () => {
-					window.removeEventListener( mouseWheel, disableWheel, {
-						passive: false,
+					this.delay( 200 ).then( () => {
+						window.removeEventListener( mouseWheel, disableWheel, {
+							passive: false,
+						} );
 					} );
-					window.scroll( 0, el.target.offsetTop );
 					// this.windowData.lastScrollPosition = window.pageYOffset;
 					// window.pageYOffset = el.target.offsetTop;
 					this.hasScrolling = false;
@@ -828,12 +938,13 @@ export default class _ssc {
 
 			this.videoParallaxed.forEach( ( video ) => {
 				// TODO: tween playback with current_frame = (previous value + new_value) in Arduino style
-				const rect = video.getBoundingClientRect();
-				video.currentTime = (
+				const rect = video.item.getBoundingClientRect();
+				video.item.currentTime = (
 					( 1 +
 						-( rect.top + this.windowData.viewHeight ) /
-							( this.windowData.viewHeight * 2 ) ) *
-					video.videoLenght
+							( window.pageYOffset + rect.height ) ) *
+					video.item.duration *
+					video.playbackRatio
 				).toString();
 
 				return window.requestAnimationFrame( this.parallaxVideo );
@@ -842,16 +953,15 @@ export default class _ssc {
 		return false;
 	}
 
-	parallaxVideoController( entry ) {
+	videoParallaxController( entry ) {
 		const videoEl = entry.target.querySelector( 'video' );
 		if ( entry.target.action === 'enter' ) {
-			this.videoParallaxed[ entry.target.sscItemData.sscItem ] = videoEl;
-			this.videoParallaxed[
-				entry.target.sscItemData.sscItem
-			].videoLenght = videoEl.duration;
-			this.videoParallaxed[
-				entry.target.sscItemData.sscItem
-			].sscItemData = entry.target.sscItemData;
+			this.videoParallaxed[ entry.target.sscItemData.sscItem ] = {
+				item: videoEl,
+				videoDuration: videoEl.duration,
+				sscItemData: entry.target.sscItemData,
+				playbackRatio: entry.target.sscItemOpts.playbackRatio,
+			};
 			this.parallaxVideo();
 		} else if ( entry.target.action === 'leave' ) {
 			this.videoParallaxed = this.videoParallaxed.filter(
@@ -871,26 +981,26 @@ export default class _ssc {
 			( videoEl.currentTime <= 0 && event.deltaY < 0 ) ||
 			( videoEl.currentTime === videoEl.duration && event.deltaY > 0 )
 		) {
-			console.log( 'unlocked' );
 			videoEl.removeEventListener( mouseWheel, this.videoOnWheel );
 			return true;
 		}
 		window.requestAnimationFrame( () => {
 			// set the current frame
 			const Offset = event.deltaY > 0 ? 1 / 29.7 : ( 1 / 29.7 ) * -1; // e.deltaY is the direction
-			videoEl.currentTime =
-				videoEl.currentTime + Offset * event.target.playbackRatio;
+			videoEl.currentTime = (
+				videoEl.currentTime +
+				Offset * event.target.playbackRatio
+			).toPrecision( 5 );
 		} );
 	};
 
 	// Listens mouse scroll wheel
 	videoWheelController( el ) {
-		const videoEl = el.target.querySelector( 'video' );
-		videoEl.playbackRatio = el.target.sscItemOpts.playbackRatio;
-		videoEl.controls = false;
-		videoEl.muted = true;
-		videoEl.pause();
-		videoEl.addEventListener( mouseWheel, this.videoOnWheel );
+		if ( el.target.action === 'enter' ) {
+			const videoEl = el.target.querySelector( 'video' );
+			videoEl.playbackRatio = el.target.sscItemOpts.playbackRatio;
+			videoEl.addEventListener( mouseWheel, this.videoOnWheel );
+		}
 	}
 
 	imageScale = ( event ) => {
@@ -924,7 +1034,7 @@ export default class _ssc {
 
 		function changeAngle() {
 			const rect = video.getBoundingClientRect();
-			if ( video.readyState > 2 ) {
+			if ( video.readyState > 1 ) {
 				video.currentTime =
 					( ( e.clientX - rect.left ) / rect.width ) *
 					video.duration *

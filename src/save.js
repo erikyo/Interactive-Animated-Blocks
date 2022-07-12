@@ -13,14 +13,12 @@ import classnames from 'classnames';
  */
 export const addExtraProps = ( extraProps, blockType, attributes ) => {
 	const {
-		initialCSS,
+		additionalCSS,
 		sscAnimated,
-		sscReiterate,
 		sscAnimationType,
 		sscAnimationOptions,
+		sscScene,
 	} = attributes;
-
-	let hasMotion = {};
 
 	if ( sscAnimated && sscAnimationType ) {
 		const defaults = getDefaults( sscAnimationType );
@@ -30,8 +28,6 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		};
 
 		extraProps[ 'data-ssc-animation' ] = sscAnimationType;
-		extraProps[ 'data-ssc-reiterate' ] =
-			sscAnimated && sscReiterate ? 'true' : 'false';
 
 		const options = sscAnimationOptions[ sscAnimationType ] || false;
 		if ( options && Object.keys( options ).length ) {
@@ -41,10 +37,23 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 			);
 		}
 
+		if ( sscAnimationType === 'sscTimelineChild' ) {
+			try {
+				// const sceneData = JSON.parse( rawData ) || {};
+				extraProps[ 'data-scene' ] = JSON.stringify(
+					sscScene,
+					null,
+					null
+				);
+			} catch ( err ) {
+				extraProps[ 'data-scene' ] = '';
+			}
+		}
+
 		// map the original array into a single key value object
 		if ( sscAnimationType === 'sscSequence' ) {
 			const selected =
-				sscAnimationOptions[ sscAnimationType ].steps || false;
+				sscAnimationOptions[ sscAnimationType ].scene || false;
 			if (
 				selected &&
 				Object.keys( sscAnimationOptions[ sscAnimationType ] ).length
@@ -59,7 +68,7 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		//check if attribute exists for old Gutenberg version compatibility
 		//add class only when visibleOnMobile = false
 		//add allowedBlocks restriction
-		hasMotion =
+		const hasMotion =
 			sscAnimationOptions[ sscAnimationType ] &&
 			sscAnimationOptions[ sscAnimationType ].motion
 				? {
@@ -72,11 +81,11 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		// element classes
 		const classes = sscAnimated ? 'ssc' : '';
 
-		// const startingCSS = styleObj2String(initialCSS)
+		// const extraStyle = styleObj2String( additionalCSS );
 
 		Object.assign( extraProps, {
 			className: classnames( extraProps.className, classes ),
-			style: { ...initialCSS, ...hasMotion, ...extraProps.style },
+			style: { ...additionalCSS, ...hasMotion, ...extraProps.style },
 		} );
 	}
 

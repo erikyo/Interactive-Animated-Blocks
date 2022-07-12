@@ -79,6 +79,29 @@ export const actionsTemplate = [
 	},
 ];
 
+export const cssAnimationsEasings = [
+	{
+		label: 'Linear',
+		value: 'linear',
+	},
+	{
+		label: 'Ease',
+		value: 'ease',
+	},
+	{
+		label: 'Ease-in',
+		value: 'ease-in',
+	},
+	{
+		label: 'Ease-out',
+		value: 'ease-out',
+	},
+	{
+		label: 'Ease-in-out',
+		value: 'ease-in-out',
+	},
+];
+
 export const animationEasings = [
 	{
 		label: 'Linear',
@@ -169,58 +192,86 @@ export const animationTypes = [
 		label: 'Animation',
 		value: 'sscAnimation',
 		default: {
+			stagger: 'none',
 			animationEnter: 'fadeIn',
 			animationExit: 'fadeOut',
 			intersection: 50,
+			easing: 'linear',
 			duration: 0,
 			delay: 0,
+			reiterate: true,
 		},
 	},
 	{
 		label: 'Parallax',
 		value: 'sscParallax',
 		default: {
-			direction: 'Y',
+			direction: 'y',
 			level: 1,
 			speed: 1,
 			motion: 50,
+			reiterate: true,
 		},
 	},
 	{
-		label: 'Levitate',
-		value: 'sscLevitate',
-		default: {},
+		label: 'Scroll Timeline',
+		value: 'sscScrollTimeline',
+		default: {
+			duration: 400,
+			triggerHook: 0.2,
+			reiterate: true,
+		},
 	},
 	{
-		label: '360 image',
+		label: 'Scroll Timeline child',
+		value: 'sscTimelineChild',
+		default: {
+			offset: 0,
+			delay: 0,
+			duration: 1000,
+			reiterate: true,
+			easing: 'linear',
+		},
+	},
+	{
+		label: 'Image 360',
 		value: 'ssc360',
 		default: {
 			spinRatio: 1,
+			control: 'pointer', // drag
+			reiterate: true,
 		},
-	},
-	{
-		label: 'Play video on scroll over',
-		value: 'sscVideoScroll',
-		default: {},
 	},
 	{
 		label: 'Image Zoom',
 		value: 'sscImageZoom',
 		default: {
 			zoom: 1,
+			reiterate: true,
 		},
 	},
 	{
-		label: 'Video parallax',
-		value: 'sscVideoControl',
+		label: 'Video scroll-driven playback',
+		value: 'sscVideoScroll',
 		default: {
 			playbackRatio: 1,
+			reiterate: true,
 		},
 	},
 	{
-		label: 'Play video on screen',
+		label: 'Video Parallax',
+		value: 'sscVideoParallax',
+		default: {
+			playbackRatio: 1,
+			reiterate: true,
+		},
+	},
+	{
+		label: 'Video play on screen',
 		value: 'sscVideoFocusPlay',
-		default: {},
+		default: {
+			reiterate: true,
+		},
 	},
 	{
 		label: 'Svg Path Animation',
@@ -228,6 +279,8 @@ export const animationTypes = [
 		default: {
 			duration: 5000,
 			delay: 500,
+			intersection: 20,
+      reiterate: true,
 			easing: 'easeInOutExpo',
 		},
 	},
@@ -237,8 +290,8 @@ export const animationTypes = [
 		default: {
 			duration: 2000,
 			delay: 500,
+			reiterate: true,
 			easing: 'easeInOutQuad',
-			steps: [],
 		},
 	},
 	{
@@ -248,6 +301,7 @@ export const animationTypes = [
 			intersection: 50,
 			duration: 800,
 			delay: 0,
+			reiterate: true,
 			easing: 'easeOutExpo',
 		},
 	},
@@ -257,6 +311,7 @@ export const animationTypes = [
 		default: {
 			duration: 8000,
 			delay: 0,
+			reiterate: true,
 			easing: 'easeInOutExpo',
 		},
 	},
@@ -266,6 +321,7 @@ export const animationTypes = [
 		default: {
 			duration: 5000,
 			delay: 1000,
+			reiterate: true,
 			easing: 'easeInOutQuad',
 			preset: 'default',
 			splitBy: 'letter',

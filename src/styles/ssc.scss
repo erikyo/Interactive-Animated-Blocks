@@ -1,0 +1,20 @@
+.ssc {
+  .letter,
+  .word {
+    display:inline-block;
+    position:relative
+  }
+  .word {
+    white-space: pre;
+  }
+
+  &.ssc-timeline,
+  .wp-block-cover__inner-container,
+  .wp-block-cover__background {
+    pointer-events: none;
+  }
+
+  .wp-block-cover, .wp-block-cover-image {
+    padding: 0;
+  }
+}

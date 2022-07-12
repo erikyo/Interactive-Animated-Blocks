@@ -9,7 +9,9 @@ export function dataStringify( data, type ) {
 				return item[ 1 ].action + ':' + item[ 1 ].value;
 			}
 			// delete data.steps;
-			return item[ 0 ] !== 'steps' ? item[ 0 ] + ':' + item[ 1 ] : null;
+			return item[ 0 ] !== 'steps' && item[ 0 ] !== 'scene'
+				? item[ 0 ] + ':' + item[ 1 ]
+				: null;
 		} )
 		.join( ';' );
 	return csv || null;
@@ -22,8 +24,8 @@ export const css2obj = ( css ) => {
 	return o;
 };
 
-// JSON style object to a CSS string?
-export const styleObj2String = ( style, indent = '  ' ) =>
+// JSON style object to a CSS string
+export const styleObj2String = ( style, indent = '\t' ) =>
 	Object.entries( style )
 		.map( ( [ k, v ] ) => indent + `${ k }: ${ v }` )
 		.join( ';' );
@@ -37,7 +39,7 @@ export const loDashToCapital = ( k ) =>
 	k.replace( /-[a-z]/g, ( match ) => `${ match[ 1 ].toUpperCase() }` );
 
 // Replace any capital letter with dash lowercase letter
-export const autoFormatCode = ( k ) =>
+export const autoLintCode = ( k ) =>
 	k.replace( /\;| \{/gi, function ( matched ) {
 		return matched + '\n';
 	} );
@@ -68,12 +70,3 @@ export const getDefaults = ( opt ) => {
 	} );
 	return animationType[ 0 ] ? animationType[ 0 ].default : {};
 };
-
-// Safe event def
-// detect available wheel event
-export const mouseWheel =
-	'onwheel' in document.createElement( 'div' )
-		? 'wheel' // Modern browsers support "wheel"
-		: document.onmousewheel !== undefined
-		? 'mousewheel' // Webkit and IE support at least "mousewheel"
-		: 'DOMMouseScroll'; // let's assume that remaining browsers are older Firefox

@@ -148,9 +148,9 @@ export function ActionList( props ) {
 					.map( ( o ) => o.id )
 					.indexOf( active.id );
 				const newIndex = items.map( ( x ) => x.id ).indexOf( over.id );
-
 				return arrayMove( items, oldIndex, newIndex );
 			} );
+			props.onSave( animationProps );
 		}
 	}
 
@@ -166,7 +166,7 @@ export function ActionList( props ) {
 				value: actionsTemplate[ 0 ].valueDefault,
 			} ),
 		] );
-		props.func( animationProps );
+		props.onSave( animationProps );
 	};
 
 	function removeAction( id ) {
@@ -176,8 +176,8 @@ export function ActionList( props ) {
 			...animationProps.slice( 0, selectedItem ),
 			...animationProps.slice( selectedItem + 1 ),
 		];
-		props.func( newAnimationProps );
 		setAnimationProps( [ ...newAnimationProps ] );
+		props.onSave( newAnimationProps );
 	}
 
 	function handleChange( ev, data ) {
@@ -193,8 +193,8 @@ export function ActionList( props ) {
 		} else if ( data.changed === 'value' ) {
 			newAnimationProps[ selectedItem ].value = ev;
 		}
-		props.func( newAnimationProps );
 		setAnimationProps( [ ...newAnimationProps ] );
+		props.onSave( newAnimationProps );
 	}
 
 	return (
