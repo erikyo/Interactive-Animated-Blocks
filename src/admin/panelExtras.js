@@ -110,6 +110,16 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 
 									{ sscAnimated && (
 										<>
+											<SelectControl
+												label={
+													'Choose an animation type for ' +
+													name
+												}
+												value={ sscAnimationType }
+												options={ animationTypes }
+												onChange={ updateAnimation }
+											></SelectControl>
+
 											<ToggleControl
 												label={ __( 'Reiterate' ) }
 												checked={
@@ -131,15 +141,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													)
 												}
 											/>
-											<SelectControl
-												label={
-													'Choose an animation type for ' +
-													name
-												}
-												value={ sscAnimationType }
-												options={ animationTypes }
-												onChange={ updateAnimation }
-											></SelectControl>
 
 											{ sscAnimationType &&
 												[
@@ -274,23 +275,52 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													onSave={ pullScene }
 												/>
 											) }
+
 											{ sscAnimationType === 'ssc360' && (
-												<TextControl
-													label={ 'Spin ratio' }
-													type={ 'number' }
-													value={
-														sscAnimationOptions[
-															sscAnimationType
-														].spinRatio || 1
-													}
-													onChange={ ( e ) =>
-														setOption(
-															e,
-															'spinRatio',
-															sscAnimationType
-														)
-													}
-												/>
+												<>
+													<TextControl
+														label={ 'Spin ratio' }
+														type={ 'number' }
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].spinRatio || 1
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'spinRatio',
+																sscAnimationType
+															)
+														}
+													/>
+
+													<SelectControl
+														label={ 'Controls' }
+														value={
+															sscAnimationOptions[
+																sscAnimationType
+															].control
+														}
+														onChange={ ( e ) =>
+															setOption(
+																e,
+																'control',
+																sscAnimationType
+															)
+														}
+														options={ [
+															{
+																label: 'Pointer position',
+																value: 'pointer',
+															},
+															{
+																label: 'Drag',
+																value: 'drag',
+															},
+														] }
+													/>
+												</>
 											) }
 
 											{ [
@@ -321,31 +351,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																sscAnimationType
 															)
 														}
-													/>
-													<SelectControl
-														label={ 'Controls' }
-														value={
-															sscAnimationOptions[
-																sscAnimationType
-															].control
-														}
-														onChange={ ( e ) =>
-															setOption(
-																e,
-																'control',
-																sscAnimationType
-															)
-														}
-														options={ [
-															{
-																label: 'Pointer position',
-																value: 'pointer',
-															},
-															{
-																label: 'Drag',
-																value: 'drag',
-															},
-														] }
 													/>
 												</>
 											) }
@@ -432,6 +437,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													/>
 												</>
 											) }
+
 											{ sscAnimationType ===
 												'sscAnimation' &&
 												sscAnimationOptions[
@@ -468,12 +474,12 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															value={
 																sscAnimationOptions[
 																	sscAnimationType
-																].animationExit
+																].animationLeave
 															}
 															onChange={ ( e ) =>
 																setOption(
 																	e,
-																	'animationExit',
+																	'animationLeave',
 																	sscAnimationType
 																)
 															}
@@ -628,6 +634,34 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															sscAnimationType
 														)
 													}
+												/>
+											) }
+											{ sscAnimationType ===
+												'sscCounter' && (
+												<SelectControl
+													label={ 'Target' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].target
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'target',
+															sscAnimationType
+														)
+													}
+													options={ [
+														{
+															label: 'Number',
+															value: 'number',
+														},
+														{
+															label: 'Word',
+															value: 'word',
+														},
+													] }
 												/>
 											) }
 											{ sscAnimationType ===

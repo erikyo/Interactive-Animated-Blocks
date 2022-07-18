@@ -221,29 +221,34 @@ export default class _ssc {
 
 	// this will position with fixed an element for X scrolled pixels
 	scrollTimeline = ( el ) => {
-		// Add timeline
+		el.classList.add( 'ssc-timeline' );
+		el.style.maxWidth = '100%';
+
+		// Add timeline for each element
 		const timeline = anime.timeline( { autoplay: false } );
 
 		el.querySelectorAll( '.ssc-timeline-scene' ).forEach( ( scenes ) => {
 			const sceneData = JSON.parse( scenes.sscItemData.scene );
 			const sceneOpts = scenes.sscItemOpts;
+			sceneOpts.duration = parseInt( sceneOpts.duration, 10 );
+			sceneOpts.delay = parseInt( sceneOpts.delay, 10 );
 
 			const offset = parseInt( sceneOpts.offset, 10 );
-
 			const sceneOffset =
 				offset !== 0
 					? offset > 0
 						? '+=' + offset
 						: '-=' + offset
-					: null;
+					: false;
 
+			// loop foreach object of the json (each object is a scene of the element timeline)
 			Object.values( sceneData ).forEach( ( scene ) => {
 				timeline.add(
 					{
 						targets: scenes,
-						delay: sceneOpts.delay,
 						duration: sceneOpts.duration,
-						easing: sceneOpts.easing,
+						delay: sceneOpts.delay,
+						easing: scenes.sscItemOpts.easing,
 						...scene,
 					},
 					sceneOffset
@@ -255,11 +260,15 @@ export default class _ssc {
 		this.timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
 			triggerElement: el,
 			duration: el.sscItemOpts.duration,
+			easing: el.sscItemOpts.easing,
 			triggerHook: el.sscItemOpts.triggerHook || 0.25,
 		} )
 			// Add debug indicators
 			.addIndicators()
 			// Trigger animation timeline
+			/*.on("enter", function (event) {
+        tl1.play();
+      })*/
 			.on( 'progress', function ( event ) {
 				timeline.seek( timeline.duration * event.progress );
 			} )
@@ -301,8 +310,14 @@ export default class _ssc {
 			videoEl.loop = false;
 			videoEl.muted = true;
 			videoEl.playsinline = true;
+			videoEl.preload = 'auto';
 			videoEl.pause();
 			el.classList.add( 'ssc-video' );
+		}
+
+		if ( el.sscItemData.sscAnimation === 'sscScrollJacking' ) {
+			el.style.minHeight = 'calc(100vh + 14px)';
+			el.style.margin = 0;
 		}
 
 		if ( el.sscItemData.sscAnimation === 'sscTimelineChild' ) {
@@ -416,17 +431,13 @@ export default class _ssc {
 						this.animationSequence( entry, entry.target.action );
 						break;
 					case 'sscSvgPath':
-						entry.target.style.opacity = 0;
-						entry.target.style.transition = '350ms';
 						this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
 						break;
 					case 'sscScrollJacking':
-						entry.target.style.minHeight = 'calc(100vh + 4px)';
-						entry.target.style.margin = 0;
 						this.scrollJacking( entry );
 						break;
 					case 'sscCounter':
-						this.animateCount( entry );
+						this.animateTextNode( entry );
 						break;
 					case 'sscVideoFocusPlay':
 						this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
@@ -440,9 +451,6 @@ export default class _ssc {
 					case 'ssc360':
 						this.video360Controller( entry );
 						break;
-					// case 'sscScrollTimeline':
-					// 	this.scrollTimeline( entry ); // NO
-					// 	break;
 					case 'sscImageZoom':
 						this.imageScaleController( entry ); // NO
 						break;
@@ -528,99 +536,207 @@ export default class _ssc {
 		el.currentTime = 0;
 	};
 
-	animateItem( el ) {
-		if (
-			el.action === 'enter' &&
-			this.checkVisibility( el.target, 'between', el.intersection )
-		) {
-			el.setMeta();
-			el.locked = true;
-			this.delay( el.target.delay ).then( () => {
-				// check if the action needed is "enter" and if the element is in viewport
-				el.removeCssClass( el.target.sscItemOpts.animationExit );
-				// trigger to enter animation
-				el.addCssClass( el.target.sscItemOpts.animationEnter );
-				this.delay( el.target.duration ).then( () => {
-					// after the animation has been completed unlock the element
-					el.locked = false;
-					el.action = 'leave';
-				} );
-			} );
-		} else if (
-			el.action === 'leave' &&
-			! this.checkVisibility( el.target, 'between', el.intersection )
-		) {
-			el.setMeta();
-			if ( el.target.sscItemOpts.animationExit ) {
-				el.locked = true;
-				this.delay( el.target.delay ).then( () => {
-					el.removeCssClass( el.target.sscItemOpts.animationEnter );
-					el.addCssClass( el.target.sscItemOpts.animationExit );
-					this.delay( el.target.duration ).then( () => {
-						el.locked = false;
-						el.action = 'enter';
-					} );
-				} );
-			}
-		}
-	}
-
 	/**
 	 * Animate Element using Anime.css
 	 *
 	 * @param  entry
 	 */
 	handleAnimation = ( entry ) => {
-		if ( ! this.animations[ entry.target.sscItemData.sscItem ] )
-			this.animations[ entry.target.sscItemData.sscItem ] = {
-				target: entry.target,
+		if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
+      if (entry.target.action === 'leave') return true;
+			const el = {
+				targets: entry.target,
 				action: entry.target.action,
-				delay: entry.target.sscItemOpts.delay,
-				duration: entry.target.sscItemOpts.duration,
+				animationEnter: entry.target.sscItemOpts.animationEnter,
+				animationLeave: entry.target.sscItemOpts.animationLeave,
+				stagger: entry.target.sscItemOpts.stagger,
+				delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
+				duration:
+					parseInt( entry.target.sscItemOpts.duration, 10 ) || 1000,
 				locked: false,
 				intersection:
 					parseInt( entry.target.sscItemOpts.intersection, 10 ) || 25,
-				addCssClass( cssClass ) {
-					this.target.classList.add(
-						'animate__animated',
-						'animate__' + cssClass
-					);
-				},
-				removeCssClass( cssClass ) {
-					this.target.classList.remove(
-						'animate__animated',
-						'animate__' + cssClass
-					);
-				},
-				// applies custom style if needed
-				setMeta() {
-					if ( this.target.duration )
-						this.target.style.setProperty(
+				initElement() {
+					// applies the custom props used by animate.css
+					if ( this.duration )
+						entry.target.style.setProperty(
 							'--animate-duration',
-							this.target.duration + 'ms'
+							el.duration + 'ms'
 						);
+					this.targets =
+						this.stagger === 'none'
+							? entry.target
+							: entry.target.children;
+				},
+				addCssClass( item, cssClass ) {
+					if ( cssClass !== 'false' )
+						item.classList.add(
+							'animate__animated',
+							'animate__' + cssClass
+						);
+					return this;
+				},
+				removeCssClass( item, cssClass ) {
+					if ( cssClass !== 'false' ) {
+						item.classList.remove(
+							'animate__animated',
+							'animate__' + cssClass
+						);
+					}
+					return this;
+				},
+				animateItem( action ) {
+					if ( this.stagger === 'none' ) {
+						// check if the action needed is "enter" and if the element is in viewport
+						return action === 'enter'
+							? this.removeCssClass(
+									this.targets,
+									this.animationLeave
+							  ).addCssClass( this.targets, this.animationEnter )
+							: this.removeCssClass(
+									this.targets,
+									this.animationEnter
+							  ).addCssClass(
+									this.targets,
+									this.animationLeave
+							  );
+					}
 				},
 			};
 
-		if (
-			this.checkVisibility(
-				this.animations[ entry.target.sscItemData.sscItem ].target,
-				'partiallyVisible'
-			)
-		) {
+			el.initElement();
+
+			this.animations[ entry.target.sscItemData.sscItem ] = el;
+		}
+
+		const el = this.animations[ entry.target.sscItemData.sscItem ];
+
+		if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
 			if (
-				! this.animations[ entry.target.sscItemData.sscItem ].locked
+				! el.locked &&
+				el.action === entry.target.action &&
+				el.action === 'enter'
+					? this.checkVisibility(
+							entry.target,
+							'between',
+							el.intersection
+					  )
+					: ! this.checkVisibility(
+							entry.target,
+							'between',
+							el.intersection
+					  )
 			) {
-				this.animateItem(
-					this.animations[ entry.target.sscItemData.sscItem ]
+				el.locked = true;
+				return (
+					this.delay( el.delay )
+						.then( () => {
+							return el.animateItem( el.action );
+						} )
+						// wait the animation has been completed before unlock the element
+						.then(
+							() =>
+								new Promise( ( resolve ) => {
+									setTimeout( function () {
+										/*return this.handleAnimation( entry );*/
+										el.locked = false;
+										el.action =
+											el.action === 'enter'
+												? 'leave'
+												: 'enter';
+										resolve();
+									}, el.duration );
+								} )
+						)
+						.then( () => this.handleAnimation( entry ) )
 				);
 			}
 			this.delay( 100 ).then( () => {
-				this.handleAnimation(
-					this.animations[ entry.target.sscItemData.sscItem ]
-				);
+				this.handleAnimation( entry );
+			} );
+		} else if ( el.locked ) {
+			this.delay( el.duration * 1 ).then( () => {
+				el.locked = false;
 			} );
 		}
+	};
+
+	splitSentence( sentence, splitBy = 'word' ) {
+		//const splitByRegex = splitBy === 'word' ? /\w+ |\S+/g : /\S/g;
+		const words = sentence.split( ' ' );
+		const result = words.map( ( word ) => {
+			if ( splitBy === 'word' ) {
+				return `<span class="word">${ word } </span>`;
+			}
+			return (
+				'<span class="word">' +
+				word.replace( /\S/g, `<span class="letter">$&</span>` ) +
+				' </span>'
+			);
+		} );
+		return result.join( '' );
+	}
+
+	animateWord = ( el ) => {
+		const animateLetter = ( letter ) => {
+			const alpha = [
+				'!',
+				'#',
+				'0',
+				'1',
+				'2',
+				'3',
+				'4',
+				'5',
+				'6',
+				'A',
+				'R',
+				'A',
+				'V',
+				'A',
+				'G',
+				'L',
+				'I',
+				'O',
+				'L',
+				'I',
+			];
+
+			letter.classList.add( 'changing' ); //change color of letter
+			const original = letter.innerHTML; //get original letter for use later
+			/*.letter{
+        &.changing{
+          color: lightgray;
+        }
+      }*/
+
+			//loop through random letters
+			let i = 0;
+			var letterInterval = setInterval( function () {
+				// Get random letter
+				letter.innerHTML =
+					alpha[ Math.floor( Math.random() * alpha.length ) ];
+				if ( i >= Math.random() * 100 ) {
+					//if letter has changed 5 times then stop
+					clearInterval( letterInterval );
+					letter.innerHTML = original; //set back to original letter
+					letter.classList.remove( 'changing' ); //reset color
+				}
+				++i;
+			}, 100 );
+		};
+
+		const letters = el.querySelectorAll( '.letter' );
+		letters.forEach( function ( letter, index ) {
+			//trigger animation for each letter in word
+			setTimeout( function () {
+				animateLetter( letter );
+			}, 100 * index ); //small delay for each letter
+		} );
+
+		setTimeout( function () {
+			el.removeAttribute( 'data-ssc-count' );
+		}, 300 * letters.length );
 	};
 
 	/**
@@ -629,11 +745,6 @@ export default class _ssc {
 	 * @param {Object} el Element to animate.
 	 */
 	animateCount( el ) {
-		if ( el.target.dataset.sscCount ) {
-			return true;
-		}
-		el.target.dataset.sscCount = 'true';
-
 		anime( {
 			targets: el.target || el.target.lastChild,
 			textContent: [ 0, parseInt( el.target.lastChild.textContent, 10 ) ],
@@ -643,6 +754,31 @@ export default class _ssc {
 			easing: el.target.sscItemOpts.easing,
 			complete: () => el.target.removeAttribute( 'data-ssc-count' ),
 		} );
+	}
+
+	animateTextNode( el ) {
+		if ( el.target.dataset.sscCount ) {
+			return true;
+		}
+		el.target.dataset.sscCount = 'true';
+
+		if ( el.target.sscItemOpts.target === 'number' ) {
+			this.animateCount( el );
+		} else {
+			if ( ! el.target.dataset.init ) {
+				const replaced = this.splitSentence(
+					el.target.innerHTML,
+					'letters'
+				);
+
+				if ( el.target.innerHTML ) {
+					el.target.innerHTML = replaced;
+				}
+				el.target.dataset.init = 'true';
+			}
+
+			this.animateWord( el.target );
+		}
 	}
 
 	textStagger( entry ) {
@@ -657,10 +793,10 @@ export default class _ssc {
 			const delay = item.sscItemOpts.delay;
 			const easing = item.sscItemOpts.easing;
 			const splitBy = item.sscItemOpts.splitBy || 'letter';
-			const splitByRegex = splitBy === 'word' ? /\w+ |\S+/g : /\S/g;
-			const replaced = item.lastChild.textContent.replace(
-				splitByRegex,
-				`<span class="${ item.sscItemOpts.splitBy }">$&</span>`
+
+			const replaced = this.splitSentence(
+				item.lastChild.textContent,
+				splitBy
 			);
 
 			if ( item.lastChild.innerHTML ) {
@@ -685,7 +821,7 @@ export default class _ssc {
 							targets: item.querySelectorAll( '.' + splitBy ),
 							duration: duration * 0.75,
 							easing,
-							delay: ( el, i ) => duration * i * 0.05,
+							delay: anime.stagger( duration * 0.05 ),
 							...data,
 						} );
 						break;
@@ -799,7 +935,6 @@ export default class _ssc {
 				entry.target.sscItemOpts.intersection
 			)
 		) {
-			entry.target.style.opacity = 1;
 			action = 'leave';
 			if ( animation.began && animation.currentTime !== 0 ) {
 				animation.reverse();
@@ -844,11 +979,6 @@ export default class _ssc {
 						);
 					},
 					direction: 'reverse',
-					complete: () => {
-						if ( action === 'leave' ) {
-							return ( entry.target.style.opacity = 0 );
-						}
-					},
 				} );
 			}
 		}
@@ -861,13 +991,6 @@ export default class _ssc {
 
 	// ScrollTo
 	scrollJacking = ( entry ) => {
-		// after leaving remove the flag to re-enable the scrolljack
-		// if ( entry.target.action === 'leave' ) {
-		// 	this.delay( 500 ).then( () => {
-		// 		entry.target.classList.remove( 'sscLastScrolled' );
-		// 	} );
-		// }
-
 		// if there aren't any defined target, store this one
 		if ( entry.target.action !== 'enter' || this.hasScrolling !== false )
 			return true;
@@ -885,12 +1008,6 @@ export default class _ssc {
 			} );
 
 			const duration = parseInt( el.target.sscItemOpts.duration, 10 );
-
-			// stores the last scrolling time in order to avoid consequent jumps (that's the reason for the extra 100ms too)
-			this.isScrolling = Date.now() + duration + 100;
-
-			// add a flag to avoid a back jump into this element
-			// el.target.classList.add( 'sscLastScrolled' );
 
 			// remove any previous animation
 			anime.remove();
@@ -923,34 +1040,26 @@ export default class _ssc {
 	};
 
 	parallaxVideo() {
-		if (
-			typeof this.videoParallaxed !== 'undefined' ||
-			Object.keys( this.videoParallaxed ).length
-		) {
-			if ( window.pageYOffset === this.windowData.lastScrollPosition ) {
-				// callback the animationFrame and exit the current loop
-				window.requestAnimationFrame( this.parallaxVideo );
-				return;
-			}
-
-			// Store the last position
-			this.windowData.lastScrollPosition = window.pageYOffset;
-
-			this.videoParallaxed.forEach( ( video ) => {
-				// TODO: tween playback with current_frame = (previous value + new_value) in Arduino style
-				const rect = video.item.getBoundingClientRect();
-				video.item.currentTime = (
-					( 1 +
-						-( rect.top + this.windowData.viewHeight ) /
-							( window.pageYOffset + rect.height ) ) *
-					video.item.duration *
-					video.playbackRatio
-				).toString();
-
-				return window.requestAnimationFrame( this.parallaxVideo );
-			} );
+		if ( window.pageYOffset === this.windowData.lastScrollPosition ) {
+			// callback the animationFrame and exit the current loop
+			return window.requestAnimationFrame( this.parallaxVideo );
 		}
-		return false;
+
+		// Store the last position
+		this.windowData.lastScrollPosition = window.pageYOffset;
+
+		this.videoParallaxed.forEach( ( video ) => {
+			// TODO: tween playback with current_frame = (previous value + new_value) in Arduino style
+			const rect = video.item.getBoundingClientRect();
+			video.item.currentTime =
+				( 1 +
+					-( rect.top + this.windowData.viewHeight ) /
+						( window.pageYOffset + rect.height ) ) *
+				video.item.duration *
+				video.playbackRatio;
+
+			return window.requestAnimationFrame( this.parallaxVideo );
+		} );
 	}
 
 	videoParallaxController( entry ) {
@@ -998,7 +1107,9 @@ export default class _ssc {
 	videoWheelController( el ) {
 		if ( el.target.action === 'enter' ) {
 			const videoEl = el.target.querySelector( 'video' );
-			videoEl.playbackRatio = el.target.sscItemOpts.playbackRatio;
+			videoEl.playbackRatio = parseFloat(
+				el.target.sscItemOpts.playbackRatio
+			);
 			videoEl.addEventListener( mouseWheel, this.videoOnWheel );
 		}
 	}
@@ -1035,10 +1146,11 @@ export default class _ssc {
 		function changeAngle() {
 			const rect = video.getBoundingClientRect();
 			if ( video.readyState > 1 ) {
-				video.currentTime =
+				video.currentTime = (
 					( ( e.clientX - rect.left ) / rect.width ) *
 					video.duration *
-					video.spinRatio;
+					video.spinRatio
+				).toPrecision( 5 );
 			}
 		}
 
@@ -1047,7 +1159,7 @@ export default class _ssc {
 
 	video360Controller( entry ) {
 		const videoEl = entry.target.querySelector( 'video' );
-		videoEl.spinRatio = entry.target.sscItemOpts.spinRatio;
+		videoEl.spinRatio = parseFloat( entry.target.sscItemOpts.spinRatio );
 		if ( entry.target.action === 'enter' ) {
 			videoEl.onmousemove = this.handleVideo360;
 		} else if ( entry.target.action === 'leave' ) {

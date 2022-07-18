@@ -192,14 +192,14 @@ export const animationTypes = [
 		label: 'Animation',
 		value: 'sscAnimation',
 		default: {
-			stagger: 'none',
 			animationEnter: 'fadeIn',
-			animationExit: 'fadeOut',
-			intersection: 50,
+			animationLeave: 'fadeOut',
+			intersection: 10,
 			easing: 'linear',
 			duration: 0,
 			delay: 0,
 			reiterate: true,
+			stagger: 'none',
 		},
 	},
 	{
@@ -280,7 +280,7 @@ export const animationTypes = [
 			duration: 5000,
 			delay: 500,
 			intersection: 20,
-      reiterate: true,
+			reiterate: true,
 			easing: 'easeInOutExpo',
 		},
 	},
@@ -313,6 +313,7 @@ export const animationTypes = [
 			delay: 0,
 			reiterate: true,
 			easing: 'easeInOutExpo',
+			target: 'number',
 		},
 	},
 	{
@@ -341,10 +342,6 @@ export const animationList = [
 	{
 		label: 'pulse',
 		value: 'pulse',
-	},
-	{
-		label: 'rubberBand',
-		value: 'rubberBand',
 	},
 	{
 		label: 'rubberBand',
@@ -383,10 +380,6 @@ export const animationList = [
 		value: 'heartBeat',
 	},
 	{
-		label: 'flash',
-		value: 'flash',
-	},
-	{
 		label: 'hinge',
 		value: 'hinge',
 	},
@@ -401,6 +394,82 @@ export const animationList = [
 	{
 		label: 'rollOut',
 		value: 'rollOut',
+	},
+
+	// Back
+	{
+		label: 'backInDown',
+		value: 'backInDown',
+	},
+	{
+		label: 'backInLeft',
+		value: 'backInLeft',
+	},
+	{
+		label: 'backInRight',
+		value: 'backInRight',
+	},
+	{
+		label: 'backInUp',
+		value: 'backInUp',
+	},
+	{
+		label: 'backOutDown',
+		value: 'backOutDown',
+	},
+	{
+		label: 'backOutLeft',
+		value: 'backOutLeft',
+	},
+	{
+		label: 'backOutRight',
+		value: 'backOutRight',
+	},
+	{
+		label: 'backOutUp',
+		value: 'backOutUp',
+	},
+
+	// Bouncing
+	{
+		label: 'bounceIn',
+		value: 'bounceIn',
+	},
+	{
+		label: 'bounceInDown',
+		value: 'bounceInDown',
+	},
+	{
+		label: 'bounceInLeft',
+		value: 'bounceInLeft',
+	},
+	{
+		label: 'bounceInRight',
+		value: 'bounceInRight',
+	},
+	{
+		label: 'bounceInUp',
+		value: 'bounceInUp',
+	},
+	{
+		label: 'bounceOut',
+		value: 'bounceOut',
+	},
+	{
+		label: 'bounceOutDown',
+		value: 'bounceOutDown',
+	},
+	{
+		label: 'bounceOutLeft',
+		value: 'bounceOutLeft',
+	},
+	{
+		label: 'bounceOutRight',
+		value: 'bounceOutRight',
+	},
+	{
+		label: 'bounceOutUp',
+		value: 'bounceOutUp',
 	},
 
 	// Fade
@@ -508,6 +577,100 @@ export const animationList = [
 	{
 		label: 'fadeOutBottomLeft',
 		value: 'fadeOutBottomLeft',
+	},
+
+	// Lightspeed
+	{
+		label: 'lightSpeedInRight',
+		value: 'lightSpeedInRight',
+	},
+	{
+		label: 'lightSpeedInLeft',
+		value: 'lightSpeedInLeft',
+	},
+	{
+		label: 'lightSpeedOutRight',
+		value: 'lightSpeedOutRight',
+	},
+	{
+		label: 'lightSpeedOutLeft',
+		value: 'lightSpeedOutLeft',
+	},
+
+	// Zooming
+	{
+		label: 'zoomIn',
+		value: 'zoomIn',
+	},
+	{
+		label: 'zoomInDown',
+		value: 'zoomInDown',
+	},
+	{
+		label: 'zoomInLeft',
+		value: 'zoomInLeft',
+	},
+	{
+		label: 'zoomInRight',
+		value: 'zoomInRight',
+	},
+	{
+		label: 'zoomInUp',
+		value: 'zoomInUp',
+	},
+	{
+		label: 'zoomOut',
+		value: 'zoomOut',
+	},
+	{
+		label: 'zoomOutDown',
+		value: 'zoomOutDown',
+	},
+	{
+		label: 'zoomOutLeft',
+		value: 'zoomOutLeft',
+	},
+	{
+		label: 'zoomOutRight',
+		value: 'zoomOutRight',
+	},
+	{
+		label: 'zoomOutUp',
+		value: 'zoomOutUp',
+	},
+
+	// Sliding
+	{
+		label: 'slideInDown',
+		value: 'slideInDown',
+	},
+	{
+		label: 'slideInLeft',
+		value: 'slideInLeft',
+	},
+	{
+		label: 'slideInRight',
+		value: 'slideInRight',
+	},
+	{
+		label: 'slideInUp',
+		value: 'slideInUp',
+	},
+	{
+		label: 'slideOutDown',
+		value: 'slideOutDown',
+	},
+	{
+		label: 'slideOutLeft',
+		value: 'slideOutLeft',
+	},
+	{
+		label: 'slideOutRight',
+		value: 'slideOutRight',
+	},
+	{
+		label: 'slideOutUp',
+		value: 'slideOutUp',
 	},
 ];
 

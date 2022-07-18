@@ -110,7 +110,7 @@ function save_video_formats( $metadata, $attachment_id ) {
 					$filesize = filesize($file_path . $filename);
 					$metadata['filesize'] = $filesize;
 					// replace the original video with the webm version
-					update_post_meta( $attachment_id, '_wp_attached_file', $uploads_path . $filename, true );
+					update_post_meta( $attachment_id, '_wp_attached_file', $uploads_path . $filename );
 
 					break;
 				case 'mp4' :

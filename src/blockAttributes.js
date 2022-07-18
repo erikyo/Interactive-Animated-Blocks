@@ -25,15 +25,45 @@ export function addAttributes( settings ) {
 			sscScene: {
 				type: 'array',
 				default: [
-					{
-						duration: 500,
-						opacity: {
-							value: [ 0, 1 ],
-							duration: 500,
-							delay: 250,
-						},
-					},
-				],
+          {
+            "loop": true,
+            "translateX": [
+              {
+                "value": 250,
+                "duration": 1000,
+                "delay": 500
+              },
+              {
+                "value": 0,
+                "duration": 1000,
+                "delay": 500
+              }
+            ],
+            "translateY": [
+              {
+                "value": -200,
+                "duration": 500
+              },
+              {
+                "value": 200,
+                "duration": 500,
+                "delay": 1000
+              }
+            ],
+            "scale": [
+              {
+                "value": 4,
+                "duration": 100,
+                "delay": 500,
+                "easing": "easeOutExpo"
+              },
+              {
+                "value": 1,
+                "duration": 900
+              }
+            ]
+          }
+        ],
 			},
 			additionalCSS: {
 				type: 'object',

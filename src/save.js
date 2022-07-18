@@ -1,4 +1,4 @@
-import { dataStringify, getDefaults, styleObj2String } from './utils/fn';
+import { dataStringify, getDefaults } from './utils/fn';
 import classnames from 'classnames';
 
 /**
@@ -65,9 +65,15 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 			}
 		}
 
-		//check if attribute exists for old Gutenberg version compatibility
-		//add class only when visibleOnMobile = false
-		//add allowedBlocks restriction
+		// element classes
+		const classes = sscAnimated ? 'ssc' : '';
+
+		Object.assign( extraProps, {
+			className: classnames( extraProps.className, classes ),
+		} );
+	}
+
+	if ( additionalCSS ) {
 		const hasMotion =
 			sscAnimationOptions[ sscAnimationType ] &&
 			sscAnimationOptions[ sscAnimationType ].motion
@@ -78,14 +84,8 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 				  }
 				: {};
 
-		// element classes
-		const classes = sscAnimated ? 'ssc' : '';
-
-		// const extraStyle = styleObj2String( additionalCSS );
-
 		Object.assign( extraProps, {
-			className: classnames( extraProps.className, classes ),
-			style: { ...additionalCSS, ...hasMotion, ...extraProps.style },
+			style: { ...hasMotion, ...additionalCSS, ...extraProps.style },
 		} );
 	}
 
