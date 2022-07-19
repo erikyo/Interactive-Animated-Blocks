@@ -69,6 +69,10 @@ export function addAttributes( settings ) {
 				type: 'object',
 				default: {},
 			},
+			additionalClasses: {
+        type: 'object',
+        default: {},
+			},
 		} );
 	}
 

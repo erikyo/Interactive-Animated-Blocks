@@ -14,11 +14,15 @@ import classnames from 'classnames';
 export const addExtraProps = ( extraProps, blockType, attributes ) => {
 	const {
 		additionalCSS,
+		additionalClasses,
 		sscAnimated,
 		sscAnimationType,
 		sscAnimationOptions,
 		sscScene,
 	} = attributes;
+
+	const classes = [];
+	const styles = {};
 
 	if ( sscAnimated && sscAnimationType ) {
 		const defaults = getDefaults( sscAnimationType );
@@ -66,28 +70,35 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		}
 
 		// element classes
-		const classes = sscAnimated ? 'ssc' : '';
-
-		Object.assign( extraProps, {
-			className: classnames( extraProps.className, classes ),
-		} );
+		switch ( 'sscScrollJacking' ) {
+			case sscAnimationType:
+				classes.push( sscAnimated ? 'ssc ssc-scroll-jacking' : '' );
+				break;
+			default:
+				classes.push( sscAnimated ? 'ssc' : '' );
+				break;
+		}
 	}
 
-	if ( additionalCSS ) {
-		const hasMotion =
+	if ( additionalCSS || additionalClasses ) {
+		// element classes
+		switch ( additionalClasses ) {
+			case 'sscAbsolute':
+				classes.push( 'ssc-absolute' );
+				break;
+		}
+
+		styles.transition =
 			sscAnimationOptions[ sscAnimationType ] &&
 			sscAnimationOptions[ sscAnimationType ].motion
-				? {
-						transition:
-							sscAnimationOptions[ sscAnimationType ].motion +
-							'ms',
-				  }
-				: {};
-
-		Object.assign( extraProps, {
-			style: { ...hasMotion, ...additionalCSS, ...extraProps.style },
-		} );
+				? sscAnimationOptions[ sscAnimationType ].motion + 'ms'
+				: null;
 	}
+
+	Object.assign( extraProps, {
+		style: { ...styles, ...additionalCSS, ...extraProps.style },
+		className: classnames( extraProps.className, classes.join( ' ' ) ),
+	} );
 
 	return extraProps;
 };

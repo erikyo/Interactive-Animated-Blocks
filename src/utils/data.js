@@ -298,7 +298,7 @@ export const animationTypes = [
 		label: 'ScrollJacking',
 		value: 'sscScrollJacking',
 		default: {
-			intersection: 50,
+			intersection: 20,
 			duration: 800,
 			delay: 0,
 			reiterate: true,
@@ -331,6 +331,10 @@ export const animationTypes = [
 ];
 
 export const animationList = [
+	{
+		label: 'No Animation',
+		value: false,
+	},
 	{
 		label: 'bounce',
 		value: 'bounce',

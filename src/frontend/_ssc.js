@@ -316,7 +316,8 @@ export default class _ssc {
 		}
 
 		if ( el.sscItemData.sscAnimation === 'sscScrollJacking' ) {
-			el.style.minHeight = 'calc(100vh + 14px)';
+			el.style.minHeight = 'calc(100vh + 30px)';
+			el.style.padding = 0;
 			el.style.margin = 0;
 		}
 
@@ -543,7 +544,7 @@ export default class _ssc {
 	 */
 	handleAnimation = ( entry ) => {
 		if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
-      if (entry.target.action === 'leave') return true;
+			if ( entry.target.action === 'leave' ) return true;
 			const el = {
 				targets: entry.target,
 				action: entry.target.action,
@@ -567,6 +568,8 @@ export default class _ssc {
 						this.stagger === 'none'
 							? entry.target
 							: entry.target.children;
+					this.container =
+						this.stagger !== 'none' ? entry.target : null;
 				},
 				addCssClass( item, cssClass ) {
 					if ( cssClass !== 'false' )
@@ -601,6 +604,30 @@ export default class _ssc {
 									this.animationLeave
 							  );
 					}
+					Object.values( this.targets ).forEach(
+						( target, index ) => {
+							setTimeout(
+								function () {
+									return action === 'enter'
+										? this.removeCssClass(
+												target,
+												this.animationLeave
+										  ).addCssClass(
+												target,
+												this.animationEnter
+										  )
+										: this.removeCssClass(
+												target,
+												this.animationEnter
+										  ).addCssClass(
+												target,
+												this.animationLeave
+										  );
+								}.bind( this ),
+								this.duration * index * 0.1
+							);
+						}
+					);
 				},
 			};
 
@@ -648,33 +675,42 @@ export default class _ssc {
 									}, el.duration );
 								} )
 						)
-						.then( () => this.handleAnimation( entry ) )
+						.then( () =>
+							this.checkVisibility(
+								entry.target,
+								'partiallyVisible'
+							)
+								? this.handleAnimation( entry )
+								: el.animateItem( 'leave' )
+						)
 				);
 			}
 			this.delay( 100 ).then( () => {
 				this.handleAnimation( entry );
 			} );
-		} else if ( el.locked ) {
-			this.delay( el.duration * 1 ).then( () => {
-				el.locked = false;
-			} );
+		} else {
+			if ( el.locked ) {
+				this.delay( el.duration * 1 ).then( () => {
+					el.locked = false;
+				} );
+			}
+			el.animateItem( 'leave' );
 		}
 	};
 
 	splitSentence( sentence, splitBy = 'word' ) {
-		//const splitByRegex = splitBy === 'word' ? /\w+ |\S+/g : /\S/g;
 		const words = sentence.split( ' ' );
 		const result = words.map( ( word ) => {
 			if ( splitBy === 'word' ) {
-				return `<span class="word">${ word } </span>`;
+				return `<span class="word">${ word }</span>`;
 			}
 			return (
 				'<span class="word">' +
 				word.replace( /\S/g, `<span class="letter">$&</span>` ) +
-				' </span>'
+				'</span>'
 			);
 		} );
-		return result.join( '' );
+		return result.join( ' ' );
 	}
 
 	animateWord = ( el ) => {
@@ -690,16 +726,15 @@ export default class _ssc {
 				'5',
 				'6',
 				'A',
-				'R',
-				'A',
-				'V',
-				'A',
+				'M',
+				'T',
+				'P',
+				'W',
 				'G',
-				'L',
+				'E',
+				'R',
 				'I',
-				'O',
-				'L',
-				'I',
+				'K',
 			];
 
 			letter.classList.add( 'changing' ); //change color of letter
@@ -712,12 +747,13 @@ export default class _ssc {
 
 			//loop through random letters
 			let i = 0;
-			var letterInterval = setInterval( function () {
+			const letterInterval = setInterval( function () {
 				// Get random letter
-				letter.innerHTML =
+				const randomLetter =
 					alpha[ Math.floor( Math.random() * alpha.length ) ];
-				if ( i >= Math.random() * 100 ) {
-					//if letter has changed 5 times then stop
+				letter.innerHTML = randomLetter;
+				if ( i >= Math.random() * 100 || randomLetter === original ) {
+					//if letter has changed around 10 times then stop
 					clearInterval( letterInterval );
 					letter.innerHTML = original; //set back to original letter
 					letter.classList.remove( 'changing' ); //reset color
@@ -727,16 +763,18 @@ export default class _ssc {
 		};
 
 		const letters = el.querySelectorAll( '.letter' );
+		const shuffleDuration = el.sscItemOpts.duration;
+
 		letters.forEach( function ( letter, index ) {
 			//trigger animation for each letter in word
 			setTimeout( function () {
-				animateLetter( letter );
+				animateLetter( letter, shuffleDuration );
 			}, 100 * index ); //small delay for each letter
 		} );
 
 		setTimeout( function () {
 			el.removeAttribute( 'data-ssc-count' );
-		}, 300 * letters.length );
+		}, shuffleDuration );
 	};
 
 	/**
@@ -749,15 +787,15 @@ export default class _ssc {
 			targets: el.target || el.target.lastChild,
 			textContent: [ 0, parseInt( el.target.lastChild.textContent, 10 ) ],
 			round: 1,
-			duration: el.target.sscItemOpts.duration || 5000,
-			delay: el.target.sscItemOpts.delay || 500,
+			duration: parseInt( el.target.sscItemOpts.duration ) || 5000,
+			delay: parseInt( el.target.sscItemOpts.delay ) || 500,
 			easing: el.target.sscItemOpts.easing,
 			complete: () => el.target.removeAttribute( 'data-ssc-count' ),
 		} );
 	}
 
 	animateTextNode( el ) {
-		if ( el.target.dataset.sscCount ) {
+		if ( el.target.dataset.sscCount || el.target.action === 'leave' ) {
 			return true;
 		}
 		el.target.dataset.sscCount = 'true';
@@ -777,7 +815,9 @@ export default class _ssc {
 				el.target.dataset.init = 'true';
 			}
 
-			this.animateWord( el.target );
+			this.delay( el.target.sscItemOpts.delay ).then( () =>
+				this.animateWord( el.target )
+			);
 		}
 	}
 
@@ -789,8 +829,8 @@ export default class _ssc {
 			this.checkVisibility( entry.target, 'between', 25 )
 		) {
 			const preset = item.sscItemOpts.preset;
-			const duration = item.sscItemOpts.duration;
-			const delay = item.sscItemOpts.delay;
+			const duration = parseInt( item.sscItemOpts.duration, 10 );
+			const delay = parseInt( item.sscItemOpts.delay, 10 );
 			const easing = item.sscItemOpts.easing;
 			const splitBy = item.sscItemOpts.splitBy || 'letter';
 
@@ -993,7 +1033,7 @@ export default class _ssc {
 	scrollJacking = ( entry ) => {
 		// if there aren't any defined target, store this one
 		if ( entry.target.action !== 'enter' || this.hasScrolling !== false )
-			return true;
+			return false;
 
 		this.hasScrolling = entry.target.sscItemData.sscItem;
 
@@ -1009,6 +1049,9 @@ export default class _ssc {
 
 			const duration = parseInt( el.target.sscItemOpts.duration, 10 );
 
+			if ( el.target.id )
+				window.history.pushState( null, null, '#' + el.target.id );
+
 			// remove any previous animation
 			anime.remove();
 			anime( {
@@ -1017,19 +1060,23 @@ export default class _ssc {
 						window.document.body ||
 						window.document.documentElement,
 				],
-				scrollTop: el.target.offsetTop + 2,
+				scrollTop: el.target.offsetTop + 10,
 				easing: el.target.sscItemOpts.easing || 'linear',
 				duration: duration || 700,
 				delay: parseInt( el.target.sscItemOpts.delay, 10 ) || 0,
 				complete: () => {
 					this.delay( 200 ).then( () => {
-						window.removeEventListener( mouseWheel, disableWheel, {
-							passive: false,
-						} );
+						// this.windowData.lastScrollPosition = window.pageYOffset;
+						// window.pageYOffset = el.target.offsetTop;
+						this.hasScrolling = false;
+						return window.removeEventListener(
+							mouseWheel,
+							disableWheel,
+							{
+								passive: false,
+							}
+						);
 					} );
-					// this.windowData.lastScrollPosition = window.pageYOffset;
-					// window.pageYOffset = el.target.offsetTop;
-					this.hasScrolling = false;
 				},
 			} );
 		};
@@ -1167,3 +1214,13 @@ export default class _ssc {
 		}
 	}
 }
+
+// on load and on hashchange (usually on history back/forward)
+const jumpToHash = () => {
+	if ( typeof window.location.hash !== undefined ) {
+		//GOTO
+		console.log( window.location.hash );
+	}
+};
+window.addEventListener( 'load', jumpToHash );
+window.addEventListener( 'hashchange', jumpToHash );
