@@ -521,20 +521,14 @@ export default class _ssc {
 	// VIDEO
 	videoFocusPlay = ( entry ) => {
 		const video = entry.target.querySelector( 'video' );
-		if ( entry.target.dataset.visible === 'true' ) {
-			return this.playVideo( video );
+		if ( entry.target.action === 'enter' ) {
+			return video.play();
 		}
 		if ( ! video.ended ) {
 			return video.pause();
 		}
-		return this.stopVideo( video );
-	};
-
-	playVideo = ( el ) => el.play();
-
-	stopVideo = ( el ) => {
-		el.pause();
-		el.currentTime = 0;
+		video.pause();
+		video.currentTime = 0;
 	};
 
 	/**
