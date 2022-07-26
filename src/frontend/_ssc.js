@@ -1160,13 +1160,11 @@ export default class _ssc {
 
 	// Listens mouse scroll wheel
 	videoWheelController( el ) {
-		if ( el.target.action === 'enter' ) {
-			const videoEl = el.target.querySelector( 'video' );
-			videoEl.playbackRatio = parseFloat(
-				el.target.sscItemOpts.playbackRatio
-			);
-			videoEl.addEventListener( mouseWheel, this.videoOnWheel );
-		}
+		const videoEl = el.target.querySelector( 'video' );
+		videoEl.playbackRatio = parseFloat(
+			el.target.sscItemOpts.playbackRatio
+		);
+		videoEl.addEventListener( mouseWheel, this.videoOnWheel );
 	}
 
 	imageScale = ( event ) => {
