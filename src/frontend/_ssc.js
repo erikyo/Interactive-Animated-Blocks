@@ -1187,28 +1187,62 @@ export default class _ssc {
 		}
 	}
 
-	handleVideo360( e ) {
+	handle360byPointerPosition( e ) {
+		window.requestAnimationFrame( () =>
+			e.target.changeAngle( e.target, e.clientX )
+		);
+	}
+
+	handle360byDrag( e ) {
 		const video = e.target;
-
-		function changeAngle() {
-			const rect = video.getBoundingClientRect();
-			if ( video.readyState > 1 ) {
-				video.currentTime = (
-					( ( e.clientX - rect.left ) / rect.width ) *
-					video.duration *
-					video.spinRatio
-				).toPrecision( 5 );
-			}
-		}
-
-		window.requestAnimationFrame( changeAngle );
+		video.style.cursor = 'grab';
+		video.onmousemove = ( ev ) => {
+			window.requestAnimationFrame( () =>
+				e.target.changeAngle( ev.target, ev.clientX )
+			);
+		};
 	}
 
 	video360Controller( entry ) {
+		let timeoutAutoplay = null;
 		const videoEl = entry.target.querySelector( 'video' );
+		videoEl.style.cursor = 'ew-resize';
 		videoEl.spinRatio = parseFloat( entry.target.sscItemOpts.spinRatio );
+		videoEl.control = entry.target.sscItemOpts.control;
+		videoEl.loop = true;
+		videoEl.isPlaying = false;
+		videoEl.currentAngle = videoEl.currentTime = videoEl.duration * 0.5;
+		videoEl.changeAngle = function ( video, angle ) {
+			const rect = video.getBoundingClientRect();
+			if ( video.readyState > 1 ) {
+				video.currentTime = (
+					( ( angle - rect.left ) / rect.width ) *
+					video.duration *
+					video.spinRatio
+				).toPrecision( 3 );
+				videoEl.currentAngle = video.currentTime;
+				clearTimeout( timeoutAutoplay );
+				timeoutAutoplay = () => videoEl.autoplay;
+			}
+		};
+		videoEl.autoplay = setTimeout( () => {
+			videoEl.play();
+		}, 2000 );
 		if ( entry.target.action === 'enter' ) {
-			videoEl.onmousemove = this.handleVideo360;
+			if ( entry.target.sscItemOpts.control === 'pointer' ) {
+				videoEl.onmousemove = this.handle360byPointerPosition;
+			} else {
+				videoEl.onmousedown = this.handle360byDrag;
+			}
+			videoEl.onmouseout = function () {
+				videoEl.pause();
+				clearTimeout( timeoutAutoplay );
+			};
+			videoEl.onmouseup = function () {
+				videoEl.pause();
+				videoEl.onmousemove = null;
+				videoEl.style.cursor = 'ew-resize';
+			};
 		} else if ( entry.target.action === 'leave' ) {
 			videoEl.onmousemove = null;
 		}
