@@ -41,7 +41,6 @@ export default class _ssc {
 		this.staggerPresets = textStaggerPresets;
 
 		this.scrollMagic = new ScrollMagic.Controller();
-
 		this.timelines = [];
 
 		// avoid scrolling before the page has been loaded
@@ -260,7 +259,6 @@ export default class _ssc {
 		this.timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
 			triggerElement: el,
 			duration: el.sscItemOpts.duration,
-			easing: el.sscItemOpts.easing,
 			triggerHook: el.sscItemOpts.triggerHook || 0.25,
 		} )
 			// Add debug indicators
@@ -305,13 +303,15 @@ export default class _ssc {
 			)
 		) {
 			const videoEl = el.querySelector( 'video' );
-			videoEl.autoplay = false;
-			videoEl.controls = false;
-			videoEl.loop = false;
-			videoEl.muted = true;
-			videoEl.playsinline = true;
-			videoEl.preload = 'auto';
-			videoEl.pause();
+			if ( videoEl ) {
+				videoEl.autoplay = false;
+				videoEl.controls = false;
+				videoEl.loop = false;
+				videoEl.muted = true;
+				videoEl.playsinline = true;
+				videoEl.preload = 'auto';
+				videoEl.pause();
+			}
 			el.classList.add( 'ssc-video' );
 		}
 
@@ -319,6 +319,14 @@ export default class _ssc {
 			el.style.minHeight = 'calc(100vh + 30px)';
 			el.style.padding = 0;
 			el.style.margin = 0;
+		}
+
+		if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
+			el.querySelectorAll( '.ssc' ).forEach( ( timelineChild ) => {
+				timelineChild.classList.add( 'ssc-timeline-child' );
+				timelineChild.dataset.timelineDuration =
+					el.sscItemOpts.duration;
+			} );
 		}
 
 		if ( el.sscItemData.sscAnimation === 'sscTimelineChild' ) {
@@ -330,12 +338,12 @@ export default class _ssc {
 	// Main.js
 	// Screen Control Initialization
 	init = () => {
-		//this.page.style.overflow = 'auto';
 		this.collected = this.page.querySelectorAll( '.ssc' );
 
 		this.updateScreenSize();
 
 		console.log( 'SSC ready' );
+		document.body.style.overflowX = 'hidden';
 
 		if ( 'IntersectionObserver' in window ) {
 			this.observer = new IntersectionObserver( this.screenControl, {
@@ -388,7 +396,57 @@ export default class _ssc {
 		}
 	};
 
-	screenControl = ( entries, observer ) => {
+	sscAnimation = ( entry ) => {
+		// this item is entering the view
+		if ( entry.target.action ) {
+			switch ( entry.target.sscItemData.sscAnimation ) {
+				case 'sscParallax':
+					this.parallaxController( entry ); // yup
+					break;
+				case 'sscAnimation':
+					this.handleAnimation( entry );
+					break;
+				case 'sscSequence':
+					this.animationSequence( entry, entry.target.action );
+					break;
+				case 'sscSvgPath':
+					this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
+					break;
+				case 'sscScrollJacking':
+					this.scrollJacking( entry );
+					break;
+				case 'sscCounter':
+					this.animateTextNode( entry );
+					break;
+				case 'sscVideoFocusPlay':
+					this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
+					break;
+				case 'sscVideoParallax':
+					this.videoParallaxController( entry );
+					break;
+				case 'sscVideoScroll':
+					this.videoWheelController( entry );
+					break;
+				case 'ssc360':
+					this.video360Controller( entry );
+					break;
+				case 'sscImageZoom':
+					this.imageScaleController( entry ); // NO
+					break;
+				case 'sscTextStagger':
+					this.textStagger( entry );
+					break;
+				default:
+					// err
+					console.log(
+						`JS action ${ entry.target.sscItemData.sscAnimation } missing for ${ entry.target.sscItemData.sscItem }`
+					);
+					break;
+			}
+		}
+	};
+
+	screenControl = ( entries ) => {
 		// store the scroll direction into body
 		this.scrollDirection();
 
@@ -404,68 +462,24 @@ export default class _ssc {
 					: 'down';
 
 			// check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
-			// eslint-disable-next-line no-nested-ternary
-			entry.target.action =
-				entry.isIntersecting !== entry.target.dataset.visible
-					? entry.isIntersecting
+			if ( entry.isIntersecting !== entry.target.dataset.visible ) {
+				if ( typeof entry.target.dataset.visible === 'undefined' ) {
+					entry.target.action = 'enter';
+				} else {
+					entry.target.action = entry.isIntersecting
 						? 'enter'
-						: 'leave'
-					: '';
+						: 'leave';
+				}
+			} else {
+				entry.target.action = '';
+			}
 
-			// is colliding with borders
+			// is colliding with borders // used next loop to detect if the object is inside the screen
 			entry.target.dataset.visible = entry.isIntersecting
 				? 'true'
 				: 'false';
 
-			// this item is entering the view
-			if ( entry.target.action ) {
-				// console.log( `SSC: ${ entry.target.sscItemData.sscItem } is entering with args `, entry.target.sscItemOpts );
-
-				switch ( entry.target.sscItemData.sscAnimation ) {
-					case 'sscParallax':
-						this.parallaxController( entry ); // yup
-						break;
-					case 'sscAnimation':
-						this.handleAnimation( entry );
-						break;
-					case 'sscSequence':
-						this.animationSequence( entry, entry.target.action );
-						break;
-					case 'sscSvgPath':
-						this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
-						break;
-					case 'sscScrollJacking':
-						this.scrollJacking( entry );
-						break;
-					case 'sscCounter':
-						this.animateTextNode( entry );
-						break;
-					case 'sscVideoFocusPlay':
-						this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
-						break;
-					case 'sscVideoParallax':
-						this.videoParallaxController( entry );
-						break;
-					case 'sscVideoScroll':
-						this.videoWheelController( entry );
-						break;
-					case 'ssc360':
-						this.video360Controller( entry );
-						break;
-					case 'sscImageZoom':
-						this.imageScaleController( entry ); // NO
-						break;
-					case 'sscTextStagger':
-						this.textStagger( entry );
-						break;
-					default:
-						// err
-						console.log(
-							`JS action ${ entry.target.sscItemData.sscAnimation } missing for ${ entry.target.sscItemData.sscItem }`
-						);
-						break;
-				}
-			}
+			this.sscAnimation( entry );
 		} );
 
 		// store the last scroll position
