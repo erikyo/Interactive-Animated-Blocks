@@ -2,8 +2,9 @@ import { useEffect } from '@wordpress/element';
 import { basicSetup } from 'codemirror';
 import { keymap, EditorView } from '@codemirror/view';
 import { css } from '@codemirror/lang-css';
-import { json } from '@codemirror/lang-json';
-import { indentWithTab } from '@codemirror/commands';
+import { json, jsonParseLinter } from '@codemirror/lang-json';
+import { defaultKeymap, indentWithTab } from '@codemirror/commands';
+import { linter, lintKeymap } from '@codemirror/lint';
 
 import {
 	autoLintCode,
@@ -17,8 +18,8 @@ export const CodeBox = ( props ) => {
 
 	// codemirror settings
 	const editorSettings = {
-    tabSize: 2
-  };
+		tabSize: 2,
+	};
 
 	function lintCSS( style ) {
 		return style && Object.keys( style ).length
@@ -28,6 +29,7 @@ export const CodeBox = ( props ) => {
 
 	const editorFromTextArea = () => {
 		const parent = document.getElementById( 'codebox-' + language );
+		const linterExtension = linter( jsonParseLinter() );
 		/*
 		 * CSS
 		 * */
@@ -38,7 +40,7 @@ export const CodeBox = ( props ) => {
 				doc: thisStyle,
 				extensions: [
 					basicSetup,
-					keymap.of( [ indentWithTab ] ),
+					keymap.of( [ indentWithTab, defaultKeymap, lintKeymap ] ),
 					css(),
 				],
 				parent,
@@ -61,10 +63,12 @@ export const CodeBox = ( props ) => {
 				...editorSettings,
 				doc: thisJson,
 				theme: 'mdn-like',
+				gutters: [ 'CodeMirror-lint-markers' ],
 				extensions: [
 					basicSetup,
-					keymap.of( [ indentWithTab ] ),
+					keymap.of( [ indentWithTab, defaultKeymap, lintKeymap ] ),
 					json(),
+					linterExtension,
 				],
 				parent,
 			} );
