@@ -1203,22 +1203,6 @@ export default class _ssc {
 		}
 	}
 
-	handle360byPointerPosition( e ) {
-		window.requestAnimationFrame( () =>
-			e.target.changeAngle( e.target, e.clientX )
-		);
-	}
-
-	handle360byDrag( e ) {
-		const video = e.target;
-		video.style.cursor = 'grab';
-		video.onmousemove = ( ev ) => {
-			window.requestAnimationFrame( () =>
-				e.target.changeAngle( ev.target, ev.clientX )
-			);
-		};
-	}
-
 	video360Controller( entry ) {
 		let timeoutAutoplay = null;
 		const videoEl = entry.target.querySelector( 'video' );
@@ -1227,37 +1211,82 @@ export default class _ssc {
 		videoEl.control = entry.target.sscItemOpts.control;
 		videoEl.loop = true;
 		videoEl.isPlaying = false;
-		videoEl.currentAngle = videoEl.currentTime = videoEl.duration * 0.5;
-		videoEl.changeAngle = function ( video, angle ) {
+		videoEl.currentTime = parseFloat( videoEl.duration * 0.5 ); // center of view
+		videoEl.currentAngle = videoEl.currentTime; // center the view
+		videoEl.startAngle = 0.5; // center the view
+		videoEl.viewCenter = videoEl.currentTime; // the center of view
+		videoEl.currentValue = 0;
+
+		videoEl.getAngle = ( video, pointerX ) => {
 			const rect = video.getBoundingClientRect();
-			if ( video.readyState > 1 ) {
-				video.currentTime = (
-					( ( angle - rect.left ) / rect.width ) *
-					video.duration *
-					video.spinRatio
-				).toPrecision( 3 );
-				videoEl.currentAngle = video.currentTime;
+			return parseFloat( ( pointerX - rect.left ) / rect.width );
+		};
+
+		videoEl.AngleToVideoTime = ( currentValue ) => {
+			return currentValue * videoEl.duration * videoEl.spinRatio;
+		};
+
+		videoEl.setAngle = ( currentAngle ) => {
+			if ( videoEl.readyState > 1 ) {
+				// apply the calculated time to this video
+				videoEl.currentAngle = videoEl.AngleToVideoTime( currentAngle );
+				// if the current time is after the total time returns to the beginning to create the loop effect
+				videoEl.currentTime =
+					videoEl.currentAngle > videoEl.duration
+						? videoEl.currentAngle - videoEl.duration
+						: videoEl.currentAngle;
+				console.log( videoEl.currentTime );
 				clearTimeout( timeoutAutoplay );
 				timeoutAutoplay = () => videoEl.autoplay;
 			}
 		};
+
+		videoEl.handle360byPointerPosition = ( e ) => {
+			window.requestAnimationFrame( () => {
+				const currentAngle = e.target.getAngle( e.target, e.clientX );
+				return e.target.setAngle( currentAngle );
+			} );
+		};
+
+		videoEl.handle360byDrag = ( e ) => {
+			const video = e.target;
+			video.style.cursor = 'grab';
+			videoEl.startAngle = e.target.getAngle( e.target, e.clientX ); // store the initial view position
+			video.onmousemove = ( ev ) => {
+				window.requestAnimationFrame( () => {
+					const currentAngle = video.getAngle(
+						ev.target,
+						ev.clientX
+					);
+					return video.setAngle( currentAngle );
+				} );
+			};
+		};
+
 		videoEl.autoplay = setTimeout( () => {
 			videoEl.play();
 		}, 2000 );
+
 		if ( entry.target.action === 'enter' ) {
 			if ( entry.target.sscItemOpts.control === 'pointer' ) {
-				videoEl.onmousemove = this.handle360byPointerPosition;
+				videoEl.onmousemove = videoEl.handle360byPointerPosition;
 			} else {
-				videoEl.onmousedown = this.handle360byDrag;
+				videoEl.onmousedown = videoEl.handle360byDrag;
+
+				videoEl.onmouseup = function () {
+					videoEl.pause();
+					videoEl.onmousemove = null;
+					videoEl.style.cursor = 'ew-resize';
+				};
 			}
+
 			videoEl.onmouseout = function () {
 				videoEl.pause();
 				clearTimeout( timeoutAutoplay );
 			};
-			videoEl.onmouseup = function () {
-				videoEl.pause();
-				videoEl.onmousemove = null;
-				videoEl.style.cursor = 'ew-resize';
+
+			videoEl.onmouseenter = ( e ) => {
+				videoEl.startAngle = e.target.getAngle( e.target, e.clientX ); // store the initial view position
 			};
 		} else if ( entry.target.action === 'leave' ) {
 			videoEl.onmousemove = null;
