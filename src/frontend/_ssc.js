@@ -1204,8 +1204,8 @@ export default class _ssc {
 	}
 
 	video360Controller( entry ) {
-		let timeoutAutoplay = null;
 		const videoEl = entry.target.querySelector( 'video' );
+		videoEl.timeoutAutoplay = null;
 		videoEl.style.cursor = 'ew-resize';
 		videoEl.spinRatio = parseFloat( entry.target.sscItemOpts.spinRatio );
 		videoEl.control = entry.target.sscItemOpts.control;
@@ -1223,10 +1223,11 @@ export default class _ssc {
 			return videoEl.currentTime / videoEl.duration;
 		};
 
-		videoEl.autoplay = () =>
-			setTimeout( () => {
+		videoEl.autoplayVideo = function () {
+			return setTimeout( () => {
 				videoEl.play();
 			}, 2000 );
+		};
 
 		videoEl.getAngle = ( video, pointerX ) => {
 			const rect = video.getBoundingClientRect();
@@ -1247,7 +1248,7 @@ export default class _ssc {
 						: videoEl.nextTime < 0
 						? videoEl.nextTime + videoEl.duration
 						: videoEl.nextTime;
-				clearTimeout( timeoutAutoplay );
+				clearTimeout( videoEl.timeoutAutoplay );
 			}
 		};
 
@@ -1281,18 +1282,17 @@ export default class _ssc {
 				videoEl.onmousemove = videoEl.handle360byPointerPosition;
 			} else {
 				videoEl.onmousedown = videoEl.handle360byDrag;
-
-				videoEl.onmouseup = function () {
+				videoEl.onmouseup = () => {
 					videoEl.pause();
 					videoEl.onmousemove = null;
 					videoEl.style.cursor = 'ew-resize';
 				};
 			}
 
-			videoEl.onmouseout = function () {
-				videoEl.pause();
-				clearTimeout( timeoutAutoplay );
-				timeoutAutoplay = () => videoEl.autoplay();
+			videoEl.onmouseout = ( e ) => {
+				e.target.pause();
+				clearTimeout( e.target.timeoutAutoplay );
+				videoEl.timeoutAutoplay = e.target.autoplayVideo();
 			};
 
 			videoEl.onmouseenter = ( e ) => {
