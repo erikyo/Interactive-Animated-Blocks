@@ -1211,33 +1211,43 @@ export default class _ssc {
 		videoEl.control = entry.target.sscItemOpts.control;
 		videoEl.loop = true;
 		videoEl.isPlaying = false;
-		videoEl.currentTime = parseFloat( videoEl.duration * 0.5 ); // center of view
-		videoEl.currentAngle = videoEl.currentTime; // center the view
-		videoEl.startAngle = 0.5; // center the view
-		videoEl.viewCenter = videoEl.currentTime; // the center of view
-		videoEl.currentValue = 0;
+		videoEl.currentAngle = 0.5; // the current angle displayed
+		videoEl.startAngle = 0.5; // the event initial angle
+		videoEl.currentTime = parseFloat( videoEl.duration * 0.5 ); // Set the center of view
+
+		videoEl.angleToVideoTime = ( currentValue ) => {
+			return currentValue * videoEl.duration * videoEl.spinRatio;
+		};
+
+		videoEl.currentVideoTimeToAngle = () => {
+			return videoEl.currentTime / videoEl.duration;
+		};
+
+		videoEl.autoplay = () =>
+			setTimeout( () => {
+				videoEl.play();
+			}, 2000 );
 
 		videoEl.getAngle = ( video, pointerX ) => {
 			const rect = video.getBoundingClientRect();
 			return parseFloat( ( pointerX - rect.left ) / rect.width );
 		};
 
-		videoEl.AngleToVideoTime = ( currentValue ) => {
-			return currentValue * videoEl.duration * videoEl.spinRatio;
-		};
-
 		videoEl.setAngle = ( currentAngle ) => {
 			if ( videoEl.readyState > 1 ) {
 				// apply the calculated time to this video
-				videoEl.currentAngle = videoEl.AngleToVideoTime( currentAngle );
+				videoEl.nextTime = videoEl.angleToVideoTime(
+					videoEl.currentAngle + ( currentAngle - videoEl.startAngle )
+				);
 				// if the current time is after the total time returns to the beginning to create the loop effect
 				videoEl.currentTime =
-					videoEl.currentAngle > videoEl.duration
-						? videoEl.currentAngle - videoEl.duration
-						: videoEl.currentAngle;
-				console.log( videoEl.currentTime );
+					// eslint-disable-next-line no-nested-ternary
+					videoEl.nextTime > videoEl.duration
+						? videoEl.nextTime - videoEl.duration
+						: videoEl.nextTime < 0
+						? videoEl.nextTime + videoEl.duration
+						: videoEl.nextTime;
 				clearTimeout( timeoutAutoplay );
-				timeoutAutoplay = () => videoEl.autoplay;
 			}
 		};
 
@@ -1251,7 +1261,10 @@ export default class _ssc {
 		videoEl.handle360byDrag = ( e ) => {
 			const video = e.target;
 			video.style.cursor = 'grab';
-			videoEl.startAngle = e.target.getAngle( e.target, e.clientX ); // store the initial view position
+			// store the event initial position
+			videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
+			videoEl.startAngle = video.getAngle( e.target, e.clientX );
+			// on mouse move update the current angle
 			video.onmousemove = ( ev ) => {
 				window.requestAnimationFrame( () => {
 					const currentAngle = video.getAngle(
@@ -1262,10 +1275,6 @@ export default class _ssc {
 				} );
 			};
 		};
-
-		videoEl.autoplay = setTimeout( () => {
-			videoEl.play();
-		}, 2000 );
 
 		if ( entry.target.action === 'enter' ) {
 			if ( entry.target.sscItemOpts.control === 'pointer' ) {
@@ -1283,10 +1292,14 @@ export default class _ssc {
 			videoEl.onmouseout = function () {
 				videoEl.pause();
 				clearTimeout( timeoutAutoplay );
+				timeoutAutoplay = () => videoEl.autoplay();
 			};
 
 			videoEl.onmouseenter = ( e ) => {
-				videoEl.startAngle = e.target.getAngle( e.target, e.clientX ); // store the initial view position
+				videoEl.pause();
+				// store the event initial position
+				videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
+				videoEl.startAngle = e.target.getAngle( e.target, e.clientX );
 			};
 		} else if ( entry.target.action === 'leave' ) {
 			videoEl.onmousemove = null;
