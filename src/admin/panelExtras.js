@@ -664,6 +664,36 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													] }
 												/>
 											) }
+
+											{ sscAnimationType ===
+												'sscScreenJump' && (
+												<SelectControl
+													label={ 'Target' }
+													value={
+														sscAnimationOptions[
+															sscAnimationType
+														].target
+													}
+													onChange={ ( e ) =>
+														setOption(
+															e,
+															'target',
+															sscAnimationType
+														)
+													}
+													options={ [
+														{
+															label: 'Next View',
+															value: 'none',
+														},
+														{
+															label: 'Anchor',
+															value: 'anchor',
+														},
+													] }
+												/>
+											) }
+
 											{ sscAnimationType ===
 												'sscScrollTimeline' && (
 												<>

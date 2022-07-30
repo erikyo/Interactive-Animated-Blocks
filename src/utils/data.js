@@ -328,6 +328,13 @@ export const animationTypes = [
 			splitBy: 'letter',
 		},
 	},
+	{
+		label: 'Screen Jump',
+		value: 'sscScreenJump',
+		default: {
+			target: 'none',
+		},
+	},
 ];
 
 export const animationList = [

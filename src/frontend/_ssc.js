@@ -9,6 +9,16 @@ ScrollMagicPluginIndicator( ScrollMagic );
 
 import { sscOptions } from '../ssc';
 
+// on load and on hashchange (usually on history back/forward)
+const jumpToHash = () => {
+	if ( typeof window.location.hash !== undefined ) {
+		//GOTO
+		console.log( window.location.hash );
+	}
+};
+window.addEventListener( 'load', jumpToHash );
+window.addEventListener( 'hashchange', jumpToHash );
+
 export default class _ssc {
 	constructor( options ) {
 		this.page = options.page || document.body;
@@ -385,6 +395,10 @@ export default class _ssc {
 					'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
 				document.head.appendChild( animateCSS );
 			}
+
+			this.jumpToScreen(
+				document.querySelectorAll( '.ssc-screen-jumper' )
+			);
 
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
@@ -1253,6 +1267,31 @@ export default class _ssc {
 			videoEl.onmousemove = null;
 		}
 	}
+
+	// SCREEN JUMPER
+	jumpToScreen = ( jumpers ) => {
+		jumpers.forEach( ( jumper ) => {
+			jumper.onclick = ( e ) => {
+				e.preventDefault();
+				const target = jumper.dataset.sscJumperTarget;
+				let destinationY = null;
+				if ( target !== 'none' ) {
+					const link = jumper.querySelector( 'a' );
+					const anchor = '#' + link.href.split( '#' ).pop();
+					const destinationTarget = document.querySelector( anchor );
+					destinationY =
+						destinationTarget.getBoundingClientRect().top +
+						window.pageYOffset;
+				} else {
+					destinationY = window.pageYOffset + window.innerHeight;
+				}
+				window.scrollTo( {
+					top: parseInt( destinationY, 10 ),
+					behavior: 'smooth',
+				} );
+			};
+		} );
+	};
 }
 
 // on load and on hashchange (usually on history back/forward)

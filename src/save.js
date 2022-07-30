@@ -54,6 +54,11 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 			}
 		}
 
+		if ( sscAnimationType === 'sscScreenJump' ) {
+			extraProps[ 'data-ssc-jumper-target' ] =
+				sscAnimationOptions[ sscAnimationType ].target || 'none';
+		}
+
 		// map the original array into a single key value object
 		if ( sscAnimationType === 'sscSequence' ) {
 			const selected =
@@ -70,12 +75,18 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 		}
 
 		// element classes
-		switch ( 'sscScrollJacking' ) {
-			case sscAnimationType:
-				classes.push( sscAnimated ? 'ssc ssc-scroll-jacking' : '' );
+		switch ( sscAnimationType ) {
+			case 'sscScrollJacking':
+				classes.push( 'ssc ssc-scroll-jacking' );
+				break;
+			case 'sscScreenJump':
+				classes.push( 'ssc ssc-screen-jumper' );
+				break;
+			case 'sscVideoScroll':
+				classes.push( 'ssc ssc-video-scroll' );
 				break;
 			default:
-				classes.push( sscAnimated ? 'ssc' : '' );
+				classes.push( 'ssc' );
 				break;
 		}
 	}
