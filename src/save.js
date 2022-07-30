@@ -25,12 +25,14 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 	const styles = {};
 
 	if ( sscAnimated && sscAnimationType ) {
+
 		const defaults = getDefaults( sscAnimationType );
 		sscAnimationOptions[ sscAnimationType ] = {
 			...defaults,
 			...sscAnimationOptions[ sscAnimationType ],
 		};
 
+    // this add to the dataset sscAnimation="theTypeOfAnimation"
 		extraProps[ 'data-ssc-animation' ] = sscAnimationType;
 
 		const options = sscAnimationOptions[ sscAnimationType ] || false;
@@ -99,6 +101,7 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 				break;
 		}
 
+    // if the animation type has a property with the key motion a style will be applied with the given value
 		styles.transition =
 			sscAnimationOptions[ sscAnimationType ] &&
 			sscAnimationOptions[ sscAnimationType ].motion
@@ -106,6 +109,7 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 				: null;
 	}
 
+  // add all the custom properties to the element
 	Object.assign( extraProps, {
 		style: { ...styles, ...additionalCSS, ...extraProps.style },
 		className: classnames( extraProps.className, classes.join( ' ' ) ),

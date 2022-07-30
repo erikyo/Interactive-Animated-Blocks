@@ -15,11 +15,6 @@ export const StyleAdvancedControls = createHigherOrderComponent(
 				attributes: { additionalCSS, additionalClasses },
 			} = props;
 
-			// css class setter
-			const setClass = ( el, cssClass ) => {
-				el.classList.add( cssClass );
-			};
-
 			return (
 				<Fragment>
 					<BlockEdit { ...props } />

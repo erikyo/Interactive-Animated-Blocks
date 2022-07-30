@@ -355,6 +355,12 @@ export default class _ssc {
 		console.log( 'SSC ready' );
 		document.body.style.overflowX = 'hidden';
 
+		// start parallax
+		this.parallax();
+
+		// start timelines
+		this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
+
 		if ( 'IntersectionObserver' in window ) {
 			this.observer = new IntersectionObserver( this.screenControl, {
 				root: null,
@@ -375,18 +381,11 @@ export default class _ssc {
 				}
 			}, this );
 
-			// start timelines
-			this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
-
-			// start parallax
-			this.parallax();
-
 			// maybe it may seem like an unconventional method but this way this (quite heavy) file is loaded only there is a need
 			const hasAnimate = Object.values( this.collected ).filter(
 				( observed ) =>
 					observed.sscItemData.sscAnimation === 'sscAnimation'
 			);
-
 			if ( hasAnimate ) {
 				const animateCSS = document.createElement( 'link' );
 				animateCSS.rel = 'stylesheet';
@@ -452,9 +451,6 @@ export default class _ssc {
 					break;
 				default:
 					// err
-					console.log(
-						`JS action ${ entry.target.sscItemData.sscAnimation } missing for ${ entry.target.sscItemData.sscItem }`
-					);
 					break;
 			}
 		}
@@ -1293,13 +1289,3 @@ export default class _ssc {
 		} );
 	};
 }
-
-// on load and on hashchange (usually on history back/forward)
-const jumpToHash = () => {
-	if ( typeof window.location.hash !== undefined ) {
-		//GOTO
-		console.log( window.location.hash );
-	}
-};
-window.addEventListener( 'load', jumpToHash );
-window.addEventListener( 'hashchange', jumpToHash );

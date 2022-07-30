@@ -636,6 +636,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													}
 												/>
 											) }
+
 											{ sscAnimationType ===
 												'sscCounter' && (
 												<SelectControl
