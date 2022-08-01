@@ -103,6 +103,31 @@ export const getElelementData = ( opts, type = 'data' ) => {
 };
 
 /**
+ * Split a sentence into words or letters
+ *
+ * It takes a sentence and splits it into words, then splits each word into letters
+ *
+ * @param {string} sentence       - The sentence to be split.
+ * @param {string} [splitBy=word] - 'word' or 'letter'
+ *
+ * @return {string} A string of HTML with the words and letters wrapped in span tags.
+ */
+export function splitSentence( sentence, splitBy = 'word' ) {
+	const words = sentence.split( ' ' );
+	const result = words.map( ( word ) => {
+		if ( splitBy === 'word' ) {
+			return `<span class="word">${ word }</span>`;
+		}
+		return (
+			'<span class="word">' +
+			word.replace( /\S/g, `<span class="letter">$&</span>` ) +
+			'</span>'
+		);
+	} );
+	return result.join( ' ' );
+}
+
+/**
  * It takes an animation type and returns the default values for that animation
  *
  * @param {string} opt - The animation type selected.
