@@ -1,3 +1,4 @@
+/** the advanced animation available parameters and defaults  */
 export const actionsTemplate = [
 	{
 		actionLabel: 'Keyframe (duration in ms)',
