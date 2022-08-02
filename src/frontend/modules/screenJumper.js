@@ -1,15 +1,4 @@
 /**
- * For each jumper, when clicked, jump to the screen.
- *
- * @param {Array} jumpers - The array of elements that will be clicked to jump to the screen.
- */
-const jumpToScreen = ( jumpers ) => {
-	jumpers.forEach( ( jumper ) => {
-		jumper.onclick = jumpTo;
-	} );
-};
-
-/**
  * It takes the click event, finds the target element, and scrolls to it
  *
  * @param {Event} e - The event object.
@@ -30,6 +19,17 @@ const jumpTo = ( e ) => {
 	window.scrollTo( {
 		top: destinationY,
 		behavior: 'smooth',
+	} );
+};
+
+/**
+ * For each jumper, when clicked, jump to the screen.
+ *
+ * @param {NodeList} jumpers - The array of elements that will be clicked to jump to the screen.
+ */
+const jumpToScreen = ( jumpers ) => {
+	jumpers.forEach( ( jumper ) => {
+		jumper.onclick = jumpTo;
 	} );
 };
 

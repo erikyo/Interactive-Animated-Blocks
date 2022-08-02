@@ -5,7 +5,7 @@ import anime from 'animejs';
 
 function scrollJacking( entry ) {
 	// if there aren't any defined target, store this one
-	if ( entry.target.action !== 'enter' || this.hasScrolling !== false )
+	if ( entry.target.action !== 'enter' && this.hasScrolling !== false )
 		return false;
 
 	this.hasScrolling = entry.target.sscItemData.sscItem;
@@ -18,11 +18,16 @@ function scrollJacking( entry ) {
 
 		const duration = parseInt( el.target.sscItemOpts.duration, 10 );
 
+		/** Stores the history state */
 		if ( el.target.id )
 			window.history.pushState( null, null, '#' + el.target.id );
 
-		// remove any previous animation
-		anime.remove();
+		/**
+		 *  Anime.js animation
+		 *
+		 *  @module Animation
+		 */
+		anime.remove(); // remove any previous animation
 		anime( {
 			targets: [
 				window.document.scrollingElement ||
@@ -32,9 +37,11 @@ function scrollJacking( entry ) {
 			scrollTop: el.target.offsetTop + 10,
 			easing: el.target.sscItemOpts.easing || 'linear',
 			duration: duration || 700,
-			delay: parseInt( el.target.sscItemOpts.delay, 10 ) || 0,
+			delay: 0,
 			complete: () => {
-				delay( 200 ).then( () => {
+				delay(
+					parseInt( el.target.sscItemOpts.delay, 10 ) || 200
+				).then( () => {
 					// this.windowData.lastScrollPosition = window.scrollY;
 					// window.scrollY = el.target.offsetTop;
 					this.hasScrolling = false;
@@ -53,6 +60,6 @@ function scrollJacking( entry ) {
 	if ( isPartiallyVisible( entry.target ) ) {
 		screenJackTo( entry );
 	}
-};
+}
 
 export default scrollJacking;

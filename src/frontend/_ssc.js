@@ -1,10 +1,22 @@
+/*!
+ * SSC 0.0.1
+ * The javascript frontend script of ssc
+ * 2022
+ * Project Website: http://codekraft.it
+ *
+ * @version 0.0.1
+ * @license GPLv3.
+ * @author Erik
+ *
+ * @file The scc animation frontend scripts.
+ */
+
 import anime from 'animejs';
 import ScrollMagic from 'scrollmagic';
 import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
 
 // UTILITY
 import { sscOptions } from '../ssc';
-import { textStaggerPresets } from '../utils/data';
 import { getElelementData } from '../utils/fn';
 import {
 	delay,
@@ -30,11 +42,6 @@ import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
-import {
-	parallax,
-	parallaxed,
-	parallaxController,
-} from './modules/itemParallax';
 
 // TODO: enable only for admins
 ScrollMagicPluginIndicator( ScrollMagic );
@@ -50,17 +57,6 @@ window.addEventListener( 'load', jumpToHash );
 window.addEventListener( 'hashchange', jumpToHash );
 
 /**
- * @typedef {Object} windowData
- * @property
- *            This object holds the window data to avoid unnecessaries calculations
- *            and has 2 properties: viewHeight and lastScrollPosition.
- */
-export const windowData = {
-	viewHeight: window.innerHeight,
-	lastScrollPosition: window.scrollY,
-};
-
-/**
  * @class _ssc
  *
  */
@@ -73,11 +69,31 @@ class _ssc {
 		this.page = options.page || document.body;
 		this.scrollDirection = scrollDirection.bind( this );
 
-		// avoid scrolling before the page has been loaded
-		this.hasScrolling = false;
+		/**
+		 * This object holds the window data to avoid unnecessary calculations
+		 * and has 2 properties: viewHeight and lastScrollPosition.
+		 *
+		 * @typedef {Object} windowData
+		 * @property {number} viewHeight         - window.innerHeight alias
+		 * @property {number} lastScrollPosition - window.scrollY alias
+		 */
+		this.windowData = {
+			viewHeight: window.innerHeight,
+			lastScrollPosition: window.scrollY,
+		};
 
-		// store the touch position
-		this.touchPos = { x: false, y: false };
+		/**
+		 * Store the touch position
+		 *
+		 * @typedef {Object} touchPos
+		 * @property {number} x - the touch start x position
+		 * @property {number} y - the touch start y position
+		 */
+		this.touchPos = {
+			x: false,
+			y: false,
+		};
+
 		this.page.ontouchstart = touchstartEvent.bind( this );
 		this.page.ontouchmove = ontouchmoveEvent.bind( this );
 
@@ -89,7 +105,6 @@ class _ssc {
 		this.observer = [];
 
 		this.animations = [];
-		this.staggerPresets = textStaggerPresets;
 
 		this.scrollMagic = new ScrollMagic.Controller();
 		this.timelines = [];
@@ -110,12 +125,11 @@ class _ssc {
 		// scrolljacking - evil as eval :)
 		this.scrollJacking = scrollJacking.bind( this );
 
-		// parallax handler
-		this.parallaxController = parallaxController.bind( this );
-		this.parallax = parallax.bind( this );
-
 		this.videoParallaxed = [];
 		this.parallaxVideo = this.parallaxVideo.bind( this );
+
+		this.parallaxed = [];
+		this.parallax = this.parallax.bind( this );
 
 		this.init();
 	}
@@ -126,15 +140,16 @@ class _ssc {
 	 */
 	updateScreenSize() {
 		( async () =>
-			await ( () => console.log( 'Old Screensize', windowData ) ) )()
+			await ( () => console.log( 'Old Screensize', this.windowData ) ) )()
 			.then( () => {
 				return delay( 250 );
 			} )
 			.then( () => {
-          windowData.viewHeight = window.innerHeight;
-          windowData.lastScrollPosition = window.scrollY;
-          console.warn( 'New Screensize', windowData );
-				} );
+				this.windowData.viewHeight = window.innerHeight;
+				this.windowData.lastScrollPosition = window.scrollY;
+				console.warn( 'New Screensize', this.windowData );
+				return this.windowData;
+			} );
 	}
 
 	// Detach an element from screen control
@@ -180,7 +195,12 @@ class _ssc {
 			} );
 		} );
 
-		// create a scene
+		/**
+		 * Create a scene
+		 *
+		 * @module ScrollMagic
+		 * @function ScrollMagic.Scene
+		 */
 		this.timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
 			triggerElement: el,
 			duration: el.sscItemOpts.duration,
@@ -203,7 +223,7 @@ class _ssc {
 		// add a class to acknowledge about initialization
 		el.dataset.sscItem = index;
 
-		el.unWatch = this.observer.unobserve( el );
+		el.unWatch = () => this.observer.unobserve( el );
 
 		el.sscItemData = el.dataset;
 
@@ -240,23 +260,25 @@ class _ssc {
 			el.classList.add( 'ssc-video' );
 		}
 
-		if ( el.sscItemData.sscAnimation === 'sscScrollJacking' ) {
-			el.style.minHeight = 'calc(100vh + 30px)';
-			el.style.padding = 0;
-			el.style.margin = 0;
-		}
-
-		if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
-			el.querySelectorAll( '.ssc' ).forEach( ( timelineChild ) => {
-				timelineChild.classList.add( 'ssc-timeline-child' );
-				timelineChild.dataset.timelineDuration =
-					el.sscItemOpts.duration;
-			} );
-		}
-
-		if ( el.sscItemData.sscAnimation === 'sscTimelineChild' ) {
-			// init ScrollMagic scene
-			el.classList.add( 'ssc-timeline-scene' );
+		switch ( el.sscItemData.sscAnimation ) {
+			case 'sscScrollJacking':
+				el.style.minHeight = 'calc(100vh + 30px)';
+				el.style.padding = 0;
+				el.style.margin = 0;
+				break;
+			case 'sscParallax':
+				this.parallaxed[ el.sscItemData.sscItem ] = el;
+				break;
+			case 'sscScrollTimeline':
+				el.querySelectorAll( '.ssc' ).forEach( ( timelineChild ) => {
+					timelineChild.classList.add( 'ssc-timeline-child' );
+					timelineChild.dataset.timelineDuration =
+						el.sscItemOpts.duration;
+				} );
+				break;
+			case 'sscTimelineChild': // init ScrollMagic scene
+				el.classList.add( 'ssc-timeline-scene' );
+				break;
 		}
 	};
 
@@ -297,7 +319,11 @@ class _ssc {
 			// start timelines
 			this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
 
-			// maybe it may seem like an unconventional method but this way this (quite heavy) file is loaded only there is a need
+			/**
+			 * inject the animate.css stylesheet if needed
+			 * maybe it may seem like an unconventional method but
+			 * this way this (quite heavy) file is loaded only there is a need
+			 */
 			const hasAnimate = Object.values( this.collected ).filter(
 				( observed ) =>
 					observed.sscItemData.sscAnimation === 'sscAnimation'
@@ -311,6 +337,10 @@ class _ssc {
 				document.head.appendChild( animateCSS );
 			}
 
+			// start parallax
+			// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
+			this.parallax();
+
 			this.jumpToScreen(
 				document.querySelectorAll( '.ssc-screen-jumper' )
 			);
@@ -318,11 +348,7 @@ class _ssc {
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
 
-			// start parallax
-			// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
-			parallax();
-
-			// setup the page variables
+			// update the screen size if necessary
 			window.addEventListener( 'resize', this.updateScreenSize );
 		} else {
 			console.warn( 'IntersectionObserver could not enabled' );
@@ -378,7 +404,7 @@ class _ssc {
 
 	screenControl = ( entries ) => {
 		// update the last scroll position
-		windowData.lastScrollPosition = window.scrollY;
+		this.windowData.lastScrollPosition = window.scrollY;
 
 		// store the scroll direction into body
 		this.scrollDirection();
@@ -390,7 +416,7 @@ class _ssc {
 
 			// stores the direction from which the element appeared
 			entry.target.dataset.intersection =
-				windowData.viewHeight / 2 > entry.boundingClientRect.top
+				this.windowData.viewHeight / 2 > entry.boundingClientRect.top
 					? 'up'
 					: 'down';
 
@@ -415,8 +441,6 @@ class _ssc {
 			this.sscAnimation( entry );
 		} );
 	};
-
-	// handleRefreshInterval() {}
 
 	initMutationObserver( mutationsList, mutationObserver ) {
 		//for every mutation
@@ -468,6 +492,78 @@ class _ssc {
 	}
 
 	// BELOW THIS HAS TO BE REMOVED
+	/**
+	 * The Parallax effect
+	 * Handles the Parallax effect for each item stored into "parallaxed" array
+	 *
+	 * If the last scroll position is the same as the current scroll position, then request an animation frame and exit the current loop.
+	 * Otherwise, apply the parallax style to each element and request an animation frame callback.
+	 *
+	 * The parallax function is called on the window's scroll event
+	 *
+	 */
+	parallax() {
+		if ( typeof this.parallaxed !== 'undefined' ) {
+			// if last position is the same as current
+			if ( window.scrollY === this.windowData.lastScrollPosition ) {
+				// callback the animationFrame and exit the current loop
+				return window.requestAnimationFrame( this.parallax );
+			}
+
+			this.parallaxed.forEach( ( element ) => {
+				// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
+				const rect = element.getBoundingClientRect();
+				const motion = this.windowData.viewHeight - rect.top;
+				if ( motion > 0 ) {
+					const styleValue =
+						element.sscItemOpts.speed *
+						element.sscItemOpts.level *
+						motion *
+						0.2;
+					element.style.transform =
+						'translate3d(' +
+						( element.sscItemOpts.direction === 'y'
+							? '0,' + styleValue + 'px'
+							: styleValue + 'px,0' ) +
+						',0)';
+				}
+
+				// Store the last position
+				this.windowData.lastScrollPosition = window.scrollY;
+
+				// requestAnimationFrame callback
+				window.requestAnimationFrame( this.parallax );
+			} );
+		}
+	}
+
+	/**
+	 * If the item is entering the viewport, add it to the watched list and start the parallax function.
+	 * If the item is leaving the viewport, remove it from the watched list
+	 *
+	 * @param {IntersectionObserverEntry} entry - the entry object that is passed to the callback function
+	 */
+	parallaxController( entry ) {
+		// add this object to the watched list
+		this.parallaxed[ entry.target.sscItemData.sscItem ] = entry.target;
+		// if the parallax function wasn't running before we need to start it
+		if ( this.parallaxed.length ) {
+			this.parallax();
+		}
+		if ( entry.target.action === 'leave' ) {
+			// remove the animated item from the watched list
+			this.parallaxed = this.parallaxed.filter(
+				( item ) =>
+					item.sscItemData.sscItem !==
+					entry.target.sscItemData.sscItem
+			);
+			/* console.log(
+			 * 	`ssc-${ entry.target.sscItemData.sscItem } will be unwatched. current list`,
+			 * 	parallaxed
+			 * );
+			 */
+		}
+	}
 
 	/**
 	 * Animate Element using Anime.css when the element is in the viewport
@@ -755,13 +851,13 @@ class _ssc {
 	};
 
 	parallaxVideo() {
-		if ( window.scrollY === windowData.lastScrollPosition ) {
+		if ( window.scrollY === this.windowData.lastScrollPosition ) {
 			// callback the animationFrame and exit the current loop
 			return window.requestAnimationFrame( this.parallaxVideo );
 		}
 
 		// Store the last position
-		windowData.lastScrollPosition = window.scrollY;
+		this.windowData.lastScrollPosition = window.scrollY;
 
 		this.videoParallaxed.forEach( ( video ) => {
 			const rect = video.item.getBoundingClientRect();

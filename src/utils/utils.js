@@ -1,5 +1,3 @@
-import { windowData } from '../frontend/_ssc';
-
 /**
  * This function returns a promise that resolves after the given number of milliseconds.
  *
@@ -117,9 +115,9 @@ export function isBetween( el, intersectionArea ) {
  * If the last scroll position is greater than the current scroll position, the user is scrolling up
  */
 export function scrollDirection() {
-	if ( windowData.lastScrollPosition < window.scrollY ) {
+	if ( this.windowData.lastScrollPosition < window.scrollY ) {
 		document.body.dataset.direction = 'down';
-	} else if ( windowData.lastScrollPosition > window.scrollY ) {
+	} else if ( this.windowData.lastScrollPosition > window.scrollY ) {
 		document.body.dataset.direction = 'up';
 	}
 }
