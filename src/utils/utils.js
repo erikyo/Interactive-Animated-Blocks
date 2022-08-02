@@ -1,3 +1,5 @@
+import { windowData } from '../frontend/_ssc';
+
 /**
  * This function returns a promise that resolves after the given number of milliseconds.
  *
@@ -17,7 +19,7 @@ export const disableWheel = ( e ) => {
 /**
  * Checks when the element is inside the viewport
  *
- * If the top of the element is above the bottom of the viewport and the bottom of the element is below the top of the viewport, then the element is partially visible.
+ * If the top of the element is above the bottom of the viewport or the bottom of the element is below the top of the viewport, then the element is partially visible.
  *
  * @param {HTMLElement} el - The element you want to check.
  * @return {boolean} true when the element is shown inside the viewport
@@ -115,9 +117,9 @@ export function isBetween( el, intersectionArea ) {
  * If the last scroll position is greater than the current scroll position, the user is scrolling up
  */
 export function scrollDirection() {
-	if ( this.windowData.lastScrollPosition < window.scrollY ) {
+	if ( windowData.lastScrollPosition < window.scrollY ) {
 		document.body.dataset.direction = 'down';
-	} else if ( this.windowData.lastScrollPosition > window.scrollY ) {
+	} else if ( windowData.lastScrollPosition > window.scrollY ) {
 		document.body.dataset.direction = 'up';
 	}
 }

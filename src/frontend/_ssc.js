@@ -28,9 +28,13 @@ import videoWheelController from './modules/videoWheel';
 import videoFocusPlay from './modules/videoFocus';
 import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
-import animateTextNode from './modules/animateText';
+import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
-import { handleParallax, ItemParallaxController } from './modules/parallax';
+import {
+	parallax,
+	parallaxed,
+	parallaxController,
+} from './modules/itemParallax';
 
 // TODO: enable only for admins
 ScrollMagicPluginIndicator( ScrollMagic );
@@ -46,13 +50,31 @@ window.addEventListener( 'load', jumpToHash );
 window.addEventListener( 'hashchange', jumpToHash );
 
 /**
+ * @typedef {Object} windowData
+ * @property
+ *            This object holds the window data to avoid unnecessaries calculations
+ *            and has 2 properties: viewHeight and lastScrollPosition.
+ */
+export const windowData = {
+	viewHeight: window.innerHeight,
+	lastScrollPosition: window.scrollY,
+};
+
+/**
  * @class _ssc
  *
  */
-export default class _ssc {
+class _ssc {
+	/**
+	 * @function Object() { [native code] } - screen control
+	 * @param {{page: Element}} options
+	 */
 	constructor( options ) {
 		this.page = options.page || document.body;
 		this.scrollDirection = scrollDirection.bind( this );
+
+		// avoid scrolling before the page has been loaded
+		this.hasScrolling = false;
 
 		// store the touch position
 		this.touchPos = { x: false, y: false };
@@ -72,15 +94,6 @@ export default class _ssc {
 		this.scrollMagic = new ScrollMagic.Controller();
 		this.timelines = [];
 
-		// avoid scrolling before the page has been loaded
-		this.hasScrolling = false;
-		this.isScrolling = Date.now() + 100;
-
-		this.windowData = {
-			viewHeight: window.innerHeight,
-			lastScrollPosition: window.scrollY,
-		};
-
 		// MODULES
 		this.video360Controller = video360Controller;
 		this.jumpToScreen = jumpToScreen;
@@ -88,7 +101,7 @@ export default class _ssc {
 		this.videoWheelController = videoWheelController;
 		this.videoFocusPlay = videoFocusPlay;
 		this.textStagger = textStagger;
-		this.animateTextNode = animateTextNode;
+		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
 
 		// The standard animation (animate.css)
@@ -98,8 +111,8 @@ export default class _ssc {
 		this.scrollJacking = scrollJacking.bind( this );
 
 		// parallax handler
-		this.parallaxed = [];
-		this.ItemParallaxController = ItemParallaxController.bind( this );
+		this.parallaxController = parallaxController.bind( this );
+		this.parallax = parallax.bind( this );
 
 		this.videoParallaxed = [];
 		this.parallaxVideo = this.parallaxVideo.bind( this );
@@ -113,17 +126,15 @@ export default class _ssc {
 	 */
 	updateScreenSize() {
 		( async () =>
-			await ( () => console.log( 'Old Screensize', this.windowData ) ) )()
+			await ( () => console.log( 'Old Screensize', windowData ) ) )()
 			.then( () => {
 				return delay( 250 );
 			} )
 			.then( () => {
-				this.windowData = {
-					viewHeight: window.innerHeight,
-					lastScrollPosition: window.scrollY,
-				};
-				console.warn( 'New Screensize', this.windowData );
-			} );
+          windowData.viewHeight = window.innerHeight;
+          windowData.lastScrollPosition = window.scrollY;
+          console.warn( 'New Screensize', windowData );
+				} );
 	}
 
 	// Detach an element from screen control
@@ -256,15 +267,9 @@ export default class _ssc {
 
 		this.updateScreenSize();
 
-		console.log( 'SSC ready' );
+		/** this is mandatory because animation could exit from left or right*/
 		document.body.style.overflowX = 'hidden';
-
-		// start parallax
-		// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
-		// handleParallax();
-
-		// start timelines
-		this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
+		console.log( 'SSC ready' );
 
 		if ( 'IntersectionObserver' in window ) {
 			this.observer = new window.IntersectionObserver(
@@ -289,6 +294,9 @@ export default class _ssc {
 				}
 			}, this );
 
+			// start timelines
+			this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
+
 			// maybe it may seem like an unconventional method but this way this (quite heavy) file is loaded only there is a need
 			const hasAnimate = Object.values( this.collected ).filter(
 				( observed ) =>
@@ -310,6 +318,10 @@ export default class _ssc {
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
 
+			// start parallax
+			// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
+			parallax();
+
 			// setup the page variables
 			window.addEventListener( 'resize', this.updateScreenSize );
 		} else {
@@ -322,13 +334,13 @@ export default class _ssc {
 		if ( entry.target.action ) {
 			switch ( entry.target.sscItemData.sscAnimation ) {
 				case 'sscParallax':
-					this.videoParallaxController( entry ); // yup
+					this.parallaxController( entry ); // yup
 					break;
 				case 'sscAnimation':
 					this.handleAnimation( entry );
 					break;
 				case 'sscSequence':
-					// this.animationSequence( entry, entry.target.action );
+					this.animationSequence( entry, entry.target.action );
 					break;
 				case 'sscSvgPath':
 					this.animationSvgPath( entry, entry.target.action ); // yup (missing some options)
@@ -337,7 +349,7 @@ export default class _ssc {
 					this.scrollJacking( entry );
 					break;
 				case 'sscCounter':
-					this.animateTextNode( entry );
+					this.textAnimated( entry );
 					break;
 				case 'sscVideoFocusPlay':
 					this.videoFocusPlay( entry ); // yup, but needs to be inline and muted
@@ -365,6 +377,9 @@ export default class _ssc {
 	};
 
 	screenControl = ( entries ) => {
+		// update the last scroll position
+		windowData.lastScrollPosition = window.scrollY;
+
 		// store the scroll direction into body
 		this.scrollDirection();
 
@@ -375,7 +390,7 @@ export default class _ssc {
 
 			// stores the direction from which the element appeared
 			entry.target.dataset.intersection =
-				this.windowData.viewHeight / 2 > entry.boundingClientRect.top
+				windowData.viewHeight / 2 > entry.boundingClientRect.top
 					? 'up'
 					: 'down';
 
@@ -399,9 +414,6 @@ export default class _ssc {
 
 			this.sscAnimation( entry );
 		} );
-
-		// store the last scroll position
-		this.windowData.lastScrollPosition = window.scrollY;
 	};
 
 	// handleRefreshInterval() {}
@@ -463,146 +475,171 @@ export default class _ssc {
 	 * @param {Object} entry
 	 */
 	handleAnimation = ( entry ) => {
-		if (
-			! this.animations[ entry.target.sscItemData.sscItem ] &&
-			! entry.target.isChildren
-		) {
-			const elRect = entry.target.getBoundingClientRect();
-			this.animations[ entry.target.sscItemData.sscItem ] = {
-				target: entry.target,
-				animatedElements: [],
-				lastAction: null,
-				animationEnter: entry.target.sscItemOpts.animationEnter,
-				animationLeave: entry.target.sscItemOpts.animationLeave,
-				stagger: entry.target.sscItemOpts.stagger,
-				position: {
-					yTop: false,
-					yBottom: false,
-				},
-				delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
-				duration:
-					parseInt( entry.target.sscItemOpts.duration, 10 ) || 1000,
-				locked: false,
-				intersection:
-					parseInt( entry.target.sscItemOpts.intersection, 10 ) || 25,
+		// if the animation isn't yet stored in "animations" object
+		if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
+			if ( ! entry.target.isChildren ) {
+				const elRect = entry.target.getBoundingClientRect();
+
 				/**
-				 * The element methods
+				 * @property {Object} animations - the animations collection
 				 */
-				updatePosition() {
-					return {
-						yTop: parseInt( window.scrollY + elRect.top ),
-						yBottom: parseInt(
-							window.scrollY + elRect.top + elRect.height
-						),
-					};
-				},
-				initElement() {
-					// stores the current element position (top Y and bottom Y)
-					this.position = this.updatePosition();
+				this.animations[ entry.target.sscItemData.sscItem ] = {
+					target: entry.target,
+					animatedElements: [],
+					lastAction: null,
+					animationEnter: entry.target.sscItemOpts.animationEnter,
+					animationLeave: entry.target.sscItemOpts.animationLeave,
+					stagger: entry.target.sscItemOpts.stagger,
+					position: {
+						yTop: false,
+						yBottom: false,
+					},
+					delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
+					duration:
+						parseInt( entry.target.sscItemOpts.duration, 10 ) ||
+						1000,
+					locked: false,
+					intersection:
+						parseInt( entry.target.sscItemOpts.intersection, 10 ) ||
+						25,
+					/**
+					 * The element methods
+					 */
+					updatePosition() {
+						return {
+							yTop: parseInt( window.scrollY + elRect.top ),
+							yBottom: parseInt(
+								window.scrollY + elRect.top + elRect.height
+							),
+						};
+					},
+					initElement() {
+						// stores the current element position (top Y and bottom Y)
+						this.position = this.updatePosition();
 
-					// set the custom props used by animate.css
-					if ( this.duration )
-						entry.target.style.setProperty(
-							'--animate-duration',
-							this.duration + 'ms'
-						);
+						// set the custom props used by animate.css
+						if ( this.duration )
+							entry.target.style.setProperty(
+								'--animate-duration',
+								this.duration + 'ms'
+							);
 
-					// check if the item is a single animation
-					if ( this.stagger !== 'none' ) {
-						// collect item childs
-						this.animatedElements =
-							entry.target.querySelectorAll( '.ssc' );
-						// if scc animated items aren't found use item childs
-						if ( this.animatedElements.length === 0 ) {
+						// check if the item is a single animation
+						if ( this.stagger !== 'none' ) {
+							// collect item childs
 							this.animatedElements =
-								entry.target.querySelectorAll( '*' );
+								entry.target.querySelectorAll( '.ssc' );
+							// if scc animated items aren't found use item childs
+							if ( this.animatedElements.length === 0 ) {
+								this.animatedElements =
+									entry.target.querySelectorAll( '*' );
+							}
+							// init each childrens
+							this.animatedElements.forEach( ( child ) => {
+								child.classList.add( 'ssc-animation-child' );
+								child.isChildren = true;
+								if (
+									child.sscItemOpts &&
+									child.sscItemOpts.duration
+								)
+									child.style.setProperty(
+										'--animate-duration',
+										( parseInt(
+											child.sscItemOpts.duration,
+											10
+										) || 5000 ) + 'ms'
+									);
+							} );
+						} else {
+							this.animatedElements = entry.target;
 						}
-						// init each childrens
-						this.animatedElements.forEach( ( child ) => {
-							child.classList.add( 'ssc-animation-child' );
-							child.isChildren = true;
-							if (
-								child.sscItemOpts &&
-								child.sscItemOpts.duration
-							)
-								child.style.setProperty(
-									'--animate-duration',
-									( parseInt(
-										child.sscItemOpts.duration,
-										10
-									) || 5000 ) + 'ms'
-								);
-						} );
-					} else {
-						this.animatedElements = entry.target;
-					}
-				},
-				addCssClass( item = this.target, cssClass = 'false' ) {
-					if ( cssClass !== 'false' ) {
-						const animation = item.animationEnter
-							? item.animationEnter
-							: cssClass;
-						item.classList.add(
-							'animate__animated',
-							'animate__' + animation
-						);
-					}
-					return this;
-				},
-				removeCssClass( item = this.target, cssClass = 'false' ) {
-					if ( cssClass !== 'false' ) {
-						const animation = item.animationLeave
-							? item.animationLeave
-							: cssClass;
-						item.classList.remove(
-							'animate__animated',
-							'animate__' + animation
-						);
-					}
-					return this;
-				},
-				applyAnimation( el, action ) {
-					return action === 'enter'
-						? this.removeCssClass(
-								el,
-								this.animationLeave
-						  ).addCssClass( el, this.animationEnter )
-						: this.removeCssClass(
-								el,
-								this.animationEnter
-						  ).addCssClass( el, this.animationLeave );
-				},
-				animateItem( action ) {
-					// if the animated element is single
-					if (
-						this.animatedElements &&
-						this.animatedElements.nodeType
-					) {
-						// check if the action needed is "enter" and if the element is in viewport
-						return el.applyAnimation(
-							this.animatedElements,
-							action
-						);
-					}
-					// otherwise for each item of the collection fire the animation
-					Object.values( this.animatedElements ).forEach(
-						( child, index ) => {
-							const animationDelay = child.sscItemOpts
-								? parseInt( child.sscItemOpts.delay, 10 )
-								: this.duration * index * 0.1;
-							setTimeout(
-								() => el.applyAnimation( child, action ),
-								animationDelay
+					},
+					addCssClass( item = this.target, cssClass = 'false' ) {
+						if ( cssClass !== 'false' ) {
+							const animation = item.animationEnter
+								? item.animationEnter
+								: cssClass;
+							item.classList.add(
+								'animate__animated',
+								'animate__' + animation
 							);
 						}
-					);
-				},
-			};
+						return this;
+					},
+					removeCssClass( item = this.target, cssClass = 'false' ) {
+						if ( cssClass !== 'false' ) {
+							const animation = item.animationLeave
+								? item.animationLeave
+								: cssClass;
+							item.classList.remove(
+								'animate__animated',
+								'animate__' + animation
+							);
+						}
+						return this;
+					},
+					applyAnimation( el, action ) {
+						return action === 'enter'
+							? this.removeCssClass(
+									el,
+									this.animationLeave
+							  ).addCssClass( el, this.animationEnter )
+							: this.removeCssClass(
+									el,
+									this.animationEnter
+							  ).addCssClass( el, this.animationLeave );
+					},
+					animateItem( action ) {
+						// if the animated element is single
+						if (
+							this.animatedElements &&
+							this.animatedElements.nodeType
+						) {
+							// check if the action needed is "enter" and if the element is in viewport
+							return el.applyAnimation(
+								this.animatedElements,
+								action
+							);
+						}
+						// otherwise for each item of the collection fire the animation
+						Object.values( this.animatedElements ).forEach(
+							( child, index ) => {
+								const animationDelay = child.sscItemOpts
+									? parseInt( child.sscItemOpts.delay, 10 )
+									: this.duration * index * 0.1;
+								setTimeout(
+									() => el.applyAnimation( child, action ),
+									animationDelay
+								);
+							}
+						);
+					},
+				};
 
-			this.animations[ entry.target.sscItemData.sscItem ].initElement();
+				this.animations[
+					entry.target.sscItemData.sscItem
+				].initElement();
+			} else {
+				// the animation childrens hold a smaller set of properties
+				this.animations[ entry.target.sscItemData.sscItem ] = {
+					target: entry.target,
+					animatedElements: entry.target,
+					lastAction: null,
+					animationEnter: entry.target.sscItemOpts.animationEnter,
+					animationLeave: entry.target.sscItemOpts.animationLeave,
+					delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
+					duration:
+						parseInt( entry.target.sscItemOpts.duration, 10 ) ||
+						1000,
+				};
+			}
 		}
 
-		// get the data stored about this animation
+		// childrens aren't animated independently
+		// since the parent container fires the action
+		if ( entry.target.isChildren ) return;
+
+		// get all the animation data stored
 		const el = this.animations[ entry.target.sscItemData.sscItem ];
 
 		if ( el.locked ) {
@@ -632,17 +669,19 @@ export default class _ssc {
 						el.animateItem( 'leave' );
 					}
 				} );
-		}
 
-		if ( ! isInView( el.position, 0 ) ) {
-			delay( 100 ).then( () => {
-				this.handleAnimation( entry );
-			} );
-		} else {
-			this.animations[ entry.target.sscItemData.sscItem ].locked = false;
-			this.animations[ entry.target.sscItemData.sscItem ].animateItem(
-				'leave'
-			);
+			if ( ! isInView( el.position, 0 ) ) {
+				delay( 100 ).then( () => {
+					this.handleAnimation( entry );
+				} );
+			} else {
+				this.animations[
+					entry.target.sscItemData.sscItem
+				].locked = false;
+				this.animations[ entry.target.sscItemData.sscItem ].animateItem(
+					'leave'
+				);
+			}
 		}
 	};
 
@@ -696,12 +735,17 @@ export default class _ssc {
 		}
 
 		// The Enter animation sequence
-		if ( action === 'enter' && isActiveArea( entry.target, 75 ) ) {
-			action = 'leave';
-			this.animations[ entry.target.sscItemData.sscItem ].play();
-		} else if ( action === 'leave' && ! isActiveArea( entry.target, 75 ) ) {
-			action = 'enter';
-			this.animations[ entry.target.sscItemData.sscItem ].pause();
+		if ( this.animations[ entry.target.sscItemData.sscItem ] ) {
+			if ( action === 'enter' && isActiveArea( entry.target, 75 ) ) {
+				action = 'leave';
+				this.animations[ entry.target.sscItemData.sscItem ].play();
+			} else if (
+				action === 'leave' &&
+				! isActiveArea( entry.target, 75 )
+			) {
+				action = 'enter';
+				this.animations[ entry.target.sscItemData.sscItem ].pause();
+			}
 		}
 		if ( isPartiallyVisible( entry.target ) ) {
 			delay( 100 ).then( () => {
@@ -711,13 +755,13 @@ export default class _ssc {
 	};
 
 	parallaxVideo() {
-		if ( window.scrollY === this.windowData.lastScrollPosition ) {
+		if ( window.scrollY === windowData.lastScrollPosition ) {
 			// callback the animationFrame and exit the current loop
 			return window.requestAnimationFrame( this.parallaxVideo );
 		}
 
 		// Store the last position
-		this.windowData.lastScrollPosition = window.scrollY;
+		windowData.lastScrollPosition = window.scrollY;
 
 		this.videoParallaxed.forEach( ( video ) => {
 			const rect = video.item.getBoundingClientRect();
@@ -728,24 +772,24 @@ export default class _ssc {
 						video.distanceTop +
 						rect.top +
 						rect.height ) /
-						video.timelineLenght,
+						video.hasExtraTimeline,
 					'regular timeline',
-					1 - ( rect.top + rect.height ) / video.timelineLenght
+					1 - ( rect.top + rect.height ) / video.hasExtraTimeline
 				);
 				// the common behaviour
 				video.item.currentTime = (
 					( ( window.scrollY - video.distanceTop ) /
-						video.timelineLenght +
+						video.hasExtraTimeline +
 						( 1 -
 							( rect.top + rect.height ) /
-								video.timelineLenght ) ) *
+								video.hasExtraTimeline ) ) *
 					video.videoDuration *
 					video.playbackRatio
 				).toFixed( 5 );
 			} else {
 				// the common behaviour
 				video.item.currentTime = (
-					( 1 - ( rect.top + rect.height ) / video.timelineLenght ) *
+					( 1 - ( rect.top + rect.height ) / video.timelineLength ) *
 					video.videoDuration *
 					video.playbackRatio
 				).toFixed( 5 );
@@ -757,9 +801,12 @@ export default class _ssc {
 
 	videoParallaxController( entry ) {
 		const videoEl = entry.target.querySelector( 'video' );
-		if ( ! this.videoParallaxed[ entry.target.sscItemData.sscItem ] ) {
+		if (
+			videoEl &&
+			! this.videoParallaxed[ entry.target.sscItemData.sscItem ]
+		) {
 			if ( isPartiallyVisible( videoEl ) ) {
-				const rect = videoEl.getBoundingClientRect();
+				const rect = entry.target.getBoundingClientRect();
 				let timelineDuration =
 					parseInt( entry.target.sscItemData.timelineDuration, 10 ) ||
 					0;
@@ -771,7 +818,7 @@ export default class _ssc {
 					rect.height + window.innerHeight + timelineDuration;
 				this.videoParallaxed[ entry.target.sscItemData.sscItem ] = {
 					item: videoEl,
-					videoDuration: parseFloat( videoEl.duration ).toFixed( 2 ),
+					videoDuration: videoEl.duration,
 					sscItemData: entry.target.sscItemData,
 					hasExtraTimeline: timelineDuration,
 					timelineLength: duration,
@@ -793,3 +840,5 @@ export default class _ssc {
 		}
 	}
 }
+
+export default _ssc;

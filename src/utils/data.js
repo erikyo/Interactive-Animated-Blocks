@@ -195,7 +195,7 @@ export const animationTypes = [
 		default: {
 			animationEnter: 'fadeIn',
 			animationLeave: 'fadeOut',
-			intersection: 10,
+			intersection: 75,
 			easing: 'linear',
 			duration: 0,
 			delay: 0,
@@ -280,7 +280,7 @@ export const animationTypes = [
 		default: {
 			duration: 5000,
 			delay: 500,
-			intersection: 20,
+			intersection: 80,
 			reiterate: true,
 			easing: 'easeInOutExpo',
 		},
@@ -299,7 +299,7 @@ export const animationTypes = [
 		label: 'ScrollJacking',
 		value: 'sscScrollJacking',
 		default: {
-			intersection: 20,
+			intersection: 90,
 			duration: 800,
 			delay: 0,
 			reiterate: true,

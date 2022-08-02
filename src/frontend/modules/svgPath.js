@@ -1,16 +1,20 @@
 import anime from 'animejs';
-import { delay } from '../../utils/utils';
+import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
 
+/**
+ * If the element is in the viewport, animate the SVG paths
+ *
+ * @param {IntersectionObserverEntry} entry                     - The IntersectionObserverEntry object.
+ * @param {string}                    action                    - The action to be performed.
+ * @param {SVGAnimateElement}         [animationInstance=false] - This is the instance of the animation. It's used to reverse the animation.
+ * @return {SVGAnimateElement}                                  - the function animationSvgPath.
+ */
 const animationSvgPath = ( entry, action, animationInstance = false ) => {
 	let animation = animationInstance ? animationInstance : anime;
 	const path = entry.target.querySelectorAll( 'path' );
 	if (
 		action === 'enter' &&
-		this.checkVisibility(
-			entry.target,
-			'inActiveArea',
-			entry.target.sscItemOpts.intersection
-		)
+		isActiveArea( entry.target, entry.target.sscItemOpts.intersection )
 	) {
 		action = 'leave';
 		if ( animation.began && animation.currentTime !== 0 ) {
@@ -31,11 +35,7 @@ const animationSvgPath = ( entry, action, animationInstance = false ) => {
 		}
 	} else if (
 		action === 'leave' &&
-		! this.checkVisibility(
-			entry.target,
-			'inActiveArea',
-			entry.target.sscItemOpts.intersection
-		)
+		! isActiveArea( entry.target, entry.target.sscItemOpts.intersection )
 	) {
 		action = 'enter';
 		if (
@@ -57,9 +57,9 @@ const animationSvgPath = ( entry, action, animationInstance = false ) => {
 			} );
 		}
 	}
-	if ( this.checkVisibility( entry.target, 'partiallyVisible' ) ) {
+	if ( isPartiallyVisible( entry.target ) ) {
 		delay( 100 ).then( () => {
-			this.animationSvgPath( entry, action, animation );
+			animationSvgPath( entry, action, animation );
 		} );
 	}
 };

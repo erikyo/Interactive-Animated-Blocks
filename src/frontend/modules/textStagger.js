@@ -29,7 +29,7 @@ function textStagger( entry ) {
 			animationDelay,
 		} );
 
-		this.staggerPresets[ preset ].forEach( ( data, index ) => {
+		textStaggerPresets[ preset ].forEach( ( data, index ) => {
 			switch ( index ) {
 				case 0:
 					anim.add( {

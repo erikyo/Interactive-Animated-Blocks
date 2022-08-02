@@ -88,7 +88,7 @@ function animateCount( el ) {
  *
  * @param {IntersectionObserverEntry} el - The element that is being animated.
  */
-function animateTextNode( el ) {
+function textAnimated( el ) {
 	if ( el.target.dataset.sscCount || el.target.action === 'leave' ) {
 		return true;
 	}
@@ -112,4 +112,4 @@ function animateTextNode( el ) {
 	}
 }
 
-export default animateTextNode;
+export default textAnimated;
