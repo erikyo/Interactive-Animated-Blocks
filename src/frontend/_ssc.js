@@ -68,6 +68,7 @@ class _ssc {
 	constructor( options ) {
 		this.page = options.page || document.body;
 		this.scrollDirection = scrollDirection.bind( this );
+    this.updateScreenSize = this.updateScreenSize.bind( this );
 
 		/**
 		 * This object holds the window data to avoid unnecessary calculations
@@ -126,9 +127,11 @@ class _ssc {
 		this.scrollJacking = scrollJacking.bind( this );
 
 		this.videoParallaxed = [];
+    this.lastVideoScrollPosition = 0;
 		this.parallaxVideo = this.parallaxVideo.bind( this );
 
 		this.parallaxed = [];
+		this.lastParallaxScrollPosition = 0;
 		this.parallax = this.parallax.bind( this );
 
 		this.init();
@@ -285,15 +288,15 @@ class _ssc {
 	// Main.js
 	// Screen Control Initialization
 	init = () => {
-		this.collected = this.page.querySelectorAll( '.ssc' );
-
-		this.updateScreenSize();
-
-		/** this is mandatory because animation could exit from left or right*/
-		document.body.style.overflowX = 'hidden';
-		console.log( 'SSC ready' );
-
 		if ( 'IntersectionObserver' in window ) {
+			/** this is mandatory because animation could exit from left or right*/
+			document.body.style.overflowX = 'hidden';
+
+			this.collected = this.page.querySelectorAll( '.ssc' );
+
+			this.updateScreenSize();
+			console.log( 'SSC ready' );
+
 			this.observer = new window.IntersectionObserver(
 				this.screenControl,
 				{
@@ -316,8 +319,19 @@ class _ssc {
 				}
 			}, this );
 
+			// start parallax
+			// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
+			this.parallax();
+
 			// start timelines
 			this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
+
+			this.jumpToScreen(
+				document.querySelectorAll( '.ssc-screen-jumper' )
+			);
+
+			// watch for new objects added to the DOM
+			this.interceptor( this.page );
 
 			/**
 			 * inject the animate.css stylesheet if needed
@@ -336,17 +350,6 @@ class _ssc {
 					'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
 				document.head.appendChild( animateCSS );
 			}
-
-			// start parallax
-			// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
-			this.parallax();
-
-			this.jumpToScreen(
-				document.querySelectorAll( '.ssc-screen-jumper' )
-			);
-
-			// watch for new objects added to the DOM
-			this.interceptor( this.page );
 
 			// update the screen size if necessary
 			window.addEventListener( 'resize', this.updateScreenSize );
@@ -505,7 +508,7 @@ class _ssc {
 	parallax() {
 		if ( typeof this.parallaxed !== 'undefined' ) {
 			// if last position is the same as current
-			if ( window.scrollY === this.windowData.lastScrollPosition ) {
+			if ( window.scrollY === this.lastParallaxScrollPosition ) {
 				// callback the animationFrame and exit the current loop
 				return window.requestAnimationFrame( this.parallax );
 			}
@@ -529,7 +532,7 @@ class _ssc {
 				}
 
 				// Store the last position
-				this.windowData.lastScrollPosition = window.scrollY;
+				this.lastParallaxScrollPosition = window.scrollY;
 
 				// requestAnimationFrame callback
 				window.requestAnimationFrame( this.parallax );
@@ -557,11 +560,6 @@ class _ssc {
 					item.sscItemData.sscItem !==
 					entry.target.sscItemData.sscItem
 			);
-			/* console.log(
-			 * 	`ssc-${ entry.target.sscItemData.sscItem } will be unwatched. current list`,
-			 * 	parallaxed
-			 * );
-			 */
 		}
 	}
 
@@ -851,13 +849,13 @@ class _ssc {
 	};
 
 	parallaxVideo() {
-		if ( window.scrollY === this.windowData.lastScrollPosition ) {
+		if ( window.scrollY === this.windowData.lastVideoScrollPosition ) {
 			// callback the animationFrame and exit the current loop
 			return window.requestAnimationFrame( this.parallaxVideo );
 		}
 
 		// Store the last position
-		this.windowData.lastScrollPosition = window.scrollY;
+		this.windowData.lastVideoScrollPosition = window.scrollY;
 
 		this.videoParallaxed.forEach( ( video ) => {
 			const rect = video.item.getBoundingClientRect();

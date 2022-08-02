@@ -301,7 +301,7 @@ export const animationTypes = [
 		default: {
 			intersection: 90,
 			duration: 800,
-			delay: 0,
+			delay: 200,
 			reiterate: true,
 			easing: 'easeOutExpo',
 		},
