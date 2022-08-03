@@ -10,9 +10,11 @@ export const delay = ( ms ) => new Promise( ( r ) => setTimeout( r, ms ) );
  *
  * @param {Event} e - The event object.
  */
-export const disableWheel = ( e ) => {
+export function disableWheel( e ) {
 	e.preventDefault();
-};
+	e.stopPropagation();
+	return false;
+}
 
 /**
  * Checks when the element is inside the viewport

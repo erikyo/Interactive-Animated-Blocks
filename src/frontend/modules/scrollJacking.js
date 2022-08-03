@@ -12,8 +12,11 @@ function scrollJacking( entry ) {
 
 	const screenJackTo = ( el ) => {
 		// disable the mouse wheel during scrolling to avoid flickering
-		window.addEventListener( mouseWheel, disableWheel, {
-			passive: false,
+		window.addEventListener( mouseWheel, disableWheel, { passive: false } );
+		window.addEventListener( 'touchmove', disableWheel, false );
+		window.scrollTo( {
+			top: window.scrollY,
+			behavior: 'auto',
 		} );
 
 		const duration = parseInt( el.target.sscItemOpts.duration, 10 );
@@ -45,13 +48,8 @@ function scrollJacking( entry ) {
 					// this.windowData.lastScrollPosition = window.scrollY;
 					// window.scrollY = el.target.offsetTop;
 					this.hasScrolling = false;
-					return window.removeEventListener(
-						mouseWheel,
-						disableWheel,
-						{
-							passive: false,
-						}
-					);
+					window.removeEventListener( mouseWheel, disableWheel );
+					window.removeEventListener( 'touchmove', disableWheel );
 				} );
 			},
 		} );
