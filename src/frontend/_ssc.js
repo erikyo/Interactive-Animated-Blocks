@@ -17,7 +17,7 @@ import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
 
 // UTILITY
 import { sscOptions } from '../ssc';
-import { getElelementData } from '../utils/fn';
+import { getElelementData, loDashToCapital } from '../utils/fn';
 import {
 	delay,
 	scrollDirection,
@@ -42,6 +42,11 @@ import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
+import {
+	itemParallaxed,
+	parallax,
+	parallaxController,
+} from './modules/itemParallax';
 
 // TODO: enable only for admins
 ScrollMagicPluginIndicator( ScrollMagic );
@@ -68,7 +73,7 @@ class _ssc {
 	constructor( options ) {
 		this.page = options.page || document.body;
 		this.scrollDirection = scrollDirection.bind( this );
-    this.updateScreenSize = this.updateScreenSize.bind( this );
+		this.updateScreenSize = this.updateScreenSize.bind( this );
 
 		/**
 		 * This object holds the window data to avoid unnecessary calculations
@@ -127,12 +132,14 @@ class _ssc {
 		this.scrollJacking = scrollJacking.bind( this );
 
 		this.videoParallaxed = [];
-    this.lastVideoScrollPosition = 0;
+		this.lastVideoScrollPosition = 0;
 		this.parallaxVideo = this.parallaxVideo.bind( this );
+		this.videoParallaxController =
+			this.videoParallaxController.bind( this );
 
-		this.parallaxed = [];
-		this.lastParallaxScrollPosition = 0;
-		this.parallax = this.parallax.bind( this );
+		this.itemParallaxed = itemParallaxed;
+		this.parallax = parallax.bind( this );
+		this.parallaxController = parallaxController.bind( this );
 
 		this.init();
 	}
@@ -143,7 +150,8 @@ class _ssc {
 	 */
 	updateScreenSize() {
 		( async () =>
-			await ( () => console.log( 'Old Screensize', this.windowData ) ) )()
+			await ( () =>
+				console.warn( 'Old Screensize', this.windowData ) ) )()
 			.then( () => {
 				return delay( 250 );
 			} )
@@ -270,7 +278,7 @@ class _ssc {
 				el.style.margin = 0;
 				break;
 			case 'sscParallax':
-				this.parallaxed[ el.sscItemData.sscItem ] = el;
+				this.itemParallaxed[ el.sscItemData.sscItem ] = el;
 				break;
 			case 'sscScrollTimeline':
 				el.querySelectorAll( '.ssc' ).forEach( ( timelineChild ) => {
@@ -320,7 +328,6 @@ class _ssc {
 			}, this );
 
 			// start parallax
-			// TODO: parallax can't be initialized if the "parallaxed" items aren't collected
 			this.parallax();
 
 			// start timelines
