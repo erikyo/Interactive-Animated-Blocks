@@ -496,74 +496,6 @@ class _ssc {
 
 	// BELOW THIS HAS TO BE REMOVED
 	/**
-	 * The Parallax effect
-	 * Handles the Parallax effect for each item stored into "parallaxed" array
-	 *
-	 * If the last scroll position is the same as the current scroll position, then request an animation frame and exit the current loop.
-	 * Otherwise, apply the parallax style to each element and request an animation frame callback.
-	 *
-	 * The parallax function is called on the window's scroll event
-	 *
-	 */
-	parallax() {
-		if ( typeof this.parallaxed !== 'undefined' ) {
-			// if last position is the same as current
-			if ( window.scrollY === this.lastParallaxScrollPosition ) {
-				// callback the animationFrame and exit the current loop
-				return window.requestAnimationFrame( this.parallax );
-			}
-
-			this.parallaxed.forEach( ( element ) => {
-				// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
-				const rect = element.getBoundingClientRect();
-				const motion = this.windowData.viewHeight - rect.top;
-				if ( motion > 0 ) {
-					const styleValue =
-						element.sscItemOpts.speed *
-						element.sscItemOpts.level *
-						motion *
-						0.2;
-					element.style.transform =
-						'translate3d(' +
-						( element.sscItemOpts.direction === 'y'
-							? '0,' + styleValue + 'px'
-							: styleValue + 'px,0' ) +
-						',0)';
-				}
-
-				// Store the last position
-				this.lastParallaxScrollPosition = window.scrollY;
-
-				// requestAnimationFrame callback
-				window.requestAnimationFrame( this.parallax );
-			} );
-		}
-	}
-
-	/**
-	 * If the item is entering the viewport, add it to the watched list and start the parallax function.
-	 * If the item is leaving the viewport, remove it from the watched list
-	 *
-	 * @param {IntersectionObserverEntry} entry - the entry object that is passed to the callback function
-	 */
-	parallaxController( entry ) {
-		// add this object to the watched list
-		this.parallaxed[ entry.target.sscItemData.sscItem ] = entry.target;
-		// if the parallax function wasn't running before we need to start it
-		if ( this.parallaxed.length ) {
-			this.parallax();
-		}
-		if ( entry.target.action === 'leave' ) {
-			// remove the animated item from the watched list
-			this.parallaxed = this.parallaxed.filter(
-				( item ) =>
-					item.sscItemData.sscItem !==
-					entry.target.sscItemData.sscItem
-			);
-		}
-	}
-
-	/**
 	 * Animate Element using Anime.css when the element is in the viewport
 	 *
 	 * @param {Object} entry
@@ -580,7 +512,6 @@ class _ssc {
 				this.animations[ entry.target.sscItemData.sscItem ] = {
 					target: entry.target,
 					animatedElements: [],
-					lastAction: null,
 					animationEnter: entry.target.sscItemOpts.animationEnter,
 					animationLeave: entry.target.sscItemOpts.animationLeave,
 					stagger: entry.target.sscItemOpts.stagger,
@@ -592,10 +523,12 @@ class _ssc {
 					duration:
 						parseInt( entry.target.sscItemOpts.duration, 10 ) ||
 						1000,
+					easing: entry.target.sscItemOpts.easing || 'EaseInOut',
 					locked: false,
 					intersection:
 						parseInt( entry.target.sscItemOpts.intersection, 10 ) ||
 						25,
+					lastAction: false,
 					/**
 					 * The element methods
 					 */
@@ -610,12 +543,25 @@ class _ssc {
 					initElement() {
 						// stores the current element position (top Y and bottom Y)
 						this.position = this.updatePosition();
+						// we need to set the opposite of the next action
+						// eg. enter to trigger the leave animation
+						this.lastAction = isInView(
+							this.position,
+							this.intersection
+						)
+							? 'leave'
+							: 'enter';
 
 						// set the custom props used by animate.css
 						if ( this.duration )
 							entry.target.style.setProperty(
 								'--animate-duration',
 								this.duration + 'ms'
+							);
+						if ( this.easing )
+							entry.target.style.setProperty(
+								'transition-timing-function',
+								this.easing
 							);
 
 						// check if the item is a single animation
@@ -632,21 +578,11 @@ class _ssc {
 							this.animatedElements.forEach( ( child ) => {
 								child.classList.add( 'ssc-animation-child' );
 								child.isChildren = true;
-								if (
-									child.sscItemOpts &&
-									child.sscItemOpts.duration
-								)
-									child.style.setProperty(
-										'--animate-duration',
-										( parseInt(
-											child.sscItemOpts.duration,
-											10
-										) || 5000 ) + 'ms'
-									);
 							} );
 						} else {
 							this.animatedElements = entry.target;
 						}
+						this.animateItem( this.lastAction );
 					},
 					addCssClass( item = this.target, cssClass = 'false' ) {
 						if ( cssClass !== 'false' ) {
@@ -672,16 +608,33 @@ class _ssc {
 						}
 						return this;
 					},
-					applyAnimation( el, action ) {
+					applyAnimation( element, action ) {
 						return action === 'enter'
 							? this.removeCssClass(
-									el,
+									element,
 									this.animationLeave
-							  ).addCssClass( el, this.animationEnter )
+							  ).addCssClass( element, this.animationEnter )
 							: this.removeCssClass(
-									el,
+									element,
 									this.animationEnter
-							  ).addCssClass( el, this.animationLeave );
+							  ).addCssClass( element, this.animationLeave );
+					},
+					applyChildAnimation( element, action ) {
+						return action === 'enter'
+							? this.removeCssClass(
+									element,
+									element.sscItemOpts.animationLeave
+							  ).addCssClass(
+									element,
+									element.sscItemOpts.animationEnter
+							  )
+							: this.removeCssClass(
+									element,
+									element.sscItemOpts.animationEnter
+							  ).addCssClass(
+									element,
+									element.sscItemOpts.animationLeave
+							  );
 					},
 					animateItem( action ) {
 						// if the animated element is single
@@ -690,7 +643,7 @@ class _ssc {
 							this.animatedElements.nodeType
 						) {
 							// check if the action needed is "enter" and if the element is in viewport
-							return el.applyAnimation(
+							return this.applyAnimation(
 								this.animatedElements,
 								action
 							);
@@ -702,7 +655,16 @@ class _ssc {
 									? parseInt( child.sscItemOpts.delay, 10 )
 									: this.duration * index * 0.1;
 								setTimeout(
-									() => el.applyAnimation( child, action ),
+									() =>
+										child.sscItemOpts
+											? this.applyChildAnimation(
+													child,
+													action
+											  )
+											: this.applyAnimation(
+													child,
+													action
+											  ),
 									animationDelay
 								);
 							}
@@ -719,13 +681,24 @@ class _ssc {
 					target: entry.target,
 					animatedElements: entry.target,
 					lastAction: null,
-					animationEnter: entry.target.sscItemOpts.animationEnter,
-					animationLeave: entry.target.sscItemOpts.animationLeave,
+					animationEnter:
+						entry.target.sscItemOpts.animationEnter || null,
+					animationLeave:
+						entry.target.sscItemOpts.animationLeave || null,
 					delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
 					duration:
 						parseInt( entry.target.sscItemOpts.duration, 10 ) ||
 						1000,
 				};
+				if (
+					entry.target.sscItemOpts &&
+					entry.target.sscItemOpts.duration
+				)
+					entry.target.style.setProperty(
+						'--animate-duration',
+						( parseInt( entry.target.sscItemOpts.duration, 10 ) ||
+							5000 ) + 'ms'
+					);
 			}
 		}
 
@@ -736,16 +709,15 @@ class _ssc {
 		// get all the animation data stored
 		const el = this.animations[ entry.target.sscItemData.sscItem ];
 
-		if ( el.locked ) {
-			return true;
-		} else if (
-			el.lastAction === 'enter'
+		if (
+			! el.locked &&
+			( el.lastAction === 'enter'
 				? isInView( el.position, el.intersection )
-				: ! isInView( el.position, el.intersection )
+				: ! isInView( el.position, el.intersection ) )
 		) {
 			// lock the item to avoid multiple animations at the same time
 			el.locked = true;
-			return delay( el.delay )
+			delay( el.delay )
 				.then( () => {
 					el.animateItem( el.lastAction );
 					// wait the animation has been completed before unlock the element
@@ -763,19 +735,17 @@ class _ssc {
 						el.animateItem( 'leave' );
 					}
 				} );
+		}
 
-			if ( ! isInView( el.position, 0 ) ) {
-				delay( 100 ).then( () => {
-					this.handleAnimation( entry );
-				} );
-			} else {
-				this.animations[
-					entry.target.sscItemData.sscItem
-				].locked = false;
-				this.animations[ entry.target.sscItemData.sscItem ].animateItem(
-					'leave'
-				);
-			}
+		if ( ! isInView( el.position, 0 ) ) {
+			delay( 100 ).then( () => {
+				this.handleAnimation( entry );
+			} );
+		} else {
+			this.animations[ entry.target.sscItemData.sscItem ].locked = false;
+			this.animations[ entry.target.sscItemData.sscItem ].animateItem(
+				'leave'
+			);
 		}
 	};
 
