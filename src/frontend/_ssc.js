@@ -11,7 +11,6 @@
  * @file The scc animation frontend scripts.
  */
 
-import anime from 'animejs';
 import ScrollMagic from 'scrollmagic';
 import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
 
@@ -42,7 +41,8 @@ import {
 	parallaxController,
 } from './modules/itemParallax';
 import animationSequence from './modules/itemCustomAnimation';
-import videoParallaxController from "./modules/videoParallax";
+import videoParallaxController from './modules/videoParallax';
+import scrollTimeline from './modules/timeline';
 
 // TODO: enable only for admins
 ScrollMagicPluginIndicator( ScrollMagic );
@@ -119,6 +119,7 @@ class _ssc {
 		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
 		this.animationSequence = animationSequence;
+		this.scrollTimeline = scrollTimeline;
 
 		// The standard animation (animate.css)
 		this.animations = [];
@@ -127,7 +128,7 @@ class _ssc {
 		// scrolljacking - evil as eval :)
 		this.scrollJacking = scrollJacking.bind( this );
 
-    // video playback controlled by scroll Y position
+		// video playback controlled by scroll Y position
 		this.videoParallaxController = videoParallaxController.bind( this );
 
 		this.itemParallaxed = itemParallaxed;
@@ -159,68 +160,6 @@ class _ssc {
 	// Detach an element from screen control
 	unmount = ( el ) => {
 		el.unWatch();
-	};
-
-	// this will position with fixed an element for X scrolled pixels
-	scrollTimeline = ( el ) => {
-		el.classList.add( 'ssc-timeline' );
-		el.style.maxWidth = '100%';
-
-		// Add timeline for each element
-		const timeline = anime.timeline( { autoplay: false } );
-
-		el.querySelectorAll( '.ssc-timeline-scene' ).forEach( ( scenes ) => {
-			const sceneData = JSON.parse( scenes.sscItemData.scene );
-			const sceneOpts = scenes.sscItemOpts;
-			sceneOpts.duration = parseInt( sceneOpts.duration, 10 );
-			sceneOpts.delay = parseInt( sceneOpts.delay, 10 );
-
-			const offset = parseInt( sceneOpts.offset, 10 );
-			const sceneOffset =
-				// eslint-disable-next-line no-nested-ternary
-				offset !== 0
-					? offset > 0
-						? '+=' + offset
-						: '-=' + offset
-					: false;
-
-			// loop foreach object of the json (each object is a scene of the element timeline)
-			Object.values( sceneData ).forEach( ( scene ) => {
-				timeline.add(
-					{
-						targets: scenes,
-						duration: sceneOpts.duration,
-						delay: sceneOpts.delay,
-						easing: scenes.sscItemOpts.easing,
-						...scene,
-					},
-					sceneOffset
-				);
-			} );
-		} );
-
-		/**
-		 * Create a scene
-		 *
-		 * @module ScrollMagic
-		 * @function ScrollMagic.Scene
-		 */
-		this.timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
-			triggerElement: el,
-			duration: el.sscItemOpts.duration,
-			triggerHook: el.sscItemOpts.triggerHook || 0.25,
-		} )
-			// Add debug indicators
-			.addIndicators()
-			// Trigger animation timeline
-			/*.on("enter", function (event) {
-        tl1.play();
-      })*/
-			.on( 'progress', function ( event ) {
-				timeline.seek( timeline.duration * event.progress );
-			} )
-			.setPin( el )
-			.addTo( this.scrollMagic );
 	};
 
 	addMetaToCollected = ( el, index ) => {
