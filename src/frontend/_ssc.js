@@ -17,17 +17,10 @@ import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
 
 // UTILITY
 import { sscOptions } from '../ssc';
-import { getElelementData, loDashToCapital } from '../utils/fn';
+import { getElelementData } from '../utils/fn';
 import {
 	delay,
 	scrollDirection,
-	isPartiallyVisible,
-	isFullyVisible,
-	isActiveArea,
-	hasMouseOver,
-	isCrossing,
-	isInView,
-	isBetween,
 	touchstartEvent,
 	ontouchmoveEvent,
 } from '../utils/utils';
@@ -42,11 +35,14 @@ import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
+import handleAnimation from './modules/itemAnimate';
 import {
 	itemParallaxed,
 	parallax,
 	parallaxController,
 } from './modules/itemParallax';
+import animationSequence from './modules/itemCustomAnimation';
+import videoParallaxController from "./modules/videoParallax";
 
 // TODO: enable only for admins
 ScrollMagicPluginIndicator( ScrollMagic );
@@ -54,7 +50,7 @@ ScrollMagicPluginIndicator( ScrollMagic );
 // on load and on hashchange (usually on history back/forward)
 const jumpToHash = () => {
 	if ( typeof window.location.hash !== 'undefined' ) {
-		//GOTO
+		// GOTO
 		console.log( window.location.hash );
 	}
 };
@@ -110,8 +106,6 @@ class _ssc {
 		this.initMutationObserver = this.initMutationObserver.bind( this );
 		this.observer = [];
 
-		this.animations = [];
-
 		this.scrollMagic = new ScrollMagic.Controller();
 		this.timelines = [];
 
@@ -124,18 +118,17 @@ class _ssc {
 		this.textStagger = textStagger;
 		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
+		this.animationSequence = animationSequence;
 
 		// The standard animation (animate.css)
-		this.handleAnimation = this.handleAnimation.bind( this );
+		this.animations = [];
+		this.handleAnimation = handleAnimation.bind( this );
 
 		// scrolljacking - evil as eval :)
 		this.scrollJacking = scrollJacking.bind( this );
 
-		this.videoParallaxed = [];
-		this.lastVideoScrollPosition = 0;
-		this.parallaxVideo = this.parallaxVideo.bind( this );
-		this.videoParallaxController =
-			this.videoParallaxController.bind( this );
+    // video playback controlled by scroll Y position
+		this.videoParallaxController = videoParallaxController.bind( this );
 
 		this.itemParallaxed = itemParallaxed;
 		this.parallax = parallax.bind( this );
@@ -499,416 +492,6 @@ class _ssc {
 			childList: true,
 			subtree: true,
 		} );
-	}
-
-	// BELOW THIS HAS TO BE REMOVED
-	/**
-	 * Animate Element using Anime.css when the element is in the viewport
-	 *
-	 * @param {Object} entry
-	 */
-	handleAnimation = ( entry ) => {
-		// if the animation isn't yet stored in "animations" object
-		if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
-			if ( ! entry.target.isChildren ) {
-				const elRect = entry.target.getBoundingClientRect();
-
-				/**
-				 * @property {Object} animations - the animations collection
-				 */
-				this.animations[ entry.target.sscItemData.sscItem ] = {
-					target: entry.target,
-					animatedElements: [],
-					animationEnter: entry.target.sscItemOpts.animationEnter,
-					animationLeave: entry.target.sscItemOpts.animationLeave,
-					stagger: entry.target.sscItemOpts.stagger,
-					position: {
-						yTop: false,
-						yBottom: false,
-					},
-					delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
-					duration:
-						parseInt( entry.target.sscItemOpts.duration, 10 ) ||
-						1000,
-					easing: entry.target.sscItemOpts.easing || 'EaseInOut',
-					locked: false,
-					intersection:
-						parseInt( entry.target.sscItemOpts.intersection, 10 ) ||
-						25,
-					lastAction: false,
-					/**
-					 * The element methods
-					 */
-					updatePosition() {
-						return {
-							yTop: parseInt( window.scrollY + elRect.top ),
-							yBottom: parseInt(
-								window.scrollY + elRect.top + elRect.height
-							),
-						};
-					},
-					initElement() {
-						// stores the current element position (top Y and bottom Y)
-						this.position = this.updatePosition();
-						// we need to set the opposite of the next action
-						// eg. enter to trigger the leave animation
-						this.lastAction = isInView(
-							this.position,
-							this.intersection
-						)
-							? 'leave'
-							: 'enter';
-
-						// set the custom props used by animate.css
-						if ( this.duration )
-							entry.target.style.setProperty(
-								'--animate-duration',
-								this.duration + 'ms'
-							);
-						if ( this.easing )
-							entry.target.style.setProperty(
-								'transition-timing-function',
-								this.easing
-							);
-
-						// check if the item is a single animation
-						if ( this.stagger !== 'none' ) {
-							// collect item childs
-							this.animatedElements =
-								entry.target.querySelectorAll( '.ssc' );
-							// if scc animated items aren't found use item childs
-							if ( this.animatedElements.length === 0 ) {
-								this.animatedElements =
-									entry.target.querySelectorAll( '*' );
-							}
-							// init each childrens
-							this.animatedElements.forEach( ( child ) => {
-								child.classList.add( 'ssc-animation-child' );
-								child.isChildren = true;
-							} );
-						} else {
-							this.animatedElements = entry.target;
-						}
-						this.animateItem( this.lastAction );
-					},
-					addCssClass( item = this.target, cssClass = 'false' ) {
-						if ( cssClass !== 'false' ) {
-							const animation = item.animationEnter
-								? item.animationEnter
-								: cssClass;
-							item.classList.add(
-								'animate__animated',
-								'animate__' + animation
-							);
-						}
-						return this;
-					},
-					removeCssClass( item = this.target, cssClass = 'false' ) {
-						if ( cssClass !== 'false' ) {
-							const animation = item.animationLeave
-								? item.animationLeave
-								: cssClass;
-							item.classList.remove(
-								'animate__animated',
-								'animate__' + animation
-							);
-						}
-						return this;
-					},
-					applyAnimation( element, action ) {
-						return action === 'enter'
-							? this.removeCssClass(
-									element,
-									this.animationLeave
-							  ).addCssClass( element, this.animationEnter )
-							: this.removeCssClass(
-									element,
-									this.animationEnter
-							  ).addCssClass( element, this.animationLeave );
-					},
-					applyChildAnimation( element, action ) {
-						return action === 'enter'
-							? this.removeCssClass(
-									element,
-									element.sscItemOpts.animationLeave
-							  ).addCssClass(
-									element,
-									element.sscItemOpts.animationEnter
-							  )
-							: this.removeCssClass(
-									element,
-									element.sscItemOpts.animationEnter
-							  ).addCssClass(
-									element,
-									element.sscItemOpts.animationLeave
-							  );
-					},
-					animateItem( action ) {
-						// if the animated element is single
-						if (
-							this.animatedElements &&
-							this.animatedElements.nodeType
-						) {
-							// check if the action needed is "enter" and if the element is in viewport
-							return this.applyAnimation(
-								this.animatedElements,
-								action
-							);
-						}
-						// otherwise for each item of the collection fire the animation
-						Object.values( this.animatedElements ).forEach(
-							( child, index ) => {
-								const animationDelay = child.sscItemOpts
-									? parseInt( child.sscItemOpts.delay, 10 )
-									: this.duration * index * 0.1;
-								setTimeout(
-									() =>
-										child.sscItemOpts
-											? this.applyChildAnimation(
-													child,
-													action
-											  )
-											: this.applyAnimation(
-													child,
-													action
-											  ),
-									animationDelay
-								);
-							}
-						);
-					},
-				};
-
-				this.animations[
-					entry.target.sscItemData.sscItem
-				].initElement();
-			} else {
-				// the animation childrens hold a smaller set of properties
-				this.animations[ entry.target.sscItemData.sscItem ] = {
-					target: entry.target,
-					animatedElements: entry.target,
-					lastAction: null,
-					animationEnter:
-						entry.target.sscItemOpts.animationEnter || null,
-					animationLeave:
-						entry.target.sscItemOpts.animationLeave || null,
-					delay: parseInt( entry.target.sscItemOpts.delay, 10 ) || 0,
-					duration:
-						parseInt( entry.target.sscItemOpts.duration, 10 ) ||
-						1000,
-				};
-				if (
-					entry.target.sscItemOpts &&
-					entry.target.sscItemOpts.duration
-				)
-					entry.target.style.setProperty(
-						'--animate-duration',
-						( parseInt( entry.target.sscItemOpts.duration, 10 ) ||
-							5000 ) + 'ms'
-					);
-			}
-		}
-
-		// childrens aren't animated independently
-		// since the parent container fires the action
-		if ( entry.target.isChildren ) return;
-
-		// get all the animation data stored
-		const el = this.animations[ entry.target.sscItemData.sscItem ];
-
-		if (
-			! el.locked &&
-			( el.lastAction === 'enter'
-				? isInView( el.position, el.intersection )
-				: ! isInView( el.position, el.intersection ) )
-		) {
-			// lock the item to avoid multiple animations at the same time
-			el.locked = true;
-			delay( el.delay )
-				.then( () => {
-					el.animateItem( el.lastAction );
-					// wait the animation has been completed before unlock the element
-					new Promise( ( resolve ) => {
-						setTimeout( function () {
-							el.locked = false;
-							el.lastAction =
-								el.lastAction === 'enter' ? 'leave' : 'enter';
-							resolve();
-						}, el.duration );
-					} );
-				} )
-				.then( () => {
-					if ( ! isPartiallyVisible( el.target ) ) {
-						el.animateItem( 'leave' );
-					}
-				} );
-		}
-
-		if ( ! isInView( el.position, 0 ) ) {
-			delay( 100 ).then( () => {
-				this.handleAnimation( entry );
-			} );
-		} else {
-			this.animations[ entry.target.sscItemData.sscItem ].locked = false;
-			this.animations[ entry.target.sscItemData.sscItem ].animateItem(
-				'leave'
-			);
-		}
-	};
-
-	animationSequence = ( entry, action ) => {
-		const animation = entry.target.sscSequence || {};
-
-		// build the animation if isn't already stored
-		if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
-			let i = 0;
-			const currentStep = {};
-
-			// loop into animation object in order to create the animation timeline
-			Object.entries( animation ).forEach( ( step ) => {
-				// we use the duration as a "marker" for the next step
-				if ( step[ 1 ].property === 'duration' ) {
-					currentStep[ i ] = {
-						...currentStep[ i ],
-						duration: step[ 1 ].value + 'ms',
-					};
-					i++;
-				} else {
-					// otherwise store the step and continue the loop
-					currentStep[ i ] = {
-						...currentStep[ i ],
-						[ step[ 1 ].property ]: step[ 1 ].value,
-					};
-				}
-			} );
-
-			if ( currentStep[ 0 ] ) {
-				// creates the animation initializer
-				const a = anime.timeline( {
-					targets: entry.target,
-					autoplay: false,
-					delay: entry.target.sscItemOpts.delay,
-					duration: entry.target.sscItemOpts.duration,
-					easing: entry.target.sscItemOpts.easing, // Can be inherited
-					direction: 'normal', // Is not inherited
-					complete( anim ) {
-						console.log( anim );
-						entry.target.removeAttribute( 'data-ssc-lock' );
-					},
-				} );
-
-				// loop into the rest of the actions adding the timelines step to sequence
-				Object.entries( currentStep ).forEach( ( step ) => {
-					a.add( step[ 1 ] );
-				} );
-				this.animations[ entry.target.sscItemData.sscItem ] = a;
-			}
-		}
-
-		// The Enter animation sequence
-		if ( this.animations[ entry.target.sscItemData.sscItem ] ) {
-			if ( action === 'enter' && isActiveArea( entry.target, 75 ) ) {
-				action = 'leave';
-				this.animations[ entry.target.sscItemData.sscItem ].play();
-			} else if (
-				action === 'leave' &&
-				! isActiveArea( entry.target, 75 )
-			) {
-				action = 'enter';
-				this.animations[ entry.target.sscItemData.sscItem ].pause();
-			}
-		}
-		if ( isPartiallyVisible( entry.target ) ) {
-			delay( 100 ).then( () => {
-				this.animationSequence( entry, action );
-			} );
-		}
-	};
-
-	parallaxVideo() {
-		if ( window.scrollY === this.windowData.lastVideoScrollPosition ) {
-			// callback the animationFrame and exit the current loop
-			return window.requestAnimationFrame( this.parallaxVideo );
-		}
-
-		// Store the last position
-		this.windowData.lastVideoScrollPosition = window.scrollY;
-
-		this.videoParallaxed.forEach( ( video ) => {
-			const rect = video.item.getBoundingClientRect();
-			if ( video.hasExtraTimeline ) {
-				console.log(
-					'scrolling timeline',
-					( window.scrollY -
-						video.distanceTop +
-						rect.top +
-						rect.height ) /
-						video.hasExtraTimeline,
-					'regular timeline',
-					1 - ( rect.top + rect.height ) / video.hasExtraTimeline
-				);
-				// the common behaviour
-				video.item.currentTime = (
-					( ( window.scrollY - video.distanceTop ) /
-						video.hasExtraTimeline +
-						( 1 -
-							( rect.top + rect.height ) /
-								video.hasExtraTimeline ) ) *
-					video.videoDuration *
-					video.playbackRatio
-				).toFixed( 5 );
-			} else {
-				// the common behaviour
-				video.item.currentTime = (
-					( 1 - ( rect.top + rect.height ) / video.timelineLength ) *
-					video.videoDuration *
-					video.playbackRatio
-				).toFixed( 5 );
-			}
-		} );
-
-		return window.requestAnimationFrame( this.parallaxVideo );
-	}
-
-	videoParallaxController( entry ) {
-		const videoEl = entry.target.querySelector( 'video' );
-		if (
-			videoEl &&
-			! this.videoParallaxed[ entry.target.sscItemData.sscItem ]
-		) {
-			if ( isPartiallyVisible( videoEl ) ) {
-				const rect = entry.target.getBoundingClientRect();
-				let timelineDuration =
-					parseInt( entry.target.sscItemData.timelineDuration, 10 ) ||
-					0;
-				timelineDuration =
-					entry.target.sscItemData.intersection === 'down'
-						? timelineDuration
-						: timelineDuration * -1;
-				const duration =
-					rect.height + window.innerHeight + timelineDuration;
-				this.videoParallaxed[ entry.target.sscItemData.sscItem ] = {
-					item: videoEl,
-					videoDuration: videoEl.duration,
-					sscItemData: entry.target.sscItemData,
-					hasExtraTimeline: timelineDuration,
-					timelineLength: duration,
-					distanceTop: rect.height + rect.top + window.scrollY,
-					playbackRatio: parseFloat(
-						entry.target.sscItemOpts.playbackRatio
-					).toFixed( 2 ),
-				};
-			}
-			this.parallaxVideo();
-		}
-
-		if ( entry.target.action === 'leave' ) {
-			return ( this.videoParallaxed = this.videoParallaxed.filter(
-				( item ) =>
-					item.sscItemData.sscItem !==
-					entry.target.sscItemData.sscItem
-			) );
-		}
 	}
 }
 

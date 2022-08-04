@@ -70,8 +70,8 @@ export function addAttributes( settings ) {
 				default: {},
 			},
 			additionalClasses: {
-        type: 'object',
-        default: {},
+				type: 'object',
+				default: {},
 			},
 		} );
 	}

@@ -28,12 +28,13 @@ export function parallax() {
 					element.sscItemOpts.speed *
 					element.sscItemOpts.level *
 					motion *
-					0.2;
+					-0.08;
+				const heightFix = styleValue + rect.height;
 				element.style.transform =
 					'translate3d(' +
 					( element.sscItemOpts.direction === 'y'
-						? '0,' + styleValue + 'px'
-						: styleValue + 'px,0' ) +
+						? '0,' + heightFix + 'px'
+						: heightFix + 'px,0' ) +
 					',0)';
 			}
 
