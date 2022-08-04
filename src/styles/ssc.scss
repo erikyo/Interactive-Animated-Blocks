@@ -9,6 +9,10 @@
   }
 
   &.ssc-video-scroll {
-    pointer-events: none;
+    pointer-events: all;
   }
+}
+
+.ssc-hide {
+  opacity: 0;
 }
