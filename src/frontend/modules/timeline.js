@@ -1,9 +1,28 @@
 import anime from 'animejs';
 import ScrollMagic from 'scrollmagic';
+import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
 
 export const timelines = [];
 
+// TODO: enable only for admins
+ScrollMagicPluginIndicator( ScrollMagic );
+
 const scrollMagic = new ScrollMagic.Controller();
+
+/**
+ * It adds an element to the timelines object
+ * @param {HTMLElement} el - The element that is being added to the timeline.
+ */
+export function addToTimeline( el ) {
+	timelines[ el.sscItemData.sscItem ] = el;
+}
+
+/**
+ * For each timeline element, call the scrollTimeline function.
+ */
+export function initTimeline() {
+	timelines.forEach( ( el ) => scrollTimeline( el ) );
+}
 
 function scrollTimeline( el ) {
 	el.classList.add( 'ssc-timeline' );
@@ -62,5 +81,3 @@ function scrollTimeline( el ) {
 		.setPin( el )
 		.addTo( scrollMagic );
 }
-
-export default scrollTimeline;
