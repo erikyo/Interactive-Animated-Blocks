@@ -11,9 +11,6 @@
  * @file The scc animation frontend scripts.
  */
 
-import ScrollMagic from 'scrollmagic';
-import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
-
 // UTILITY
 import { sscOptions } from '../ssc';
 import { getElelementData } from '../utils/fn';
@@ -42,10 +39,7 @@ import {
 } from './modules/itemParallax';
 import animationSequence from './modules/itemCustomAnimation';
 import videoParallaxController from './modules/videoParallax';
-import scrollTimeline from './modules/timeline';
-
-// TODO: enable only for admins
-ScrollMagicPluginIndicator( ScrollMagic );
+import { addToTimeline, initTimeline } from './modules/timeline';
 
 // on load and on hashchange (usually on history back/forward)
 const jumpToHash = () => {
@@ -116,7 +110,7 @@ class _ssc {
 		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
 		this.animationSequence = animationSequence;
-		this.scrollTimeline = scrollTimeline;
+		this.initTimeline = initTimeline;
 
 		// The standard animation (animate.css)
 		this.animations = [];
@@ -249,18 +243,17 @@ class _ssc {
 
 				if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
 					// init ScrollMagic
-					this.timelines[ el.sscItemData.sscItem ] = el;
+					addToTimeline( el );
 				} else {
 					// watch the elements to detect the screen margins intersection
 					this.observer.observe( el );
 				}
 			}, this );
 
+			this.initTimeline();
+
 			// start parallax
 			this.parallax();
-
-			// start timelines
-			this.timelines.forEach( ( el ) => this.scrollTimeline( el ) );
 
 			this.jumpToScreen(
 				document.querySelectorAll( '.ssc-screen-jumper' )
