@@ -3,6 +3,8 @@ import ScrollMagic from 'scrollmagic';
 
 export const timelines = [];
 
+const scrollMagic = new ScrollMagic.Controller();
+
 function scrollTimeline( el ) {
 	el.classList.add( 'ssc-timeline' );
 	el.style.maxWidth = '100%';
@@ -58,7 +60,7 @@ function scrollTimeline( el ) {
 			timeline.seek( timeline.duration * event.progress );
 		} )
 		.setPin( el )
-		.addTo( this.scrollMagic );
+		.addTo( scrollMagic );
 }
 
 export default scrollTimeline;

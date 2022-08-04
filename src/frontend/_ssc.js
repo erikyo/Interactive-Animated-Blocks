@@ -106,9 +106,6 @@ class _ssc {
 		this.initMutationObserver = this.initMutationObserver.bind( this );
 		this.observer = [];
 
-		this.scrollMagic = new ScrollMagic.Controller();
-		this.timelines = [];
-
 		// MODULES
 		this.video360Controller = video360Controller;
 		this.jumpToScreen = jumpToScreen;
