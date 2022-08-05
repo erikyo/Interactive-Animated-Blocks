@@ -1,3 +1,5 @@
+// Interactive Animated Blocks
+// plugin main style
 .ssc {
   .letter,
   .word {
@@ -11,8 +13,19 @@
   &.ssc-video-scroll {
     pointer-events: all;
   }
+
+  // scc-hide - nulled for editors
+  &-hide {
+    opacity: 0;
+  }
 }
 
-.ssc-hide {
-  opacity: 0;
+// Scroll magic helpers
+.scrollmagic {
+  &-pin-spacer {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }

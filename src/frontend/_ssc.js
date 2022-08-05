@@ -97,8 +97,8 @@ class _ssc {
 		this.collected = [];
 
 		// will hold the intersection observer
-		this.initMutationObserver = this.initMutationObserver.bind( this );
 		this.observer = [];
+		this.initMutationObserver = this.initMutationObserver.bind( this );
 
 		// MODULES
 		this.video360Controller = video360Controller;
@@ -148,13 +148,54 @@ class _ssc {
 			} );
 	}
 
-	// Detach an element from screen control
+	/**
+	 * Detach an element from screen control
+	 *
+	 * @param {IntersectionObserverEntry} el - the element to unmount
+	 */
 	unmount = ( el ) => {
 		el.unWatch();
 	};
 
+	/**
+	 * Inject the animate.css stylesheet if needed
+	 * maybe it may seem like an unconventional method but
+	 * this way this (quite heavy) file is loaded only there is a need
+	 *
+	 * @param {{[p: string]: T}} collected - the object with the collection of animated items
+	 */
+	applyAnimateCssStylesheet = ( collected ) => {
+		const hasAnimate = Object.values( collected ).filter(
+			( observed ) =>
+				observed.sscItemData.sscAnimation === 'sscAnimation'
+		);
+		if ( hasAnimate ) {
+			const animateCSS = document.createElement( 'link' );
+			animateCSS.rel = 'stylesheet';
+			animateCSS.id = 'ssc_animate-css';
+			animateCSS.href =
+        'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+			document.head.appendChild( animateCSS );
+		}
+	};
+
+	/**
+	 * After collecting all the animation-enabled elements
+	 * this function prepares them by applying css styles and classes
+	 *
+	 * @param    {HTMLElement} el
+	 * @param    {number}      index
+	 *
+	 * @typedef {HTMLOrSVGElement.dataset} dataset - dataset
+	 * @property {number}      HTMLElement.dataset.sscItem - add the sscItem property to each item
+	 * @property {Function}    HTMLElement.unWatch         - remove from observed items
+	 * @property {Object}      sscItemData                 - a copy of the dataset
+	 * @property {Object}      sscItemOpts                 - the scc general animation paramenters
+	 * @property {?Object}     sscSequence                 - the scc animation used for the "itemCustomAnimation"
+	 * @property {?Object}     sscScene                    - the scc animation used for the "timeline"
+	 */
 	addMetaToCollected = ( el, index ) => {
-		// add a class to acknowledge about initialization
+		// add data-ssc-item="n" to each item
 		el.dataset.sscItem = index;
 
 		el.unWatch = () => this.observer.unobserve( el );
@@ -181,6 +222,7 @@ class _ssc {
 				el.sscItemData.sscAnimation
 			)
 		) {
+			/** @property {HTMLVideoElement} videoEL */
 			const videoEl = el.querySelector( 'video' );
 			if ( videoEl ) {
 				videoEl.autoplay = false;
@@ -196,9 +238,12 @@ class _ssc {
 
 		switch ( el.sscItemData.sscAnimation ) {
 			case 'sscScrollJacking':
-				el.style.minHeight = 'calc(100vh + 30px)';
-				el.style.padding = 0;
-				el.style.margin = 0;
+				Object.assign( el.style, {
+					minHeight: 'calc(100vh + 30px)',
+					width: '100%',
+					padding: 0,
+					margin: 0,
+				} );
 				break;
 			case 'sscParallax':
 				this.itemParallaxed[ el.sscItemData.sscItem ] = el;
@@ -237,18 +282,23 @@ class _ssc {
 				}
 			);
 
-			// Let's start the intersection observer
-			this.collected.forEach( function ( el, index ) {
-				this.addMetaToCollected( el, index );
+			/**
+			 * Animated items - Let's start the intersection observer
+			 *
+			 * @typedef {this.collected} - the collection of animated elements
+			 */
+			this.collected.forEach(
+				function( el, index ) {
+			 this.addMetaToCollected( el, index );
 
-				if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
+					if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
 					// init ScrollMagic
-					addToTimeline( el );
-				} else {
+						addToTimeline( el );
+					} else {
 					// watch the elements to detect the screen margins intersection
-					this.observer.observe( el );
-				}
-			}, this );
+						this.observer.observe( el );
+					}
+				}, this );
 
 			this.initTimeline();
 
@@ -262,23 +312,7 @@ class _ssc {
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
 
-			/**
-			 * inject the animate.css stylesheet if needed
-			 * maybe it may seem like an unconventional method but
-			 * this way this (quite heavy) file is loaded only there is a need
-			 */
-			const hasAnimate = Object.values( this.collected ).filter(
-				( observed ) =>
-					observed.sscItemData.sscAnimation === 'sscAnimation'
-			);
-			if ( hasAnimate ) {
-				const animateCSS = document.createElement( 'link' );
-				animateCSS.rel = 'stylesheet';
-				animateCSS.id = 'ssc_animate-css';
-				animateCSS.href =
-					'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
-				document.head.appendChild( animateCSS );
-			}
+			this.applyAnimateCssStylesheet( this.collected );
 
 			// update the screen size if necessary
 			window.addEventListener( 'resize', this.updateScreenSize );
@@ -376,9 +410,9 @@ class _ssc {
 
 	initMutationObserver( mutationsList, mutationObserver ) {
 		//for every mutation
-		mutationsList.forEach( function ( mutation ) {
+		mutationsList.forEach( function( mutation ) {
 			//for every added element
-			mutation.addedNodes.forEach( function ( node ) {
+			mutation.addedNodes.forEach( function( node ) {
 				// Check if we appended a node type that isn't
 				// an element that we can search for images inside,
 				// like a text node.
@@ -389,7 +423,7 @@ class _ssc {
 				const objCollection = node.querySelectorAll( '.ssc' );
 
 				if ( objCollection.length ) {
-					objCollection.forEach( function ( el ) {
+					objCollection.forEach( function( el ) {
 						this.addMetaToCollected( el, this.collected.length );
 
 						// watch the elements to detect the screen margins intersection
