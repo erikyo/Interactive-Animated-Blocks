@@ -25,6 +25,37 @@ export function dataStringify( data, type ) {
 }
 
 /**
+ * It takes a jss style object and returns a string of linted CSS code
+ *
+ * @param {string} style - The style object to be linted.
+ *
+ * @return {string} A string of CSS code.
+ */
+export function lintCSS( style ) {
+	return style && Object.keys( style ).length
+		? 'this {\n' + capitalToloDash( autoLintCode( styleObj2String( style ) ) ) + ';\n}'
+		: 'this {\n\t\n}';
+}
+
+/**
+ * It takes a string of CSS and converts it to an object
+ * if this string is in jss format will be converted to css
+ *
+ * @param {string} style - the style string to be parsed
+ *
+ * @return {Object} - the css string converted into an object
+ */
+export const parseCSS = ( style ) => {
+	// remove all breaklines
+	let result = style.replaceAll( '\n', '' );
+	// get all the content inside "this{ }"
+	result = result.match( 'this {(.*?)}' )[ 1 ];
+	// convert jss to css
+	result = css2obj( loDashToCapital( result ) );
+	return result;
+};
+
+/**
  * It takes a string of CSS and returns an object of key/value pairs in jss format
  *
  * @param {string} css - The CSS string to convert to an object.
@@ -73,7 +104,7 @@ export const loDashToCapital = ( k ) =>
  * @return {string} the matched value with a new line character appended to it.
  */
 export const autoLintCode = ( k ) =>
-	k.replace( /\;| \{/gi, function ( matched ) {
+	k.replace( /\;| \{/gi, function( matched ) {
 		return matched + '\n';
 	} );
 
