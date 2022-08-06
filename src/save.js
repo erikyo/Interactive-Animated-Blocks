@@ -1,4 +1,4 @@
-import { dataStringify, getDefaults } from './utils/fn';
+import { capitalToloDash, dataStringify, getDefaults } from './utils/fn';
 import classnames from 'classnames';
 
 /**
@@ -25,14 +25,13 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 	const styles = {};
 
 	if ( sscAnimated && sscAnimationType ) {
-
 		const defaults = getDefaults( sscAnimationType );
 		sscAnimationOptions[ sscAnimationType ] = {
 			...defaults,
 			...sscAnimationOptions[ sscAnimationType ],
 		};
 
-    // this add to the dataset sscAnimation="theTypeOfAnimation"
+		// this adds to the dataset sscAnimation="theTypeOfAnimation"
 		extraProps[ 'data-ssc-animation' ] = sscAnimationType;
 
 		const options = sscAnimationOptions[ sscAnimationType ] || false;
@@ -75,41 +74,13 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 				);
 			}
 		}
-
-		// element classes
-		switch ( sscAnimationType ) {
-			case 'sscScrollJacking':
-				classes.push( 'ssc ssc-scroll-jacking' );
-				break;
-			case 'sscScreenJump':
-				classes.push( 'ssc ssc-screen-jumper' );
-				break;
-			case 'sscVideoScroll':
-				classes.push( 'ssc ssc-video-scroll' );
-				break;
-			default:
-				classes.push( 'ssc' );
-				break;
-		}
 	}
 
-	if ( additionalCSS || additionalClasses ) {
-		// element classes
-		switch ( additionalClasses ) {
-			case 'sscAbsolute':
-				classes.push( 'ssc-absolute' );
-				break;
-		}
-
-    // if the animation type has a property with the key motion a style will be applied with the given value
-		styles.transition =
-			sscAnimationOptions[ sscAnimationType ] &&
-			sscAnimationOptions[ sscAnimationType ].motion
-				? sscAnimationOptions[ sscAnimationType ].motion + 'ms'
-				: null;
+	if ( additionalClasses.length ) {
+		additionalClasses.forEach( ( cssClass ) => classes.push( capitalToloDash( cssClass ) ) );
 	}
 
-  // add all the custom properties to the element
+	// add all the custom properties to the element
 	Object.assign( extraProps, {
 		style: { ...styles, ...additionalCSS, ...extraProps.style },
 		className: classnames( extraProps.className, classes.join( ' ' ) ),
