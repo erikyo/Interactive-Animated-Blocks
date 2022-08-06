@@ -25,6 +25,7 @@ export function addAttributes( settings ) {
 			sscScene: {
 				type: 'array',
 				default: [
+					/* eslint-disable */
           {
             "loop": true,
             "translateX": [
@@ -64,6 +65,7 @@ export function addAttributes( settings ) {
             ]
           }
         ],
+        /* eslint-enable */
 			},
 			additionalCSS: {
 				type: 'object',
