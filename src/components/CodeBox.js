@@ -1,88 +1,94 @@
 import { useEffect } from '@wordpress/element';
 import { basicSetup } from 'codemirror';
 import { keymap, EditorView } from '@codemirror/view';
-import { css } from '@codemirror/lang-css';
+import { EditorState } from '@codemirror/state';
+import { css, cssLanguage } from '@codemirror/lang-css';
 import { json, jsonParseLinter } from '@codemirror/lang-json';
 import { defaultKeymap, indentWithTab } from '@codemirror/commands';
-import { linter, lintKeymap } from '@codemirror/lint';
+import { lintGutter, linter, lintKeymap } from '@codemirror/lint';
 
 import {
-	autoLintCode,
-	css2obj,
-	loDashToCapital,
-	styleObj2String,
+	parseCSS,
+	lintCSS,
 } from '../utils/fn';
 
 export const CodeBox = ( props ) => {
-	const { language } = props;
+	const { language, onChange } = props;
 
 	// codemirror settings
 	const editorSettings = {
 		tabSize: 2,
 	};
 
-	function lintCSS( style ) {
-		return style && Object.keys( style ).length
-			? 'this {\n' + autoLintCode( styleObj2String( style ) ) + ';\n}'
-			: 'this {\n\t\n}';
-	}
-
 	const editorFromTextArea = () => {
 		const parent = document.getElementById( 'codebox-' + language );
-		const linterExtension = linter( jsonParseLinter() );
-		/*
-		 * CSS
-		 * */
 		if ( language === 'css' ) {
+			/**
+			 * CSS
+			 */
+			// prepare css code
 			const thisStyle = lintCSS( props.data );
+
+			/** init css codemirror editor */
 			const view = new EditorView( {
 				...editorSettings,
 				doc: thisStyle,
 				extensions: [
 					basicSetup,
-					keymap.of( [ indentWithTab, defaultKeymap, lintKeymap ] ),
+					EditorState.tabSize.of( 2 ),
+					keymap.of( [ indentWithTab, defaultKeymap, lintKeymap, cssLanguage ] ),
 					css(),
 				],
 				parent,
 			} );
 
-			view.dom.addEventListener( 'keydown', function () {
-				let result = view.state.doc.toString().replaceAll( '\n', '' );
-				result = result.match( 'this {(.*?)}' )[ 1 ];
-				if ( result )
-					return props.onChange(
-						css2obj( loDashToCapital( result ) )
-					);
+			/**
+			 * Listening for keydown events, if any changes parse and update the current CSS.
+			 */
+			view.dom.addEventListener( 'keydown', function() {
+				const currentCSS = view.state.doc.toString();
+				const style = parseCSS( currentCSS );
+				if ( style && style !== currentCSS ) {
+					onChange( style );
+				}
 			} );
 		} else if ( language === 'json' ) {
-			/*
+			/**
 			 * JSON
-			 * */
+			 */
 			const thisJson = JSON.stringify( props.data, null, '\t' );
+
+			/** init json codemirror editor */
 			const view = new EditorView( {
 				...editorSettings,
 				doc: thisJson,
-				theme: 'mdn-like',
 				gutters: [ 'CodeMirror-lint-markers' ],
 				extensions: [
+					linter( jsonParseLinter() ),
+					lintGutter(),
 					basicSetup,
-					keymap.of( [ indentWithTab, defaultKeymap, lintKeymap ] ),
 					json(),
-					linterExtension,
+					EditorState.tabSize.of( 2 ),
+					keymap.of( [
+						indentWithTab, defaultKeymap, lintKeymap,
+					] ),
 				],
 				parent,
 			} );
 
-			view.dom.addEventListener( 'keydown', function () {
-				const resultRaw = view.state.doc.toString();
+			/**
+			 * Listening for keydown events, if any changes parse and update the current CSS.
+			 */
+			view.dom.addEventListener( 'keydown', function() {
+				let resultRaw = view.state.doc.toString();
+
 				try {
-					const result = JSON.parse( resultRaw );
+					resultRaw = JSON.parse( resultRaw );
 					parent.style.borderLeft = '3px solid green';
-					return props.onChange( result );
+					onChange( resultRaw );
 				} catch ( err ) {
 					// 👇️ SyntaxError: Unexpected end of JSON input
 					parent.style.borderLeft = '3px solid red';
-					console.log( 'error', err, resultRaw );
 				}
 			} );
 		}
