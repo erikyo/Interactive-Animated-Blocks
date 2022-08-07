@@ -294,10 +294,9 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														id={ 'codebox-json' }
 													></div>
 													<CodeBox
-														{ ...props }
 														data={ sscScene }
 														language={ 'json' }
-														onChange={ ( e ) =>
+														onKeyChange={ ( e ) =>
 															setAttributes( {
 																sscScene: e,
 															} )

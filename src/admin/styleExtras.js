@@ -44,10 +44,9 @@ export const StyleAdvancedControls = createHigherOrderComponent(
 
 									<div id={ 'codebox-css' }></div>
 									<CodeBox
-										{ ...props }
 										data={ additionalCSS }
 										language={ 'css' }
-										onChange={ ( r ) =>
+										onKeyChange={ ( r ) =>
 											setAttributes( {
 												additionalCSS: r,
 											} )

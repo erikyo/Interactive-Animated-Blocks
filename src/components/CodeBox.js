@@ -13,7 +13,7 @@ import {
 } from '../utils/fn';
 
 export const CodeBox = ( props ) => {
-	const { language, onChange } = props;
+	const { language, onKeyChange } = props;
 
 	// codemirror settings
 	const editorSettings = {
@@ -49,7 +49,7 @@ export const CodeBox = ( props ) => {
 				const currentCSS = view.state.doc.toString();
 				const style = parseCSS( currentCSS );
 				if ( style && style !== currentCSS ) {
-					onChange( style );
+					onKeyChange( style );
 				}
 			} );
 		} else if ( language === 'json' ) {
@@ -62,7 +62,6 @@ export const CodeBox = ( props ) => {
 			const view = new EditorView( {
 				...editorSettings,
 				doc: thisJson,
-				gutters: [ 'CodeMirror-lint-markers' ],
 				extensions: [
 					linter( jsonParseLinter() ),
 					lintGutter(),
@@ -77,15 +76,16 @@ export const CodeBox = ( props ) => {
 			} );
 
 			/**
-			 * Listening for keydown events, if any changes parse and update the current CSS.
+			 * Listening for keyboard events,
+			 * if any changes parse and update the current json.
 			 */
-			view.dom.addEventListener( 'keydown', function() {
+			view.dom.addEventListener( 'keyup', function() {
 				let resultRaw = view.state.doc.toString();
 
 				try {
 					resultRaw = JSON.parse( resultRaw );
-					parent.style.borderLeft = '3px solid green';
-					onChange( resultRaw );
+					parent.style.borderLeft = 'none';
+					onKeyChange( resultRaw );
 				} catch ( err ) {
 					// 👇️ SyntaxError: Unexpected end of JSON input
 					parent.style.borderLeft = '3px solid red';
