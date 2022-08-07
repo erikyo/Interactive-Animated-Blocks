@@ -116,12 +116,13 @@ class _ssc {
 		this.animations = [];
 		this.handleAnimation = handleAnimation.bind( this );
 
-		// scrolljacking - evil as eval :)
+		// Screen jacking - evil as eval
 		this.scrollJacking = scrollJacking.bind( this );
 
-		// video playback controlled by scroll Y position
+		// Video playback controlled by scroll Y position
 		this.videoParallaxController = videoParallaxController.bind( this );
 
+		// Parallax Items
 		this.itemParallaxed = itemParallaxed;
 		this.parallax = parallax.bind( this );
 		this.parallaxController = parallaxController.bind( this );
@@ -186,13 +187,17 @@ class _ssc {
 	 * @param    {HTMLElement} el
 	 * @param    {number}      index
 	 *
-	 * @typedef {HTMLOrSVGElement.dataset} dataset - dataset
-	 * @property {number}      HTMLElement.dataset.sscItem - add the sscItem property to each item
-	 * @property {Function}    HTMLElement.unWatch         - remove from observed items
-	 * @property {Object}      sscItemData                 - a copy of the dataset
-	 * @property {Object}      sscItemOpts                 - the scc general animation paramenters
-	 * @property {?Object}     sscSequence                 - the scc animation used for the "itemCustomAnimation"
-	 * @property {?Object}     sscScene                    - the scc animation used for the "timeline"
+	 * @typedef el - the ssc item
+	 * @property {dataset}     dataset                   - The item dataset (used to store animation options)
+	 * @property {number}      dataset.sscItem           - add the sscItem property to each item
+	 * @property {string}      dataset.sscProps          - the item options
+	 * @property {string}      dataset.sscSequence       - the scc animation used for the "itemCustomAnimation"
+	 * @property {?string}     dataset.sscSequence.scene - the scene sequence data
+	 * @property {?string}     dataset.sscScene          - the scene sequence data
+	 * @property {Function}    unWatch                   - remove from observed items
+	 * @property {Object}      sscItemData               - a copy of the dataset
+	 * @property {Object}      sscItemOpts               - the scc general animation parameters
+	 * @property {?Object}     sscScene                  - the scc animation used for the "timeline"
 	 */
 	addMetaToCollected = ( el, index ) => {
 		// add data-ssc-item="n" to each item
@@ -222,7 +227,7 @@ class _ssc {
 				el.sscItemData.sscAnimation
 			)
 		) {
-			/** @property {HTMLVideoElement} videoEL */
+			/** @property {HTMLVideoElement} videoEL - Video element inside a "video-animated" block */
 			const videoEl = el.querySelector( 'video' );
 			if ( videoEl ) {
 				videoEl.autoplay = false;

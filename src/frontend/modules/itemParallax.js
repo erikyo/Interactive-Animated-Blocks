@@ -1,3 +1,7 @@
+let lastParallaxScrollPosition = 0;
+
+export let itemParallaxed = [];
+
 /**
  * The Parallax effect
  * Handles the Parallax effect for each item stored into "itemParallaxed" array
@@ -8,9 +12,6 @@
  * The parallax function is called on the window's scroll event
  *
  */
-let lastParallaxScrollPosition = 0;
-export let itemParallaxed = [];
-
 export function parallax() {
 	if ( typeof itemParallaxed !== 'undefined' ) {
 		// if last position is the same as current
