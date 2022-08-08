@@ -144,6 +144,7 @@ class _ssc {
 			.then( () => {
 				this.windowData.viewHeight = window.innerHeight;
 				this.windowData.lastScrollPosition = window.scrollY;
+				this.updateAnimationPosition();
 				console.warn( 'New Screensize', this.windowData );
 				return this.windowData;
 			} );
@@ -178,6 +179,10 @@ class _ssc {
         'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
 			document.head.appendChild( animateCSS );
 		}
+	};
+
+	updateAnimationPosition = () => {
+		this.animations.forEach( ( item ) => item.updatePosition );
 	};
 
 	/**
