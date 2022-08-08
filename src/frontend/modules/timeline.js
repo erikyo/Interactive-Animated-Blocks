@@ -11,6 +11,7 @@ const scrollMagic = new ScrollMagic.Controller();
 
 /**
  * It adds an element to the timelines object
+ *
  * @param {HTMLElement} el - The element that is being added to the timeline.
  */
 export function addToTimeline( el ) {
@@ -75,7 +76,7 @@ function scrollTimeline( el ) {
 		// Add debug indicators
 		.addIndicators()
 		// bind animation timeline with anime.js animation progress
-		.on( 'progress', function ( event ) {
+		.on( 'progress', function( event ) {
 			timeline.seek( timeline.duration * event.progress );
 		} )
 		.setPin( el )

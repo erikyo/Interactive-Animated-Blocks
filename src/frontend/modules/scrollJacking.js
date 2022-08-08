@@ -5,8 +5,9 @@ import anime from 'animejs';
 
 function scrollJacking( entry ) {
 	// if there aren't any defined target, store this one
-	if ( entry.target.action !== 'enter' && this.hasScrolling !== false )
+	if ( entry.target.action !== 'enter' && this.hasScrolling !== false ) {
 		return false;
+	}
 
 	this.hasScrolling = entry.target.sscItemData.sscItem;
 
@@ -22,8 +23,9 @@ function scrollJacking( entry ) {
 		const duration = parseInt( el.target.sscItemOpts.duration, 10 );
 
 		/** Stores the history state */
-		if ( el.target.id )
+		if ( el.target.id ) {
 			window.history.pushState( null, null, '#' + el.target.id );
+		}
 
 		/**
 		 *  Anime.js animation

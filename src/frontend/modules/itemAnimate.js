@@ -56,16 +56,18 @@ function handleAnimation( entry ) {
 						: 'leave';
 
 					// set the custom props used by animate.css
-					if ( this.duration )
+					if ( this.duration ) {
 						entry.target.style.setProperty(
 							'--animate-duration',
 							this.duration + 'ms'
 						);
-					if ( this.easing )
+					}
+					if ( this.easing ) {
 						entry.target.style.setProperty(
 							'transition-timing-function',
 							this.easing
 						);
+					}
 
 					// check if the item is a single animation
 					if ( this.stagger !== 'none' ) {
@@ -114,29 +116,29 @@ function handleAnimation( entry ) {
 				applyAnimation( element, action ) {
 					return action === 'enter'
 						? this.removeCssClass(
-								element,
-								this.animationLeave
+							element,
+							this.animationLeave
 						  ).addCssClass( element, this.animationEnter )
 						: this.removeCssClass(
-								element,
-								this.animationEnter
+							element,
+							this.animationEnter
 						  ).addCssClass( element, this.animationLeave );
 				},
 				applyChildAnimation( element, action ) {
 					return action === 'enter'
 						? this.removeCssClass(
-								element,
-								element.sscItemOpts.animationLeave
+							element,
+							element.sscItemOpts.animationLeave
 						  ).addCssClass(
-								element,
-								element.sscItemOpts.animationEnter
+							element,
+							element.sscItemOpts.animationEnter
 						  )
 						: this.removeCssClass(
-								element,
-								element.sscItemOpts.animationEnter
+							element,
+							element.sscItemOpts.animationEnter
 						  ).addCssClass(
-								element,
-								element.sscItemOpts.animationLeave
+							element,
+							element.sscItemOpts.animationLeave
 						  );
 				},
 				animateItem( action ) {
@@ -161,8 +163,8 @@ function handleAnimation( entry ) {
 								() =>
 									child.sscItemOpts
 										? this.applyChildAnimation(
-												child,
-												action
+											child,
+											action
 										  )
 										: this.applyAnimation( child, action ),
 								animationDelay
@@ -185,18 +187,21 @@ function handleAnimation( entry ) {
 				duration:
 					parseInt( entry.target.sscItemOpts.duration, 10 ) || 1000,
 			};
-			if ( entry.target.sscItemOpts && entry.target.sscItemOpts.duration )
+			if ( entry.target.sscItemOpts && entry.target.sscItemOpts.duration ) {
 				entry.target.style.setProperty(
 					'--animate-duration',
 					( parseInt( entry.target.sscItemOpts.duration, 10 ) ||
 						5000 ) + 'ms'
 				);
+			}
 		}
 	}
 
 	// childrens aren't animated independently
 	// since the parent container fires the action
-	if ( entry.target.isChildren ) return;
+	if ( entry.target.isChildren ) {
+		return;
+	}
 
 	// get all the animation data stored
 	const el = this.animations[ entry.target.sscItemData.sscItem ];
@@ -214,7 +219,7 @@ function handleAnimation( entry ) {
 				el.animateItem( el.lastAction );
 				// wait the animation has been completed before unlock the element
 				new Promise( ( resolve ) => {
-					setTimeout( function () {
+					setTimeout( function() {
 						el.locked = false;
 						el.lastAction =
 							el.lastAction === 'enter' ? 'leave' : 'enter';

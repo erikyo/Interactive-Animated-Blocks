@@ -12,7 +12,7 @@ function animationSequence( entry, action ) {
 	const animation = entry.target.sscSequence || {};
 
 	// build the animation if isn't already stored
-	if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
+	if ( ! this.sequenceAnimations[ entry.target.sscItemData.sscItem ] ) {
 		let i = 0;
 		const currentStep = {};
 
@@ -53,18 +53,18 @@ function animationSequence( entry, action ) {
 			Object.entries( currentStep ).forEach( ( step ) => {
 				a.add( step[ 1 ] );
 			} );
-			this.animations[ entry.target.sscItemData.sscItem ] = a;
+			this.sequenceAnimations[ entry.target.sscItemData.sscItem ] = a;
 		}
 	}
 
 	// The Enter animation sequence
-	if ( this.animations[ entry.target.sscItemData.sscItem ] ) {
+	if ( this.sequenceAnimations[ entry.target.sscItemData.sscItem ] ) {
 		if ( action === 'enter' && isActiveArea( entry.target, 75 ) ) {
 			entry.target.action = 'leave';
-			this.animations[ entry.target.sscItemData.sscItem ].play();
+			this.sequenceAnimations[ entry.target.sscItemData.sscItem ].play();
 		} else if ( action === 'leave' && ! isActiveArea( entry.target, 75 ) ) {
 			entry.target.action = 'enter';
-			this.animations[ entry.target.sscItemData.sscItem ].pause();
+			this.sequenceAnimations[ entry.target.sscItemData.sscItem ].pause();
 		}
 	}
 	if ( isPartiallyVisible( entry.target ) ) {

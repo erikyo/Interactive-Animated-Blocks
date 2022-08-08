@@ -51,7 +51,7 @@ export const StyleAdvancedControls = createHigherOrderComponent(
 											setAttributes( {
 												additionalClasses: {
 													...additionalClasses,
-                          hide:
+													hide:
                             ! additionalClasses.hide,
 												},
 											} );

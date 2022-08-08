@@ -111,8 +111,8 @@ export const autoLintCode = ( k ) =>
 /**
  * Parses the dataset stored with wp editor and returns an object with the arguments as keys and values
  *
- * @param {{scene: ?string}} opts        - The string of data attributes that we want to parse.
- * @param {string}           [type=data] - The type of data you want to get. Use style to parse css style
+ * @param {string} opts        - The string of data attributes that we want to parse.
+ * @param {string} [type=data] - The type of data you want to get. Use style to parse css style
  * @return {Object}            - An object with the key being the first element of the array and the value being the second element of the array.
  */
 export const getElelementData = ( opts, type = 'data' ) => {

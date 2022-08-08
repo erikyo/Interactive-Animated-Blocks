@@ -109,8 +109,10 @@ class _ssc {
 		this.textStagger = textStagger;
 		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
-		this.animationSequence = animationSequence;
 		this.initTimeline = initTimeline;
+
+		this.sequenceAnimations = [];
+		this.animationSequence = animationSequence;
 
 		// The standard animation (animate.css)
 		this.animations = [];
@@ -153,9 +155,9 @@ class _ssc {
 	/**
 	 * Detach an element from screen control
 	 *
-	 * @param {IntersectionObserverEntry} el - the element to unmount
+	 * @param {sscItem} el - the element to unmount
 	 */
-	unmount = ( el ) => {
+	static unmount = ( el ) => {
 		el.unWatch();
 	};
 
@@ -164,7 +166,7 @@ class _ssc {
 	 * maybe it may seem like an unconventional method but
 	 * this way this (quite heavy) file is loaded only there is a need
 	 *
-	 * @param {{[p: string]: T}} collected - the object with the collection of animated items
+	 * @param {HTMLCollection} collected - the object with the collection of animated items
 	 */
 	applyAnimateCssStylesheet = ( collected ) => {
 		const hasAnimate = Object.values( collected ).filter(
@@ -192,7 +194,7 @@ class _ssc {
 	 * @param    {HTMLElement} el
 	 * @param    {number}      index
 	 *
-	 * @typedef el - the ssc item
+	 * @typedef sscItem - the ssc item
 	 * @property {dataset}     dataset                   - The item dataset (used to store animation options)
 	 * @property {number}      dataset.sscItem           - add the sscItem property to each item
 	 * @property {string}      dataset.sscProps          - the item options
@@ -295,11 +297,12 @@ class _ssc {
 			/**
 			 * Animated items - Let's start the intersection observer
 			 *
-			 * @typedef {this.collected} - the collection of animated elements
+			 * @typedef collected - the collection of animated elements
+			 * @property {Object} collected - the animated item collection
 			 */
 			this.collected.forEach(
 				function( el, index ) {
-			 this.addMetaToCollected( el, index );
+					this.addMetaToCollected( el, index );
 
 					if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
 					// init ScrollMagic
@@ -372,7 +375,7 @@ class _ssc {
 					this.textStagger( entry );
 					break;
 				default:
-					// 😓
+					// 🥱 miss
 					break;
 			}
 		}

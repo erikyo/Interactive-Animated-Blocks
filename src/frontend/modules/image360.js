@@ -33,7 +33,7 @@ const video360Controller = ( entry ) => {
 		return videoEl.currentTime / videoEl.duration;
 	};
 
-	videoEl.autoplayVideo = function () {
+	videoEl.autoplayVideo = function() {
 		return setTimeout( () => {
 			return videoEl.play();
 		}, 2000 );
@@ -56,8 +56,8 @@ const video360Controller = ( entry ) => {
 				videoEl.nextTime > videoEl.duration
 					? videoEl.nextTime - videoEl.duration
 					: videoEl.nextTime < 0
-					? videoEl.nextTime + videoEl.duration
-					: videoEl.nextTime;
+						? videoEl.nextTime + videoEl.duration
+						: videoEl.nextTime;
 			clearTimeout( videoEl.timeoutAutoplay );
 		}
 	};

@@ -1,6 +1,9 @@
 import './styles/ssc.scss';
 import _ssc from './frontend/_ssc';
 
+/**
+ * Exporting the sscOptions object.
+ */
 export const sscOptions = {
 	rootMargin: '0px', // the IntersectionObserver root margin
 	// removed because we only need to know if the element is entering or leaving the viewport
@@ -10,7 +13,9 @@ export const sscOptions = {
 	container: document.querySelector( '.wp-site-blocks' ), // maybe document.getElementById( 'page' );
 };
 
-// On page scripts load trigger immediately ssc
+/**
+ * On page scripts load trigger immediately ssc using sscOptions
+ */
 window.addEventListener( 'load', () => {
 	const options = {
 		page: sscOptions.container,

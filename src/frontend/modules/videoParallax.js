@@ -4,7 +4,7 @@ import { isPartiallyVisible } from '../../utils/utils';
  * @typedef videoParallaxed - the array that contains parallax video collection
  * @typedef videoParallaxed[*] - a single istance of the settings of the parallaxed video
  *
- * */
+ */
 let videoParallaxed = [];
 let lastVideoScrollPosition = 0;
 
