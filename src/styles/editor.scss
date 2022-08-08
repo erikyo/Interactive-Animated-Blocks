@@ -97,27 +97,23 @@ textarea.ssc-codebox {
   font-family: monospace;
 }
 
-// Block customizations
-.wp-block {
-  &.block-editor-block-list__block {
-
-  }
-}
 
 // Interactive Animated Blocks
 // custom css class
-.ssc-absolute {
-  position: absolute !important;
-}
+.editor-styles-wrapper {
+  .ssc-absolute {
+    position: absolute !important;
+  }
 
-.ssc-hide {
-  opacity: 1 !important;
-}
+  .ssc-hide {
+    opacity: 1 !important;
+  }
 
-.ssc-scroll-jacking {
-  width: 100%;
-  min-width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
+  .ssc-scroll-jacking {
+    width: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
 }

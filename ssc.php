@@ -25,11 +25,10 @@ add_action( 'wp_enqueue_scripts', 'ssc_script' );
  * Register and enqueue a custom stylesheet in the WordPress admin.
  */
 function ssc_editor_style() {
-	wp_register_style( 'ssc_admin_css', plugin_dir_url( __FILE__ ) . 'build/ssc-editor.css' );
-	wp_enqueue_style( 'ssc_admin_css' );
+	wp_register_style( 'ssc_css_editor', plugin_dir_url( __FILE__ ) . 'build/ssc-editor.css' );
+	wp_enqueue_style( 'ssc_css_editor' );
 }
-
-add_action( 'admin_enqueue_scripts', 'ssc_editor_style' );
+add_action( 'enqueue_block_editor_assets', 'ssc_editor_style' );
 
 /**
  * Register and enqueue the ssc stylesheet
