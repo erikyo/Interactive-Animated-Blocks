@@ -42,6 +42,22 @@ export const StyleAdvancedControls = createHigherOrderComponent(
 										} }
 									/>
 
+									<ToggleControl
+										label={ __( 'Hidden' ) }
+										checked={
+											additionalClasses.hide || false
+										}
+										onChange={ () => {
+											setAttributes( {
+												additionalClasses: {
+													...additionalClasses,
+                          hide:
+                            ! additionalClasses.hide,
+												},
+											} );
+										} }
+									/>
+
 									<div id={ 'codebox-css' }></div>
 									<CodeBox
 										data={ additionalCSS }
