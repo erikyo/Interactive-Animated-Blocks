@@ -1,9 +1,10 @@
 import { useEffect } from '@wordpress/element';
 import { basicSetup } from 'codemirror';
-import { keymap, EditorView } from '@codemirror/view';
+import { EditorView, keymap } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
-import { css, cssLanguage } from '@codemirror/lang-css';
-import { json, jsonParseLinter } from '@codemirror/lang-json';
+import { syntaxHighlighting, defaultHighlightStyle } from '@codemirror/language';
+import { css } from '@codemirror/lang-css';
+import { json, jsonParseLinter, jsonLanguage } from '@codemirror/lang-json';
 import { defaultKeymap, indentWithTab } from '@codemirror/commands';
 import { lintGutter, linter, lintKeymap } from '@codemirror/lint';
 
@@ -14,11 +15,6 @@ import {
 
 export const CodeBox = ( props ) => {
 	const { language, onKeyChange } = props;
-
-	// codemirror settings
-	const editorSettings = {
-		tabSize: 2,
-	};
 
 	const editorFromTextArea = () => {
 		const parent = document.getElementById( 'codebox-' + language );
@@ -31,13 +27,15 @@ export const CodeBox = ( props ) => {
 
 			/** init css codemirror editor */
 			const view = new EditorView( {
-				...editorSettings,
 				doc: thisStyle,
 				extensions: [
 					basicSetup,
 					EditorState.tabSize.of( 2 ),
-					keymap.of( [ indentWithTab, defaultKeymap, lintKeymap, cssLanguage ] ),
 					css(),
+					syntaxHighlighting( defaultHighlightStyle ),
+					keymap.of( [
+						...defaultKeymap, indentWithTab, ...lintKeymap,
+					] ),
 				],
 				parent,
 			} );
@@ -45,7 +43,7 @@ export const CodeBox = ( props ) => {
 			/**
 			 * Listening for keydown events, if any changes parse and update the current CSS.
 			 */
-			view.dom.addEventListener( 'keydown', function() {
+			view.dom.addEventListener( 'keyup', function() {
 				const currentCSS = view.state.doc.toString();
 				const style = parseCSS( currentCSS );
 				if ( style && style !== currentCSS ) {
@@ -60,16 +58,16 @@ export const CodeBox = ( props ) => {
 
 			/** init json codemirror editor */
 			const view = new EditorView( {
-				...editorSettings,
 				doc: thisJson,
 				extensions: [
 					linter( jsonParseLinter() ),
 					lintGutter(),
 					basicSetup,
-					json(),
 					EditorState.tabSize.of( 2 ),
+					json(),
+					syntaxHighlighting( defaultHighlightStyle ),
 					keymap.of( [
-						indentWithTab, defaultKeymap, lintKeymap,
+						...defaultKeymap, indentWithTab, ...lintKeymap,
 					] ),
 				],
 				parent,
@@ -80,12 +78,11 @@ export const CodeBox = ( props ) => {
 			 * if any changes parse and update the current json.
 			 */
 			view.dom.addEventListener( 'keyup', function() {
-				let resultRaw = view.state.doc.toString();
+				const resultRaw = view.state.doc.toString();
 
 				try {
-					resultRaw = JSON.parse( resultRaw );
 					parent.style.borderLeft = 'none';
-					onKeyChange( resultRaw );
+					onKeyChange( JSON.parse( resultRaw ) );
 				} catch ( err ) {
 					// 👇️ SyntaxError: Unexpected end of JSON input
 					parent.style.borderLeft = '3px solid red';
