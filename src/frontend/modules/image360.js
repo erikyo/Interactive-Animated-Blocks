@@ -2,6 +2,8 @@
  * It adds a mousemove event listener to the video element,
  * which updates the video's current time based on the mouse's position creating the image 360 effect
  *
+ * @module video360Controller
+ *
  * @param {IntersectionObserverEntry} entry - The entry object passed to the callback function.
  */
 const video360Controller = ( entry ) => {

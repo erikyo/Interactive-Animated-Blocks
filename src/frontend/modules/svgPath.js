@@ -4,10 +4,12 @@ import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
 /**
  * If the element is in the viewport, animate the SVG paths
  *
+ * @module animationSvgPath
+ *
  * @param {IntersectionObserverEntry} entry                     - The IntersectionObserverEntry object.
  * @param {string}                    action                    - The action to be performed.
  * @param {SVGAnimateElement}         [animationInstance=false] - This is the instance of the animation. It's used to reverse the animation.
- * @return {SVGAnimateElement}                                  - the function animationSvgPath.
+ *
  */
 const animationSvgPath = ( entry, action, animationInstance = false ) => {
 	let animation = animationInstance ? animationInstance : anime;

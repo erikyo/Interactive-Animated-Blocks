@@ -4,10 +4,16 @@ import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
 
 export const timelines = [];
 
-// TODO: enable only for admins
-ScrollMagicPluginIndicator( ScrollMagic );
-
+/** Creating a new instance of the ScrollMagic controller. */
 const scrollMagic = new ScrollMagic.Controller();
+
+/**
+ * It enables the ScrollMagic indicators plugin.
+ */
+export function enableScrollMagicIndicators() {
+	console.log( 'scrollMagic ScrollMagicPluginIndicator enabled' );
+	ScrollMagicPluginIndicator( ScrollMagic );
+}
 
 /**
  * It adds an element to the timelines object
@@ -25,6 +31,12 @@ export function initTimeline() {
 	timelines.forEach( ( el ) => scrollTimeline( el ) );
 }
 
+/**
+ * It creates a ScrollMagic scene for each timeline element,
+ * and then binds the timeline animation to the scene progress
+ *
+ * @param  el - The element that is being animated.
+ */
 function scrollTimeline( el ) {
 	el.classList.add( 'ssc-timeline' );
 	el.style.maxWidth = '100%';
@@ -66,15 +78,15 @@ function scrollTimeline( el ) {
 	 * Create a scene
 	 *
 	 * @module ScrollMagic
+	 *
 	 * @function ScrollMagic.Scene
 	 */
 	timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
 		triggerElement: el,
 		duration: el.sscItemOpts.duration,
 		triggerHook: el.sscItemOpts.triggerHook || 0.25,
+		addIndicators: true,
 	} )
-		// Add debug indicators
-		.addIndicators()
 		// bind animation timeline with anime.js animation progress
 		.on( 'progress', function( event ) {
 			timeline.seek( timeline.duration * event.progress );

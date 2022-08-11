@@ -39,7 +39,7 @@ import {
 } from './modules/itemParallax';
 import animationSequence from './modules/itemCustomAnimation';
 import videoParallaxController from './modules/videoParallax';
-import { addToTimeline, initTimeline } from './modules/timeline';
+import { addToTimeline, initTimeline, enableScrollMagicIndicators } from './modules/timeline';
 
 // on load and on hashchange (usually on history back/forward)
 const jumpToHash = () => {
@@ -314,6 +314,7 @@ class _ssc {
 				}, this );
 
 			this.initTimeline();
+			window.addEventListener( 'load', () => document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : null );
 
 			// start parallax
 			this.parallax();

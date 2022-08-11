@@ -5,6 +5,8 @@ import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
  * It creates an animation sequence for each element that has a `sscSequence` attribute,
  * and then it plays or pauses the animation based on the element's visibility
  *
+ * @module animationSequence
+ *
  * @param {IntersectionObserverEntry} entry  - The entry object passed by the IntersectionObserver.
  * @param {string}                    action - The action to be performed.
  */

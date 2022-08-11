@@ -2,6 +2,12 @@ import anime from 'animejs';
 import { delay } from '../../utils/utils';
 import { splitSentence } from '../../utils/fn';
 
+/**
+ * Animate words and numbers
+ * It splits the text into letters, wraps each letter in a span, and then animates each letter
+ *
+ * @param {HTMLElement} el - The element that is being animated.
+ */
 const animateWord = ( el ) => {
 	const animateLetter = ( letter ) => {
 		const alpha = [
@@ -84,7 +90,9 @@ function animateCount( el ) {
 }
 
 /**
- * It splits the text into letters, wraps each letter in a span, and then animates each letter
+ * It checks if the element has already been animated, and if not, it either animates the number or the text
+ *
+ * @module textAnimated
  *
  * @param {IntersectionObserverEntry} el - The element that is being animated.
  */

@@ -2,12 +2,18 @@ import { isPartiallyVisible } from '../../utils/utils';
 
 /**
  * @typedef videoParallaxed - the array that contains parallax video collection
- * @typedef videoParallaxed[*] - a single istance of the settings of the parallaxed video
  *
+ * @property {Element} videoParallaxed[Element] - a single instance of the settings of the parallaxed video
  */
 let videoParallaxed = [];
 let lastVideoScrollPosition = 0;
 
+/**
+ * It loops through all the videos that have been registered for parallaxing,
+ * and sets their current time to a value that is calculated based on the video's position on the screen
+ *
+ * @return {Function} The function parallaxVideo is being returned.
+ */
 export function parallaxVideo() {
 	if ( window.scrollY === lastVideoScrollPosition ) {
 		// callback the animationFrame and exit the current loop
@@ -20,7 +26,7 @@ export function parallaxVideo() {
 	videoParallaxed.forEach( ( video ) => {
 		const rect = video.item.getBoundingClientRect();
 		if ( video.hasExtraTimeline ) {
-			console.log(
+			/*			console.log(
 				'scrolling timeline',
 				( window.scrollY -
 					video.distanceTop +
@@ -29,7 +35,7 @@ export function parallaxVideo() {
 					video.hasExtraTimeline,
 				'regular timeline',
 				1 - ( rect.top + rect.height ) / video.hasExtraTimeline
-			);
+			); */
 			// the common behaviour
 			video.item.currentTime = (
 				( ( window.scrollY - video.distanceTop ) /
@@ -53,6 +59,13 @@ export function parallaxVideo() {
 	return window.requestAnimationFrame( parallaxVideo );
 }
 
+/**
+ * It checks if the video is partially visible, and if it is, it adds it to the `videoParallaxed` array
+ *
+ * @module videoParallaxController
+ * @param {IntersectionObserverEntry} entry - The entry object returned by the Intersection Observer API.
+ * @return {Array} the filtered array of videoParallaxed.
+ */
 function videoParallaxController( entry ) {
 	const videoEl = entry.target.querySelector( 'video' );
 	if ( videoEl && ! videoParallaxed[ entry.target.sscItemData.sscItem ] ) {

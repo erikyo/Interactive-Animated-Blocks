@@ -3,6 +3,14 @@ import { textStaggerPresets } from '../../utils/data';
 import { delay, isActiveArea } from '../../utils/utils';
 import { splitSentence } from '../../utils/fn';
 
+/**
+ * It splits the text into individual letters, then animates them in a staggered fashion
+ *
+ * @module textStagger
+ * @param {HTMLElement} entry - The entry object passed to the callback function.
+ *
+ * @return {Function} - if the element is not inside the active area it returns itself in 200ms
+ */
 function textStagger( entry ) {
 	const item = entry.target;
 
@@ -65,6 +73,7 @@ function textStagger( entry ) {
 		return anim.play();
 	}
 
+	// TODO: isn't worth to provide a kind of option for this?
 	delay( 200 ).then( () => textStagger( entry ) );
 }
 

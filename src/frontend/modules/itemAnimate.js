@@ -3,6 +3,8 @@ import { delay, isInView, isPartiallyVisible } from '../../utils/utils';
 /**
  * Animate Element using Anime.css when the element is in the viewport
  *
+ * @module handleAnimation
+ *
  * @param {IntersectionObserverEntry} entry
  */
 function handleAnimation( entry ) {

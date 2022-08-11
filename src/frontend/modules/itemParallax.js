@@ -52,6 +52,8 @@ export function parallax() {
  * If the item is entering the viewport, add it to the watched list and start the parallax function.
  * If the item is leaving the viewport, remove it from the watched list
  *
+ * @module parallaxController
+ *
  * @param {IntersectionObserverEntry} entry - the entry object that is passed to the callback function
  */
 export function parallaxController( entry ) {

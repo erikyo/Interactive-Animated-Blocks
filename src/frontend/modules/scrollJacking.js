@@ -3,6 +3,15 @@ import { mouseWheel } from '../../utils/compat';
 import { isPartiallyVisible, delay, disableWheel } from '../../utils/utils';
 import anime from 'animejs';
 
+/**
+ * It scrolls to the target element
+ *
+ * @module scrollJacking
+ *
+ * @param {IntersectionObserverEntry} entry - The entry object that is passed to the callback function.
+ *
+ * @return {Function} A function that will be called when the IntersectionObserver fires.
+ */
 function scrollJacking( entry ) {
 	// if there aren't any defined target, store this one
 	if ( entry.target.action !== 'enter' && this.hasScrolling !== false ) {

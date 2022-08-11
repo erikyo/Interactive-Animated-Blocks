@@ -4,6 +4,7 @@ import { mouseWheel } from '../../utils/compat';
  * It takes a mouse wheel event value,
  * and applies a scale transform to the target image
  *
+ *
  * @param {Event} event - The event object.
  */
 const imageScale = ( event ) => {
@@ -30,6 +31,8 @@ const imageScale = ( event ) => {
  * If the mouse leaves the image, remove the mouse wheel event listener from the image
  *
  * The function is called by the IntersectionObserver.
+ *
+ * @module imageScaleController
  *
  * @param {IntersectionObserverEntry} entry - The IntersectionObserverEntry object that is passed to the callback function.
  */

@@ -1,6 +1,8 @@
 /**
  * The above code is a function handle the play state of the video and  is called when it is in viewport.
  *
+ * @module videoFocusPlay
+ *
  * @param {IntersectionObserverEntry} entry
  */
 const videoFocusPlay = ( entry ) => {

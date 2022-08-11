@@ -25,6 +25,8 @@ const jumpTo = ( e ) => {
 /**
  * For each jumper, when clicked, jump to the screen.
  *
+ * @module jumpToScreen
+ *
  * @param {NodeList} jumpers - The array of elements that will be clicked to jump to the screen.
  */
 const jumpToScreen = ( jumpers ) => {
