@@ -313,8 +313,8 @@ class _ssc {
 					}
 				}, this );
 
-			this.initTimeline();
-			window.addEventListener( 'load', () => document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : null );
+			document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : null;
+      this.initTimeline();
 
 			// start parallax
 			this.parallax();
