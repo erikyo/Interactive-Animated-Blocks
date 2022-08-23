@@ -526,26 +526,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															)
 														}
 													/>
-													<RangeControl
-														label={
-															'Viewport Minimum Active Zone (%)'
-														}
-														type={ 'number' }
-														value={
-															sscAnimationOptions[
-																sscAnimationType
-															]
-																.intersection ||
-																20
-														}
-														onChange={ ( e ) =>
-															setOption(
-																e,
-																'intersection',
-																sscAnimationType
-															)
-														}
-													/>
 													<SelectControl
 														label={ 'Stagger' }
 														value={
@@ -629,11 +609,14 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													/>
 												</>
 											) }
-											{ sscAnimationType ===
-												'sscScrollJacking' &&
-												sscAnimationOptions[
-													sscAnimationType
-												] && (
+											{ sscAnimationType && [
+												'sscSvgPath',
+												'sscSequence',
+												'sscAnimation',
+												'sscScrollJacking',
+											].includes(
+												sscAnimationType
+											) && (
 												<>
 													<RangeControl
 														label={
@@ -645,7 +628,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																sscAnimationType
 															]
 																.intersection ||
-																20
+																80
 														}
 														onChange={ ( e ) =>
 															setOption(
@@ -656,27 +639,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 												</>
-											) }
-											{ sscAnimationType ===
-												'sscSvgPath' && (
-												<RangeControl
-													label={
-														'Page Coverage (in %) needed before scroll-lock'
-													}
-													type={ 'number' }
-													value={
-														sscAnimationOptions[
-															sscAnimationType
-														].intersection || 20
-													}
-													onChange={ ( e ) =>
-														setOption(
-															e,
-															'intersection',
-															sscAnimationType
-														)
-													}
-												/>
 											) }
 
 											{ sscAnimationType ===
