@@ -51,7 +51,7 @@ export const parseCSS = ( style ) => {
 	// get all the content inside "this{ }"
 	result = result.match( 'this {(.*?)}' )[ 1 ];
 	// convert jss to css
-	result = css2obj( loDashToCapital( result ) );
+	result = css2obj( result );
 	return result;
 };
 
@@ -63,9 +63,9 @@ export const parseCSS = ( style ) => {
  */
 export const css2obj = ( css ) => {
 	const r = /(?<=^|;)\s*([^:]+)\s*:\s*([^;]+)\s*/g,
-		o = {};
-	css.replace( r, ( m, p, v ) => ( o[ p ] = v ) );
-	return o;
+		style = {};
+	css.replace( r, ( m, p, v ) => ( style[ loDashToCapital( p ) ] = v ) );
+	return style;
 };
 
 /**
