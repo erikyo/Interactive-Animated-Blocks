@@ -38,21 +38,21 @@ export const actionsTemplate = [
 	},
 	{
 		actionLabel: 'rotateY',
-		action: 'translateY',
+		action: 'rotateY',
 		valueType: 'string',
-		valueDefault: '100px',
+		valueDefault: '45deg',
 	},
 	{
 		actionLabel: 'rotateX',
-		action: 'translateX',
+		action: 'rotateX',
 		valueType: 'string',
-		valueDefault: '100px',
+		valueDefault: '45deg',
 	},
 	{
 		actionLabel: 'rotateZ',
-		action: 'translateZ',
+		action: 'rotateZ',
 		valueType: 'string',
-		valueDefault: '100px',
+		valueDefault: '45deg',
 	},
 	{
 		actionLabel: 'Scale',
@@ -291,6 +291,7 @@ export const animationTypes = [
 		default: {
 			duration: 2000,
 			delay: 500,
+			intersection: 80,
 			reiterate: true,
 			easing: 'easeInOutQuad',
 		},
@@ -327,6 +328,7 @@ export const animationTypes = [
 			easing: 'easeInOutQuad',
 			preset: 'default',
 			splitBy: 'letter',
+			intersection: 80,
 		},
 	},
 	{
