@@ -614,6 +614,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												'sscSequence',
 												'sscAnimation',
 												'sscScrollJacking',
+												'sscTextStagger',
 											].includes(
 												sscAnimationType
 											) && (

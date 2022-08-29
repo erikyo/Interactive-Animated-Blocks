@@ -61,10 +61,10 @@ function animationSequence( entry, action ) {
 
 	// The Enter animation sequence
 	if ( this.sequenceAnimations[ entry.target.sscItemData.sscItem ] ) {
-		if ( action === 'enter' && isActiveArea( entry.target, 75 ) ) {
+		if ( action === 'enter' && isActiveArea( entry.target, entry.target.sscItemOpts.intersection ) ) {
 			entry.target.action = 'leave';
 			this.sequenceAnimations[ entry.target.sscItemData.sscItem ].play();
-		} else if ( action === 'leave' && ! isActiveArea( entry.target, 75 ) ) {
+		} else if ( action === 'leave' && ! isActiveArea( entry.target, entry.target.sscItemOpts.intersection ) ) {
 			entry.target.action = 'enter';
 			this.sequenceAnimations[ entry.target.sscItemData.sscItem ].pause();
 		}

@@ -7,14 +7,17 @@ import { splitSentence } from '../../utils/fn';
  * It splits the text into individual letters, then animates them in a staggered fashion
  *
  * @module textStagger
- * @param {HTMLElement} entry - The entry object passed to the callback function.
+ * @param {IntersectionObserverEntry} entry - The entry object passed to the callback function.
+ *
+ * @todo - provide an option to "start hidden"
  *
  * @return {Function} - if the element is not inside the active area it returns itself in 200ms
  */
 function textStagger( entry ) {
 	const item = entry.target;
+	const intersectionArea = item.sscItemOpts.intersection || 80;
 
-	if ( item.action === 'enter' && isActiveArea( entry.target, 75 ) ) {
+	if ( item.action === 'enter' && isActiveArea( entry.target, intersectionArea ) ) {
 		const preset = item.sscItemOpts.preset;
 		const duration = parseInt( item.sscItemOpts.duration, 10 );
 		const animationDelay = parseInt( item.sscItemOpts.delay, 10 );
