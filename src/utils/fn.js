@@ -122,10 +122,12 @@ export const getElelementData = ( opts, type = 'data' ) => {
 		parsedArgs = rawArgs.map( ( arg ) => arg.split( ':' ) );
 		const args = {};
 		parsedArgs.forEach( ( el, index ) => {
-			if ( type === 'style' ) {
-				args[ index ] = { property: el[ 0 ], value: el[ 1 ] };
-			} else {
-				args[ el[ 0 ] ] = el[ 1 ];
+			if ( el[ 0 ] !== 'defalut' ) {
+				if ( type === 'style' ) {
+					args[ index ] = { property: el[ 0 ], value: el[ 1 ] };
+				} else {
+					args[ el[ 0 ] ] = el[ 1 ];
+				}
 			}
 		} );
 		return args;
