@@ -7,6 +7,10 @@
  * @param {IntersectionObserverEntry} entry - The entry object passed to the callback function.
  */
 const video360Controller = ( entry ) => {
+	if ( ! entry.isIntersecting ) {
+		return true;
+	}
+
 	/** @constant {HTMLVideoElement} videoEl  */
 	const videoEl = entry.target.querySelector( 'video' );
 
