@@ -35,7 +35,7 @@ function scrollJacking( entry ) {
 		return false;
 	}
 
-	const intersection = 100 || parseInt( entry.target.sscItemOpts.intersection, 10 );
+	const intersection = parseInt( entry.target.sscItemOpts.intersection, 10 );
 	const duration = parseInt( entry.target.sscItemOpts.duration, 10 );
 
 	const screenJackTo = ( el ) => {
