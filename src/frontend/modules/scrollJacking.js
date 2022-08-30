@@ -1,7 +1,21 @@
 // ScrollTo
 import { mouseWheel } from '../../utils/compat';
-import { isPartiallyVisible, delay, disableWheel } from '../../utils/utils';
+import { isPartiallyVisible, delay, disableWheel, isActiveArea, isInView } from '../../utils/utils';
 import anime from 'animejs';
+
+/**
+ * Flag if another scroll-jacking is running to avoid to fire multiple this function
+ *
+ * @type {boolean|number}
+ */
+export let hasScrolling = false;
+/**
+ * @param {string} targetID
+ */
+export function setScrolling( targetID ) {
+	console.log( 'next target scroll to:', hasScrolling );
+	return parseInt( targetID, 10 );
+}
 
 /**
  * It scrolls to the target element
@@ -14,22 +28,22 @@ import anime from 'animejs';
  */
 function scrollJacking( entry ) {
 	// if there aren't any defined target, store this one
-	if ( entry.target.action !== 'enter' && this.hasScrolling !== false ) {
+	if ( entry.target.action !== 'enter' || hasScrolling ) {
+		if ( hasScrolling ) {
+			console.log( 'already scrolling to ', hasScrolling );
+		}
 		return false;
 	}
 
-	this.hasScrolling = entry.target.sscItemData.sscItem;
+	const intersection = 100 || parseInt( entry.target.sscItemOpts.intersection, 10 );
+	const duration = parseInt( entry.target.sscItemOpts.duration, 10 );
 
 	const screenJackTo = ( el ) => {
 		// disable the mouse wheel during scrolling to avoid flickering
-		window.addEventListener( mouseWheel, disableWheel, { passive: false } );
-		window.addEventListener( 'touchmove', disableWheel, false );
-		window.scrollTo( {
-			top: window.scrollY,
-			behavior: 'auto',
-		} );
+		document.body.addEventListener( mouseWheel, disableWheel, { passive: false } );
+		document.body.addEventListener( 'touchmove', disableWheel, false );
 
-		const duration = parseInt( el.target.sscItemOpts.duration, 10 );
+		hasScrolling = setScrolling( el.target.sscItemData.sscItem );
 
 		/** Stores the history state */
 		if ( el.target.id ) {
@@ -52,22 +66,23 @@ function scrollJacking( entry ) {
 			easing: el.target.sscItemOpts.easing || 'linear',
 			duration: duration || 700,
 			delay: 0,
-			complete: () => {
-				delay(
-					parseInt( el.target.sscItemOpts.delay, 10 ) || 200
-				).then( () => {
-					// this.windowData.lastScrollPosition = window.scrollY;
-					// window.scrollY = el.target.offsetTop;
-					this.hasScrolling = false;
-					window.removeEventListener( mouseWheel, disableWheel );
-					window.removeEventListener( 'touchmove', disableWheel );
-				} );
-			},
+		} );
+
+		delay(
+			parseInt( el.target.sscItemOpts.delay, 10 ) + duration || 1000
+		).then( () => {
+			// this.windowData.lastScrollPosition = window.scrollY;
+			// window.scrollY = el.target.offsetTop;
+			hasScrolling = false;
+			document.body.removeEventListener( mouseWheel, disableWheel );
+			document.body.removeEventListener( 'touchmove', disableWheel );
 		} );
 	};
 
-	if ( isPartiallyVisible( entry.target ) ) {
+	if ( isActiveArea( entry.target, intersection ) ) {
 		screenJackTo( entry );
+	} else if ( isPartiallyVisible( entry.target ) ) {
+		delay( 100 ).then( () => scrollJacking( entry ) );
 	}
 }
 
