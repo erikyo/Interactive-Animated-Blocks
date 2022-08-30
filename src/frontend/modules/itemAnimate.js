@@ -7,7 +7,7 @@ import { delay, isInView, isPartiallyVisible } from '../../utils/utils';
  *
  * @param {IntersectionObserverEntry} entry
  */
-function handleAnimation( entry ) {
+export function handleAnimation( entry ) {
 	// if the animation isn't yet stored in "animations" object
 	if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
 		if ( ! entry.target.isChildren ) {
@@ -32,7 +32,7 @@ function handleAnimation( entry ) {
 				easing: entry.target.sscItemOpts.easing || 'EaseInOut',
 				locked: false,
 				intersection:
-					parseInt( entry.target.sscItemOpts.intersection, 10 ) || 25,
+					parseInt( entry.target.sscItemOpts.intersection, 10 ) || 80,
 				lastAction: false,
 				/**
 				 * The element methods
@@ -44,6 +44,37 @@ function handleAnimation( entry ) {
 							window.scrollY + elRect.top + elRect.height
 						),
 					};
+				},
+				animateItem( action ) {
+					// if the animated element is single
+					if (
+						this.animatedElements &&
+            this.animatedElements.nodeType
+					) {
+						// check if the action needed is "enter" and if the element is in viewport
+						return this.applyAnimation(
+							this.animatedElements,
+							action
+						);
+					}
+					// otherwise for each item of the collection fire the animation
+					Object.values( this.animatedElements ).forEach(
+						( child, index ) => {
+							const animationDelay = child.sscItemOpts
+								? parseInt( child.sscItemOpts.delay, 10 )
+								: this.duration * index * 0.1;
+							setTimeout(
+								() =>
+									child.sscItemOpts
+										? this.applyChildAnimation(
+											child,
+											action
+										)
+										: this.applyAnimation( child, action ),
+								animationDelay
+							);
+						}
+					);
 				},
 				initElement() {
 					// stores the current element position (top Y and bottom Y)
@@ -75,21 +106,20 @@ function handleAnimation( entry ) {
 					if ( this.stagger !== 'none' ) {
 						// collect item childs
 						this.animatedElements =
-							entry.target.querySelectorAll( '.ssc' );
+							entry.target.querySelectorAll( '.ssc-animated' );
 						// if scc animated items aren't found use item childs
 						if ( this.animatedElements.length === 0 ) {
-							this.animatedElements =
-								entry.target.querySelectorAll( '*' );
+							this.animatedElements = entry.target.children;
 						}
 						// init each childrens
-						this.animatedElements.forEach( ( child ) => {
+						Object.values( this.animatedElements ).forEach( ( child ) => {
 							child.classList.add( 'ssc-animation-child' );
 							child.isChildren = true;
 						} );
 					} else {
 						this.animatedElements = entry.target;
 					}
-					this.animateItem( this.lastAction );
+					return this;
 				},
 				addCssClass( item = this.target, cssClass = 'false' ) {
 					if ( cssClass !== 'false' ) {
@@ -120,63 +150,33 @@ function handleAnimation( entry ) {
 						? this.removeCssClass(
 							element,
 							this.animationLeave
-						  ).addCssClass( element, this.animationEnter )
+						).addCssClass( element, this.animationEnter )
 						: this.removeCssClass(
 							element,
 							this.animationEnter
-						  ).addCssClass( element, this.animationLeave );
+						).addCssClass( element, this.animationLeave );
 				},
 				applyChildAnimation( element, action ) {
 					return action === 'enter'
 						? this.removeCssClass(
 							element,
 							element.sscItemOpts.animationLeave
-						  ).addCssClass(
+						).addCssClass(
 							element,
 							element.sscItemOpts.animationEnter
-						  )
+						)
 						: this.removeCssClass(
 							element,
 							element.sscItemOpts.animationEnter
-						  ).addCssClass(
+						).addCssClass(
 							element,
 							element.sscItemOpts.animationLeave
-						  );
-				},
-				animateItem( action ) {
-					// if the animated element is single
-					if (
-						this.animatedElements &&
-						this.animatedElements.nodeType
-					) {
-						// check if the action needed is "enter" and if the element is in viewport
-						return this.applyAnimation(
-							this.animatedElements,
-							action
 						);
-					}
-					// otherwise for each item of the collection fire the animation
-					Object.values( this.animatedElements ).forEach(
-						( child, index ) => {
-							const animationDelay = child.sscItemOpts
-								? parseInt( child.sscItemOpts.delay, 10 )
-								: this.duration * index * 0.1;
-							setTimeout(
-								() =>
-									child.sscItemOpts
-										? this.applyChildAnimation(
-											child,
-											action
-										  )
-										: this.applyAnimation( child, action ),
-								animationDelay
-							);
-						}
-					);
 				},
 			};
 
 			this.animations[ entry.target.sscItemData.sscItem ].initElement();
+			this.animations[ entry.target.sscItemData.sscItem ].animateItem( this.lastAction );
 		} else {
 			// the animation childrens hold a smaller set of properties
 			this.animations[ entry.target.sscItemData.sscItem ] = {
@@ -236,6 +236,7 @@ function handleAnimation( entry ) {
 			} );
 	}
 
+	// will catch any animated item that isn't inside the view or hasn't triggered the previous code
 	if ( ! isInView( el.position, 0 ) ) {
 		delay( 100 ).then( () => {
 			this.handleAnimation( entry );
