@@ -25,7 +25,10 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 	const styles = {};
 
 	if ( sscAnimated && sscAnimationType ) {
+		classes.push( 'ssc' );
+
 		const defaults = getDefaults( sscAnimationType );
+
 		sscAnimationOptions[ sscAnimationType ] = {
 			...defaults,
 			...sscAnimationOptions[ sscAnimationType ],
