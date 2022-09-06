@@ -14,6 +14,10 @@
     pointer-events: all;
   }
 
+  &.ssc-video .wp-block-cover__background {
+    pointer-events: none;
+  }
+
   // scc-hide - nulled for editors
   &-hide {
     opacity: 0;
