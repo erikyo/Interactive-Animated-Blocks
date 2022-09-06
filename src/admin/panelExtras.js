@@ -88,7 +88,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 * `updateAnimation` is a function that takes the type of animation and
 			 * sets the default attributes if none have been set previously
 			 *
-			 * @param  attr - The attribute that is being updated.
+			 * @param {string} attr - The attribute that is being updated.
 			 *
 			 * @type {sscAnimationType}
 			 * @type {sscAnimationOptions}
@@ -106,8 +106,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 					sscAnimationType: attr,
 					additionalClasses: {
 						...additionalClasses,
-						[ attr ]:
-              ! attr,
+						[ attr ]: true,
 					},
 					sscAnimationOptions: animationOptions,
 				} );
