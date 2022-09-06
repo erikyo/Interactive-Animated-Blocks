@@ -25,8 +25,6 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 	const styles = {};
 
 	if ( sscAnimated && sscAnimationType ) {
-		classes.push( 'ssc' );
-
 		const defaults = getDefaults( sscAnimationType );
 
 		sscAnimationOptions[ sscAnimationType ] = {
@@ -47,7 +45,6 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 
 		if ( sscAnimationType === 'sscTimelineChild' ) {
 			try {
-				// const sceneData = JSON.parse( rawData ) || {};
 				extraProps[ 'data-scene' ] = JSON.stringify(
 					sscScene,
 					null,
@@ -77,16 +74,26 @@ export const addExtraProps = ( extraProps, blockType, attributes ) => {
 				);
 			}
 		}
+
+		classes.push( 'ssc' );
+		classes.push( capitalToloDash( sscAnimationType ) );
 	}
 
 	if ( additionalClasses.length ) {
-		additionalClasses.forEach( ( cssClass ) => classes.push( capitalToloDash( cssClass ) ) );
+		additionalClasses.forEach( ( cssClass ) => {
+			if ( cssClass[ 0 ] === 'sscAbsolute' ) {
+				additionalCSS.position = 'absolute';
+			} else if ( cssClass[ 0 ] === 'sscHide' ) {
+				additionalCSS.opacity = 0;
+			}
+			classes.push( capitalToloDash( cssClass[ 0 ] ) );
+		} );
 	}
 
 	// add all the custom properties to the element
 	Object.assign( extraProps, {
 		style: { ...styles, ...additionalCSS, ...extraProps.style },
-		className: classnames( extraProps.className, classes.join( ' ' ) ),
+		className: classnames( extraProps.className, ...classes ),
 	} );
 
 	return extraProps;
