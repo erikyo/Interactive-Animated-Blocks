@@ -1,5 +1,6 @@
 import { createHigherOrderComponent } from '@wordpress/compose';
 import classnames from 'classnames';
+import { capitalToloDash } from '../utils/fn';
 
 /**
  * It's a higher order component that adds the custom classes into block editor
@@ -13,14 +14,14 @@ export const editAttributes = createHigherOrderComponent(
 			} = props;
 
 			if ( additionalClasses || additionalCSS ) {
-				const customClasses = [];
 				const additional = {
 					style: {},
 				};
+				const classes = [];
 
 				Object.entries( additionalClasses ).map( ( cssClass ) =>
-					cssClass[ 1 ] !== false
-						? customClasses.push( 'ssc-' + cssClass[ 0 ] )
+					cssClass[ 0 ] !== false
+						? classes.push( capitalToloDash( cssClass[ 0 ] ) )
 						: null
 				);
 
@@ -34,10 +35,10 @@ export const editAttributes = createHigherOrderComponent(
 					<BlockListBlock
 						{ ...block }
 						{ ...props }
-						className={
-							classnames( className, customClasses.join( ' ' ) ) || ''
-						}
-						wrapperProps={ { style: { ...additionalCSS } } }
+						wrapperProps={ {
+							className: classnames( className, classes ) || '',
+							style: { ...additionalCSS },
+						} }
 					/>
 				);
 			}
