@@ -43,20 +43,43 @@ export const isFullyVisible = ( el ) => {
 };
 
 /**
- * Check when the element is inside the active area
+ * Check when the element center (the median between Y top and Y bottom ) is inside the active area
  *
- * "Is the element's center within 20% of the viewport's height from the top and bottom?"
- * The function returns true if the element's center is within the range, and false if it's not
+ * The element's center within 20% of the viewport's height from the top and bottom
+ * The function returns true if the element's center is inside the active viewport, and false if it's not
  *
  * @param {HTMLElement} el            - The element you want to check if it's in the active area.
- * @param {number}      rangePosition - The percentage of the viewport's height to use as active area
+ * @param {number}      rangePosition - The percentage of the viewport's height that represents the active area
  * @return {boolean}                  - true if the element is inside the active area
  */
 export const isActiveArea = ( el, rangePosition ) => {
 	const rect = el.getBoundingClientRect();
-	const limit = window.innerHeight * ( rangePosition * 0.005 ); // 20% of 1000px is 100px from top and 100px from bottom
-	const elementCenter = rect.top + rect.height * 0.5;
-	return elementCenter > limit && elementCenter < window.innerHeight - limit;
+	const innerHeight = window.innerHeight;
+	const limit = innerHeight * ( 100 - rangePosition ) * 0.005; // 20% of 1000px is 100px from top and 100px from bottom
+	const elementCenter = rect.top + ( rect.height * 0.5 );
+	return limit < elementCenter && elementCenter < innerHeight - limit;
+};
+
+/**
+ * Check when the element (top or bottom) is inside the active area, works well with elements larger than the screen like the jack scrolling container
+ * The active area is a horizontal slice of the screen - the 80% active area in a 1000px height screen is the area between 100px from the top to 900px from the top (i.e. 800px height)
+ *
+ * It returns true if the element top or bottom is inside the active viewport, and false if it's not
+ *
+ * @param {HTMLElement} el            - The element you want to check if it's in the active area.
+ * @param {number}      rangePosition - The percentage of the viewport's height that represents the active area
+ * @return {boolean}                  - true if the element is inside the active area
+ */
+export const isInside = ( el, rangePosition ) => {
+	const rect = el.getBoundingClientRect();
+	const innerHeight = window.innerHeight;
+	// eg. 20 (%) of 1000 (px) are the slice inside 100px from top and 100px from bottom
+	const limit = innerHeight * rangePosition * 0.005;
+	// if the element top side is inside the view
+	if ( rect.top > 0 ) {
+		return limit < rect.top && rect.top < innerHeight - limit;
+	}
+	return limit < rect.bottom && rect.bottom < innerHeight - limit;
 };
 
 /**
@@ -92,25 +115,6 @@ export const isInView = ( position, intersectionArea ) => {
 	};
 	return margins.top < position.ycenter && margins.bottom > position.ycenter;
 };
-
-/**
- * It returns true if the element is between the top and bottom margins of the active area
- *
- * @param {HTMLElement} el               - the element we're checking
- * @param {number}      intersectionArea - The percentage of the viewport that the element should be in.
- *
- * @return {boolean} Return true if the element is inside the active area
- */
-export function isBetween( el, intersectionArea ) {
-	const elCenter = ( el.position.yTop + el.position.yBottom ) * 0.5;
-	const activeArea = intersectionArea * ( window.innerHeight * 0.01 );
-	const inactiveArea = ( window.innerHeight - activeArea ) * 0.5;
-	const margins = {
-		top: window.scrollY + inactiveArea,
-		bottom: window.scrollY + ( window.innerHeight - inactiveArea ),
-	};
-	return margins.top > elCenter && elCenter < margins.bottom;
-}
 
 /**
  * If the last scroll position is less than the current scroll position, the user is scrolling down.
