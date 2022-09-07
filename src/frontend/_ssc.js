@@ -183,6 +183,9 @@ class _ssc {
 		}
 	};
 
+	/**
+	 * Updates the position of the animated item.
+	 */
 	updateAnimationPosition = () => {
 		this.animations.forEach( ( item ) => item.updatePosition );
 	};
@@ -203,6 +206,7 @@ class _ssc {
 	 * @property {?string}     dataset.sscScene          - the scene sequence data
 	 * @property {Function}    unWatch                   - remove from observed items
 	 * @property {Object}      sscItemData               - a copy of the dataset
+	 * @property {string}      sscItemData.sscItem       - the ssc id
 	 * @property {Object}      sscItemOpts               - the scc general animation parameters
 	 * @property {?Object}     sscScene                  - the scc animation used for the "timeline"
 	 */
@@ -253,7 +257,8 @@ class _ssc {
 				Object.assign( el.style, {
 					minHeight: 'calc(100vh + 30px)',
 					width: '100%',
-					padding: 0,
+					paddingTop: 0,
+					paddingBottom: 0,
 					margin: 0,
 				} );
 				break;
@@ -269,6 +274,9 @@ class _ssc {
 				break;
 			case 'sscTimelineChild': // init ScrollMagic scene
 				el.classList.add( 'ssc-timeline-scene' );
+				break;
+			case 'sscAnimation': // init ScrollMagic scene
+				el.classList.add( 'ssc-animated' );
 				break;
 		}
 	};
@@ -313,8 +321,8 @@ class _ssc {
 					}
 				}, this );
 
-			document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : null;
-      this.initTimeline();
+			const hasIndicators = document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : false;
+			this.initTimeline();
 
 			// start parallax
 			this.parallax();
@@ -326,6 +334,7 @@ class _ssc {
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
 
+			// injects animate.css stylesheet
 			this.applyAnimateCssStylesheet( this.collected );
 
 			// update the screen size if necessary
@@ -382,6 +391,9 @@ class _ssc {
 		}
 	};
 
+	/**
+	 * @param {IntersectionObserverEntry[]} entries - the Intersection observer item collection
+	 */
 	screenControl = ( entries ) => {
 		// update the last scroll position
 		this.windowData.lastScrollPosition = window.scrollY;
@@ -390,6 +402,7 @@ class _ssc {
 		this.scrollDirection();
 
 		entries.forEach( ( entry ) => {
+			/** @member {IntersectionObserverEntry} entry  */
 			if ( entry.target.dataset.lock ) {
 				return true;
 			}

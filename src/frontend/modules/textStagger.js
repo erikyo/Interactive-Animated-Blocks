@@ -15,7 +15,7 @@ import { splitSentence } from '../../utils/fn';
  */
 function textStagger( entry ) {
 	const item = entry.target;
-	const intersectionArea = item.sscItemOpts.intersection || 80;
+	const intersectionArea = parseInt( item.sscItemOpts.intersection, 10 ) || 80;
 
 	if ( item.action === 'enter' && isActiveArea( entry.target, intersectionArea ) ) {
 		const preset = item.sscItemOpts.preset;

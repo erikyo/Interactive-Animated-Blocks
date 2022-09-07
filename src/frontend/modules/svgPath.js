@@ -4,6 +4,8 @@ import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
 /**
  * If the element is in the viewport, animate the SVG paths
  *
+ * @todo - provide an option to "start hidden"
+ *
  * @module animationSvgPath
  *
  * @param {IntersectionObserverEntry} entry                     - The IntersectionObserverEntry object.
