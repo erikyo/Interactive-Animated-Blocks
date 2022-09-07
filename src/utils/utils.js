@@ -83,22 +83,6 @@ export const isInside = ( el, rangePosition ) => {
 };
 
 /**
- * Check if the element is above or below a certain percentage of the screen
- *
- * @param {HTMLElement} el            - The element you want to check if it's crossing the center of the screen.
- * @param {number}      rangePosition - The percentage of the viewport height that the element should be at.
- * @return {boolean}                     - return true if above, false if below
- */
-export const isCrossing = ( el, rangePosition ) => {
-	const rect = el.getBoundingClientRect();
-	const center = parseInt(
-		window.innerHeight * ( rangePosition * 0.01 ),
-		10
-	);
-	return rect.top > center && rect.bottom < center;
-};
-
-/**
  * If the center of the element is between the top and bottom margins of the active area, then the element is in view
  *
  * @param {Object} position         - The stored original position of the element in the viewport.
