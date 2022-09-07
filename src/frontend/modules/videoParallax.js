@@ -6,7 +6,7 @@ import { isPartiallyVisible } from '../../utils/utils';
  * @property {Element} videoParallaxed[Element] - a single instance of the settings of the parallaxed video
  */
 let videoParallaxed = [];
-let lastVideoScrollPosition = 0;
+let lastVideoScrollPosition = window.scrollY;
 
 /**
  * It loops through all the videos that have been registered for parallaxing,
@@ -26,30 +26,22 @@ export function parallaxVideo() {
 	videoParallaxed.forEach( ( video ) => {
 		const rect = video.item.getBoundingClientRect();
 		if ( video.hasExtraTimeline ) {
-			/*			console.log(
-				'scrolling timeline',
-				( window.scrollY -
-					video.distanceTop +
-					rect.top +
-					rect.height ) /
-					video.hasExtraTimeline,
-				'regular timeline',
-				1 - ( rect.top + rect.height ) / video.hasExtraTimeline
-			); */
-			// the common behaviour
+			// the timeline behaviour
+			// // ( ( window.scrollY - rect.top ) - video.distanceTop )
+			// stands for the total height scrolled
+			// // (window.innerHeight * 0.5) + rect.height
+			// stands for the height of the item that is the real needed value
+			// and, since I need to end the video before the edge, I've added a half of the total height of the page (anyway to be fully correct we need to remove this)
 			video.item.currentTime = (
-				( ( window.scrollY - video.distanceTop ) /
-					video.hasExtraTimeline +
-					( 1 -
-						( rect.top + rect.height ) /
-							video.hasExtraTimeline ) ) *
+				( ( ( ( window.scrollY - rect.top ) - video.distanceTop ) + rect.height ) /
+          ( video.timelineLength ) ) *
 				video.videoDuration *
 				video.playbackRatio
 			).toFixed( 5 );
 		} else {
 			// the common behaviour
 			video.item.currentTime = (
-				( 1 - ( rect.top + rect.height ) / video.timelineLength ) *
+				( 1 - ( ( rect.top + rect.height ) / video.timelineLength ) ) *
 				video.videoDuration *
 				video.playbackRatio
 			).toFixed( 5 );
@@ -71,12 +63,8 @@ function videoParallaxController( entry ) {
 	if ( videoEl && ! videoParallaxed[ entry.target.sscItemData.sscItem ] ) {
 		if ( isPartiallyVisible( videoEl ) ) {
 			const rect = entry.target.getBoundingClientRect();
-			let timelineDuration =
+			const timelineDuration =
 				parseInt( entry.target.sscItemData.timelineDuration, 10 ) || 0;
-			timelineDuration =
-				entry.target.sscItemData.intersection === 'down'
-					? timelineDuration
-					: timelineDuration * -1;
 			const duration =
 				rect.height + window.innerHeight + timelineDuration;
 			videoParallaxed[ entry.target.sscItemData.sscItem ] = {
@@ -85,7 +73,7 @@ function videoParallaxController( entry ) {
 				sscItemData: entry.target.sscItemData,
 				hasExtraTimeline: timelineDuration,
 				timelineLength: duration,
-				distanceTop: rect.height + rect.top + window.scrollY,
+				distanceTop: window.scrollY + rect.top,
 				playbackRatio: parseFloat(
 					entry.target.sscItemOpts.playbackRatio
 				).toFixed( 2 ),
