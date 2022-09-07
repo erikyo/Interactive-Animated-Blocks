@@ -1,6 +1,6 @@
 // ScrollTo
 import { mouseWheel } from '../../utils/compat';
-import { isPartiallyVisible, delay, disableWheel, isActiveArea, isInView } from '../../utils/utils';
+import { isPartiallyVisible, delay, disableWheel, isInside } from '../../utils/utils';
 import anime from 'animejs';
 
 /**
@@ -9,13 +9,19 @@ import anime from 'animejs';
  * @type {boolean|number}
  */
 export let hasScrolling = false;
+
 /**
- * @param {string} targetID
+ * If the targetID is a number, then set the hasScrolling variable to that number, otherwise set it to false.
+ *
+ * @param {string} targetID - The ID of the target element to scroll to.
+ *
+ * @return {string} the value of the variable hasScrolling.
  */
 export function setScrolling( targetID ) {
-	console.log( 'next target scroll to:', hasScrolling );
-	return parseInt( targetID, 10 );
+	return hasScrolling = parseInt( targetID, 10 );
 }
+
+let lastVideoScrollPosition = 0;
 
 /**
  * It scrolls to the target element
@@ -28,22 +34,34 @@ export function setScrolling( targetID ) {
  */
 function scrollJacking( entry ) {
 	// if there aren't any defined target, store this one
-	if ( entry.target.action !== 'enter' || hasScrolling ) {
-		if ( hasScrolling ) {
-			console.log( 'already scrolling to ', hasScrolling );
-		}
+	if ( entry.target.action !== 'enter' ) {
 		return false;
 	}
 
 	const intersection = parseInt( entry.target.sscItemOpts.intersection, 10 );
 	const duration = parseInt( entry.target.sscItemOpts.duration, 10 );
 
-	const screenJackTo = ( el ) => {
+	/**
+	 * It scrolls to the element passed to it
+	 *
+	 * @param {IntersectionObserverEntry} el - The element that was clicked.
+	 *
+	 * @return {Function} A function that is being called with the element as a parameter.
+	 */
+	function screenJackTo( el ) {
 		// disable the mouse wheel during scrolling to avoid flickering
 		document.body.addEventListener( mouseWheel, disableWheel, { passive: false } );
 		document.body.addEventListener( 'touchmove', disableWheel, false );
 
-		hasScrolling = setScrolling( el.target.sscItemData.sscItem );
+		if ( window.scrollY === lastVideoScrollPosition ) {
+			// defer scroll jacking if the window hasn't been scrolled
+			delay( 20 ).then( () => scrollJacking( el ) );
+		}
+
+		// Store the last position
+		lastVideoScrollPosition = window.scrollY;
+
+		setScrolling( el.target.sscItemData.sscItem );
 
 		/** Stores the history state */
 		if ( el.target.id ) {
@@ -77,12 +95,12 @@ function scrollJacking( entry ) {
 			document.body.removeEventListener( mouseWheel, disableWheel );
 			document.body.removeEventListener( 'touchmove', disableWheel );
 		} );
-	};
+	}
 
-	if ( isActiveArea( entry.target, intersection ) ) {
-		screenJackTo( entry );
+	if ( ! hasScrolling && isInside( entry.target, intersection ) ) {
+		return screenJackTo( entry );
 	} else if ( isPartiallyVisible( entry.target ) ) {
-		delay( 100 ).then( () => scrollJacking( entry ) );
+		delay( 20 ).then( () => scrollJacking( entry ) );
 	}
 }
 
