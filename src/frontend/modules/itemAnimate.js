@@ -11,8 +11,6 @@ export function handleAnimation( entry ) {
 	// if the animation isn't yet stored in "animations" object
 	if ( ! this.animations[ entry.target.sscItemData.sscItem ] ) {
 		if ( ! entry.target.isChildren ) {
-			const elRect = entry.target.getBoundingClientRect();
-
 			/**
 			 * @property {Object} animations - the animations collection
 			 */
@@ -38,11 +36,10 @@ export function handleAnimation( entry ) {
 				 * The element methods
 				 */
 				updatePosition() {
-					return {
-						yTop: parseInt( window.scrollY + elRect.top ),
-						yBottom: parseInt(
-							window.scrollY + elRect.top + elRect.height
-						),
+					const targetRect = this.target.getBoundingClientRect();
+					this.position = {
+						yTop: window.scrollY + targetRect.top,
+						yBottom: window.scrollY + targetRect.top + targetRect.height,
 					};
 				},
 				animateItem( action ) {
@@ -63,22 +60,29 @@ export function handleAnimation( entry ) {
 							const animationDelay = child.sscItemOpts
 								? parseInt( child.sscItemOpts.delay, 10 )
 								: this.duration * index * 0.1;
-							setTimeout(
-								() =>
-									child.sscItemOpts
-										? this.applyChildAnimation(
-											child,
-											action
-										)
-										: this.applyAnimation( child, action ),
-								animationDelay
-							);
+
+              child.delay = animationDelay;
+
+							child.locked = true;
+							delay( animationDelay )
+								.then( () => {
+									child.sscItemOpts ? this.applyChildAnimation( child, action ) : this.applyAnimation( child, action );
+									// wait the animation has been completed before unlock the element
+									new Promise( ( resolve ) => {
+										setTimeout( function() {
+											child.locked = false;
+											child.lastAction =
+                        child.lastAction === 'enter' ? 'leave' : 'enter';
+											resolve();
+										}, child.duration );
+									} );
+								} );
 						}
 					);
 				},
 				initElement() {
 					// stores the current element position (top Y and bottom Y)
-					this.position = this.updatePosition();
+					this.updatePosition();
 					// we need to set the opposite of the next action
 					// eg. enter to trigger the leave animation
 					this.lastAction = isInView(
@@ -176,7 +180,7 @@ export function handleAnimation( entry ) {
 			};
 
 			this.animations[ entry.target.sscItemData.sscItem ].initElement();
-			this.animations[ entry.target.sscItemData.sscItem ].animateItem( this.lastAction );
+			// this.animations[ entry.target.sscItemData.sscItem ].animateItem( this.lastAction );
 		} else {
 			// the animation childrens hold a smaller set of properties
 			this.animations[ entry.target.sscItemData.sscItem ] = {
