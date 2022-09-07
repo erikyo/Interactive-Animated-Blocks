@@ -426,6 +426,17 @@ class _ssc {
 				entry.target.action = '';
 			}
 
+			/**
+			 * @description If the item contains the class "ssc-focused",
+			 * add a class to the body element when the element is in view.
+			 * Will be useful to show and hide the "back to top" button or show/hide the header.
+			 */
+			if ( entry.target.classList.contains( 'ssc-focused' ) ) {
+				entry.isIntersecting === true
+					? document.body.classList.add( 'ssc-focus-' + entry.target.id )
+					: document.body.classList.remove( 'ssc-focus-' + entry.target.id );
+			}
+
 			// is colliding with borders // used next loop to detect if the object is inside the screen
 			entry.target.dataset.visible = entry.isIntersecting
 				? 'true'
