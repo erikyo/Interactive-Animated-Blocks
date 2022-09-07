@@ -15,7 +15,7 @@ const video360Controller = ( entry ) => {
 	const videoEl = entry.target.querySelector( 'video' );
 
 	videoEl.timeoutAutoplay = null;
-	videoEl.style.cursor = 'ew-resize';
+	videoEl.style.cursor = 'grab';
 	videoEl.spinRatio = parseFloat( entry.target.sscItemOpts.spinRatio );
 	videoEl.control = entry.target.sscItemOpts.control;
 	videoEl.loop = true;
@@ -50,6 +50,11 @@ const video360Controller = ( entry ) => {
 		return parseFloat( ( pointerX - rect.left ) / rect.width );
 	};
 
+	videoEl.getTouchAngle = ( video, pointerX ) => {
+		const rect = video.getBoundingClientRect();
+		return parseFloat( ( pointerX - rect.left ) / rect.width );
+	};
+
 	videoEl.setAngle = ( currentAngle ) => {
 		if ( videoEl.readyState > 1 ) {
 			// apply the calculated time to this video
@@ -75,6 +80,13 @@ const video360Controller = ( entry ) => {
 		} );
 	};
 
+	videoEl.handle360byTouchPosition = ( e ) => {
+		window.requestAnimationFrame( () => {
+			const currentAngle = e.target.getAngle( e.target, e.changedTouches[ 0 ].clientX );
+			return e.target.setAngle( currentAngle );
+		} );
+	};
+
 	videoEl.handle360byDrag = ( e ) => {
 		const video = e.target;
 		video.style.cursor = 'grab';
@@ -90,16 +102,31 @@ const video360Controller = ( entry ) => {
 		};
 	};
 
+	videoEl.handle360byTouch = ( e ) => {
+		const video = e.target;
+		// store the event initial position
+		videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
+		videoEl.startAngle = video.getTouchAngle( e.target, e.changedTouches[ 0 ].clientX );
+		video.ontouchmove = ( ev ) => {
+			window.requestAnimationFrame( () => {
+				const currentAngle = video.getTouchAngle( ev.target, ev.changedTouches[ 0 ].clientX );
+				return video.setAngle( currentAngle );
+			} );
+		};
+	};
+
 	if ( entry.target.action === 'enter' ) {
 		if ( entry.target.sscItemOpts.control === 'pointer' ) {
 			videoEl.onmousemove = videoEl.handle360byPointerPosition;
-		} else {
+		} else if ( entry.target.sscItemOpts.control === 'drag' ) {
 			videoEl.onmousedown = videoEl.handle360byDrag;
 			videoEl.onmouseup = () => {
 				videoEl.onmousemove = null;
-				videoEl.style.cursor = 'ew-resize';
+				videoEl.style.cursor = 'grab';
 			};
 		}
+
+		videoEl.ontouchstart = videoEl.handle360byTouch;
 
 		videoEl.onmouseout = ( e ) => {
 			e.target.pause();
