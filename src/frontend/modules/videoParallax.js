@@ -6,7 +6,44 @@ import { isPartiallyVisible } from '../../utils/utils';
  * @property {Element} videoParallaxed[Element] - a single instance of the settings of the parallaxed video
  */
 let videoParallaxed = [];
-let lastVideoScrollPosition = window.scrollY;
+let lastVideoScrollPosition = 0;
+
+/**
+ * It calculates the current time of the video based on the scroll position
+ *
+ * @param {videoParallaxed}  video                  - the video object
+ * @param {HTMLVideoElement} video.item             - the video item
+ * @param {number}           video.videoDuration    - the video videoDuration
+ * @param {Object}           video.sscItemData      - the video data props
+ * @param {number}           video.hasExtraTimeline - the video hasExtraTimeline
+ * @param {number}           video.timelineLength   - the video timelineLength
+ * @param {number}           video.distanceTop      - the video distanceTop
+ * @param {number}           video.playbackRatio    - the video playbackRatio
+ */
+function videoParallaxCallback( video ) {
+	const rect = video.item.getBoundingClientRect();
+	if ( video.hasExtraTimeline ) {
+		// the timeline behaviour
+		// // ( ( window.scrollY - rect.top ) - video.distanceTop )
+		// stands for the total height scrolled
+		// // + rect.height * video duration
+		// stands for the height of the item that is the real needed value
+		// 60% of a timeline of a video 10sec long -> (60 * 0.01) * 10
+		video.item.currentTime = (
+			( ( ( ( window.scrollY - rect.top ) - video.distanceTop ) + rect.height ) /
+        ( video.timelineLength ) ) *
+      video.videoDuration *
+      video.playbackRatio
+		).toFixed( 5 );
+	} else {
+		// the common behaviour
+		video.item.currentTime = (
+			( 1 - ( ( rect.top + rect.height ) / video.timelineLength ) ) *
+      video.videoDuration *
+      video.playbackRatio
+		).toFixed( 5 );
+	}
+}
 
 /**
  * It loops through all the videos that have been registered for parallaxing,
@@ -14,41 +51,19 @@ let lastVideoScrollPosition = window.scrollY;
  *
  * @return {Function} The function parallaxVideo is being returned.
  */
-export function parallaxVideo() {
+export function parallaxVideos() {
 	if ( window.scrollY === lastVideoScrollPosition ) {
 		// callback the animationFrame and exit the current loop
-		return window.requestAnimationFrame( parallaxVideo );
+		return window.requestAnimationFrame( parallaxVideos );
 	}
+
+	// for each video inside the screen fire the update of the displayed frame
+	videoParallaxed.forEach( ( video ) => videoParallaxCallback( video ) );
 
 	// Store the last position
 	lastVideoScrollPosition = window.scrollY;
 
-	videoParallaxed.forEach( ( video ) => {
-		const rect = video.item.getBoundingClientRect();
-		if ( video.hasExtraTimeline ) {
-			// the timeline behaviour
-			// // ( ( window.scrollY - rect.top ) - video.distanceTop )
-			// stands for the total height scrolled
-			// // (window.innerHeight * 0.5) + rect.height
-			// stands for the height of the item that is the real needed value
-			// and, since I need to end the video before the edge, I've added a half of the total height of the page (anyway to be fully correct we need to remove this)
-			video.item.currentTime = (
-				( ( ( ( window.scrollY - rect.top ) - video.distanceTop ) + rect.height ) /
-          ( video.timelineLength ) ) *
-				video.videoDuration *
-				video.playbackRatio
-			).toFixed( 5 );
-		} else {
-			// the common behaviour
-			video.item.currentTime = (
-				( 1 - ( ( rect.top + rect.height ) / video.timelineLength ) ) *
-				video.videoDuration *
-				video.playbackRatio
-			).toFixed( 5 );
-		}
-	} );
-
-	return window.requestAnimationFrame( parallaxVideo );
+	return window.requestAnimationFrame( parallaxVideos );
 }
 
 /**
@@ -76,10 +91,10 @@ function videoParallaxController( entry ) {
 				distanceTop: window.scrollY + rect.top,
 				playbackRatio: parseFloat(
 					entry.target.sscItemOpts.playbackRatio
-				).toFixed( 2 ),
+				).toFixed( 5 ),
 			};
 		}
-		parallaxVideo();
+		parallaxVideos();
 	}
 
 	if ( entry.target.action === 'leave' ) {
