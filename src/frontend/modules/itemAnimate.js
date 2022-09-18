@@ -61,12 +61,17 @@ export function handleAnimation( entry ) {
 								? parseInt( child.sscItemOpts.delay, 10 )
 								: this.duration * index * 0.1;
 
-              child.delay = animationDelay;
+							child.delay = animationDelay;
 
 							child.locked = true;
+
 							delay( animationDelay )
 								.then( () => {
-									child.sscItemOpts ? this.applyChildAnimation( child, action ) : this.applyAnimation( child, action );
+									if ( child.sscItemOpts ) {
+										this.applyChildAnimation( child, action );
+									} else {
+										this.applyAnimation( child, action );
+									}
 									// wait the animation has been completed before unlock the element
 									new Promise( ( resolve ) => {
 										setTimeout( function() {

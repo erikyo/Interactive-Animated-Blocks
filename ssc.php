@@ -39,7 +39,3 @@ function ssc_style() {
 }
 
 add_action( 'wp_enqueue_scripts', 'ssc_style' );
-
-// TOOLS
-// filter the video upload and create a copy of that image
-// include_once __DIR__ . '/tools/video_upload.php';

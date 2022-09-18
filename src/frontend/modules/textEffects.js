@@ -106,7 +106,7 @@ function textAnimated( el ) {
 		animateCount( el );
 	} else {
 		if ( ! el.target.dataset.init ) {
-			const replaced = splitSentence( el.target.innerHTML, 'letters' );
+			const replaced = splitSentence( el.target.textContent, 'letters' );
 
 			if ( el.target.innerHTML ) {
 				el.target.innerHTML = replaced;

@@ -88,7 +88,7 @@ function videoParallaxController( entry ) {
 				sscItemData: entry.target.sscItemData,
 				hasExtraTimeline: timelineDuration,
 				timelineLength: duration,
-				distanceTop: window.scrollY + rect.top,
+				distanceTop: window.scrollY + rect.top, // works 99% of the time but needs to be fixed in case of timeline-child (in this case we need to get the parent container Y)
 				playbackRatio: parseFloat(
 					entry.target.sscItemOpts.playbackRatio
 				).toFixed( 5 ),

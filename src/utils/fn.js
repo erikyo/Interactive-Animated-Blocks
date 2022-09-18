@@ -153,7 +153,7 @@ export function splitSentence( sentence, splitBy = 'word' ) {
 		}
 		return (
 			'<span class="word">' +
-			word.replace( /\S/g, `<span class="letter">$&</span>` ) +
+			word.replace( /([^\x00-\x80]|\w)/g, `<span class="letter">$&</span>` ) +
 			'</span>'
 		);
 	} );

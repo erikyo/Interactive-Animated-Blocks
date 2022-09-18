@@ -17,8 +17,6 @@ import { getElelementData } from '../utils/fn';
 import {
 	delay,
 	scrollDirection,
-	touchstartEvent,
-	ontouchmoveEvent,
 } from '../utils/utils';
 
 // MODULES
@@ -90,8 +88,8 @@ class _ssc {
 			y: false,
 		};
 
-		this.page.ontouchstart = touchstartEvent.bind( this );
-		this.page.ontouchmove = ontouchmoveEvent.bind( this );
+		// this.page.ontouchstart = touchstartEvent.bind( this );
+		// this.page.ontouchmove = ontouchmoveEvent.bind( this );
 
 		// the ssc enabled elements found in this page it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
 		this.collected = [];
@@ -135,13 +133,15 @@ class _ssc {
 	/**
 	 * It waits 250 milliseconds for resize to be completely done,
 	 * then updates the windowData object with the current window height and scroll position
+	 *
+	 * @param {number} waitFor
 	 */
-	updateScreenSize() {
+	updateScreenSize( waitFor = 250 ) {
 		( async () =>
 			await ( () =>
 				console.warn( 'Old Screensize', this.windowData ) ) )()
 			.then( () => {
-				return delay( 250 );
+				return delay( waitFor );
 			} )
 			.then( () => {
 				this.windowData.viewHeight = window.innerHeight;
@@ -185,10 +185,9 @@ class _ssc {
 
 	/**
 	 * Updates the position of the animated item.
+	 * if the item has not the position it's a child, and it doesn't need to be updated
 	 */
-	updateAnimationPosition = () => {
-		this.animations.forEach( ( item ) => item.updatePosition );
-	};
+	updateAnimationPosition = () => this.animations.forEach( ( item ) => item.position ? item.updatePosition() : null );
 
 	/**
 	 * After collecting all the animation-enabled elements
@@ -289,8 +288,6 @@ class _ssc {
 			document.body.style.overflowX = 'hidden';
 
 			this.collected = this.page.querySelectorAll( '.ssc' );
-
-			this.updateScreenSize();
 			console.log( 'SSC ready' );
 
 			this.observer = new window.IntersectionObserver(
@@ -321,7 +318,11 @@ class _ssc {
 					}
 				}, this );
 
+			// injects animate.css stylesheet
+			this.applyAnimateCssStylesheet( this.collected );
+
 			const hasIndicators = document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : false;
+
 			this.initTimeline();
 
 			// start parallax
@@ -334,8 +335,7 @@ class _ssc {
 			// watch for new objects added to the DOM
 			this.interceptor( this.page );
 
-			// injects animate.css stylesheet
-			this.applyAnimateCssStylesheet( this.collected );
+			this.updateScreenSize();
 
 			// update the screen size if necessary
 			window.addEventListener( 'resize', this.updateScreenSize );
@@ -432,7 +432,7 @@ class _ssc {
 			 * Will be useful to show and hide the "back to top" button or show/hide the header.
 			 */
 			if ( entry.target.classList.contains( 'ssc-focused' ) ) {
-				entry.isIntersecting === true
+				( entry.isIntersecting === true )
 					? document.body.classList.add( 'ssc-focus-' + entry.target.id )
 					: document.body.classList.remove( 'ssc-focus-' + entry.target.id );
 			}
