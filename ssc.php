@@ -16,7 +16,7 @@ add_action( 'enqueue_block_editor_assets', 'ssc_editor_scripts' );
 
 function ssc_script() {
 	$asset = include __DIR__ . '/build/ssc.asset.php';
-	wp_enqueue_script( 'ssc', plugin_dir_url( __FILE__ ) . 'build/ssc.js', $asset['dependencies'] );
+	wp_enqueue_script( 'ssc', plugin_dir_url( __FILE__ ) . 'build/ssc.js', $asset['dependencies'], false, true );
 }
 
 add_action( 'wp_enqueue_scripts', 'ssc_script' );

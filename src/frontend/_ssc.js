@@ -12,7 +12,7 @@
  */
 
 // UTILITY
-import { sscOptions } from '../ssc';
+import { options } from '../ssc';
 import { getElelementData } from '../utils/fn';
 import {
 	delay,
@@ -56,10 +56,10 @@ window.addEventListener( 'hashchange', jumpToHash );
 class _ssc {
 	/**
 	 * @function Object() { [native code] } - screen control
-	 * @param {{page: Element}} options
+	 *
 	 */
-	constructor( options ) {
-		this.page = options.page || document.body;
+	constructor() {
+		this.options = options;
 		this.scrollDirection = scrollDirection.bind( this );
 		this.updateScreenSize = this.updateScreenSize.bind( this );
 
@@ -87,9 +87,6 @@ class _ssc {
 			x: false,
 			y: false,
 		};
-
-		// this.page.ontouchstart = touchstartEvent.bind( this );
-		// this.page.ontouchmove = ontouchmoveEvent.bind( this );
 
 		// the ssc enabled elements found in this page it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
 		this.collected = [];
@@ -287,15 +284,17 @@ class _ssc {
 			/** this is mandatory because animation could exit from left or right*/
 			document.body.style.overflowX = 'hidden';
 
-			this.collected = this.page.querySelectorAll( '.ssc' );
+			const page = options.container || document.body;
+
+			this.collected = page.querySelectorAll( '.ssc' );
 			console.log( 'SSC ready' );
 
 			this.observer = new window.IntersectionObserver(
 				this.screenControl,
 				{
 					root: null,
-					rootMargin: sscOptions.rootMargin,
-					threshold: sscOptions.threshold,
+					rootMargin: options.rootMargin,
+					threshold: options.threshold,
 				}
 			);
 
@@ -333,7 +332,7 @@ class _ssc {
 			);
 
 			// watch for new objects added to the DOM
-			this.interceptor( this.page );
+			this.interceptor( options.container );
 
 			this.updateScreenSize();
 

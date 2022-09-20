@@ -1,4 +1,6 @@
 // ScrollTo
+
+import { options } from '../../ssc';
 import { mouseWheel } from '../../utils/compat';
 import { isPartiallyVisible, delay, disableWheel, isInside } from '../../utils/utils';
 import anime from 'animejs';
@@ -34,12 +36,13 @@ let lastVideoScrollPosition = 0;
  */
 function scrollJacking( entry ) {
 	// if there aren't any defined target, store this one
-	if ( entry.target.action !== 'enter' ) {
+	if ( entry.target.action !== 'enter' || hasScrolling ) {
 		return false;
 	}
 
 	const intersection = parseInt( entry.target.sscItemOpts.intersection, 10 );
 	const duration = parseInt( entry.target.sscItemOpts.duration, 10 );
+	const scrollDelay = parseInt( entry.target.sscItemOpts.delay, 10 );
 
 	/**
 	 * It scrolls to the element passed to it
@@ -50,8 +53,8 @@ function scrollJacking( entry ) {
 	 */
 	function screenJackTo( el ) {
 		// disable the mouse wheel during scrolling to avoid flickering
-		document.body.addEventListener( mouseWheel, disableWheel, { passive: false } );
-		document.body.addEventListener( 'touchmove', disableWheel, false );
+		options.container.addEventListener( mouseWheel, disableWheel, { passive: false } );
+    options.container.addEventListener( 'touchmove', disableWheel, false );
 
 		if ( window.scrollY === lastVideoScrollPosition ) {
 			// defer scroll jacking if the window hasn't been scrolled
@@ -73,7 +76,7 @@ function scrollJacking( entry ) {
 		 *
 		 *  @module Animation
 		 */
-		anime.remove(); // remove any previous animation
+		//anime.remove(); // remove any previous animation
 		anime( {
 			targets: [
 				window.document.scrollingElement ||
@@ -87,13 +90,13 @@ function scrollJacking( entry ) {
 		} );
 
 		delay(
-			parseInt( el.target.sscItemOpts.delay, 10 ) + duration || 1000
+			parseInt( scrollDelay, 10 ) + duration || 1000
 		).then( () => {
 			// this.windowData.lastScrollPosition = window.scrollY;
 			// window.scrollY = el.target.offsetTop;
 			hasScrolling = false;
-			document.body.removeEventListener( mouseWheel, disableWheel );
-			document.body.removeEventListener( 'touchmove', disableWheel );
+			options.container.removeEventListener( mouseWheel, disableWheel );
+			options.container.removeEventListener( 'touchmove', disableWheel );
 		} );
 	}
 
