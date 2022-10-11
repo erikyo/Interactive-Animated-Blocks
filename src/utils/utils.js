@@ -1,3 +1,5 @@
+import { windowData } from '../frontend/_ssc';
+
 /**
  * This function returns a promise that resolves after the given number of milliseconds.
  *
@@ -47,7 +49,7 @@ export const isPartiallyVisible = ( el ) => {
  */
 export const isFullyVisible = ( el ) => {
 	const rect = el.getBoundingClientRect();
-	return rect.top >= 0 && rect.bottom <= window.innerHeight;
+	return rect.top >= 0 && rect.bottom <= windowData.viewHeight;
 };
 
 /**
@@ -62,7 +64,7 @@ export const isFullyVisible = ( el ) => {
  */
 export const isActiveArea = ( el, rangePosition ) => {
 	const rect = el.getBoundingClientRect();
-	const innerHeight = window.innerHeight;
+	const innerHeight = windowData.viewHeight;
 	const limit = innerHeight * ( 100 - rangePosition ) * 0.005; // 20% of 1000px is 100px from top and 100px from bottom
 	const elementCenter = rect.top + ( rect.height * 0.5 );
 	return limit < elementCenter && elementCenter < innerHeight - limit;
@@ -84,10 +86,12 @@ export const isInside = ( el, rangePosition ) => {
 	// eg. 20 (%) of 1000 (px) are the slice inside 100px from top and 100px from bottom
 	const limit = innerHeight * rangePosition * 0.005;
 	// if the element top side is inside the view
-	if ( rect.top > 0 ) {
+
+	if ( windowData.direction === 'down' ) {
 		return limit < rect.top && rect.top < innerHeight - limit;
+	} else if ( windowData.direction === 'up' ) {
+		return limit < rect.bottom && rect.bottom < innerHeight - limit;
 	}
-	return limit < rect.bottom && rect.bottom < innerHeight - limit;
 };
 
 /**
@@ -111,13 +115,17 @@ export const isInView = ( position, intersectionArea ) => {
 /**
  * If the last scroll position is less than the current scroll position, the user is scrolling down.
  * If the last scroll position is greater than the current scroll position, the user is scrolling up
+ *
+ * @param {boolean} update
  */
-export function scrollDirection() {
-	if ( this.windowData.lastScrollPosition < window.scrollY ) {
-		document.body.dataset.direction = 'down';
-	} else if ( this.windowData.lastScrollPosition > window.scrollY ) {
-		document.body.dataset.direction = 'up';
+export function scrollDirection( update = false ) {
+	const scrollY = window.scrollY;
+	if ( windowData.lastScrollPosition < scrollY ) {
+		windowData.direction = 'down';
+	} else if ( windowData.lastScrollPosition > scrollY ) {
+		windowData.direction = 'up';
 	}
+	if ( update ) windowData.lastScrollPosition = scrollY;
 }
 
 /**
