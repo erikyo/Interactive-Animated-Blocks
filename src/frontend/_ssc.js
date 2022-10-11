@@ -69,31 +69,15 @@ window.addEventListener( 'load', jumpToHash );
 window.addEventListener( 'hashchange', jumpToHash );
 
 /**
+ * The main frontend plugin script
+ * collects all the elements with the class "ssc" and applies the animation to them
+ *
  * @class _ssc
  *
  */
-class _ssc {
-	/**
-	 * @function Object() { [native code] } - screen control
-	 *
-	 */
+export default class _ssc {
 	constructor() {
 		this.options = options;
-		this.scrollDirection = scrollDirection.bind( this );
-		this.updateScreenSize = this.updateScreenSize.bind( this );
-
-		/**
-		 * This object holds the window data to avoid unnecessary calculations
-		 * and has 2 properties: viewHeight and lastScrollPosition.
-		 *
-		 * @typedef {Object} windowData
-		 * @property {number} viewHeight         - window.innerHeight alias
-		 * @property {number} lastScrollPosition - window.scrollY alias
-		 */
-		this.windowData = {
-			viewHeight: window.innerHeight,
-			lastScrollPosition: window.scrollY,
-		};
 
 		/**
 		 * Store the touch position
@@ -124,6 +108,10 @@ class _ssc {
 		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
 		this.initTimeline = initTimeline;
+		this.navigator = navigator;
+
+		// Screen jacking - evil as eval
+		this.scrollJacking = scrollJacking;
 
 		this.sequenceAnimations = [];
 		this.animationSequence = animationSequence;
@@ -131,9 +119,6 @@ class _ssc {
 		// The standard animation (animate.css)
 		this.animations = [];
 		this.handleAnimation = handleAnimation.bind( this );
-
-		// Screen jacking - evil as eval
-		this.scrollJacking = scrollJacking.bind( this );
 
 		// Video playback controlled by scroll Y position
 		this.videoParallaxController = videoParallaxController.bind( this );
@@ -170,11 +155,9 @@ class _ssc {
 	/**
 	 * Detach an element from screen control
 	 *
-	 * @param {sscItem} el - the element to unmount
+	 * @param {IntersectionObserverEntry} el - the element to unmount
 	 */
-	static unmount = ( el ) => {
-		el.unWatch();
-	};
+	static unmount = ( el ) => el.unWatch;
 
 	/**
 	 * Inject the animate.css stylesheet if needed
@@ -185,15 +168,14 @@ class _ssc {
 	 */
 	applyAnimateCssStylesheet = ( collected ) => {
 		const hasAnimate = Object.values( collected ).filter(
-			( observed ) =>
-				observed.sscItemData.sscAnimation === 'sscAnimation'
+			( observed ) => observed.sscItemData.sscAnimation === 'sscAnimation'
 		);
 		if ( hasAnimate ) {
 			const animateCSS = document.createElement( 'link' );
 			animateCSS.rel = 'stylesheet';
 			animateCSS.id = 'ssc_animate-css';
 			animateCSS.href =
-        'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+				'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
 			document.head.appendChild( animateCSS );
 		}
 	};
@@ -202,27 +184,30 @@ class _ssc {
 	 * Updates the position of the animated item.
 	 * if the item has not the position it's a child, and it doesn't need to be updated
 	 */
-	updateAnimationPosition = () => this.animations.forEach( ( item ) => item.position ? item.updatePosition() : null );
+	updateAnimationPosition = () =>
+		this.animations.forEach( ( item ) =>
+			item.position ? item.updatePosition() : null
+		);
 
 	/**
 	 * After collecting all the animation-enabled elements
 	 * this function prepares them by applying css styles and classes
 	 *
-	 * @param    {HTMLElement} el
-	 * @param    {number}      index
+	 * @param    {(IntersectionObserverEntry|dataset)} el
+	 * @param    {number}                              index
 	 *
 	 * @typedef sscItem - the ssc item
-	 * @property {dataset}     dataset                   - The item dataset (used to store animation options)
-	 * @property {number}      dataset.sscItem           - add the sscItem property to each item
-	 * @property {string}      dataset.sscProps          - the item options
-	 * @property {string}      dataset.sscSequence       - the scc animation used for the "itemCustomAnimation"
-	 * @property {?string}     dataset.sscSequence.scene - the scene sequence data
-	 * @property {?string}     dataset.sscScene          - the scene sequence data
-	 * @property {Function}    unWatch                   - remove from observed items
-	 * @property {Object}      sscItemData               - a copy of the dataset
-	 * @property {string}      sscItemData.sscItem       - the ssc id
-	 * @property {Object}      sscItemOpts               - the scc general animation parameters
-	 * @property {?Object}     sscScene                  - the scc animation used for the "timeline"
+	 * @property {dataset}                             dataset                   - The item dataset (used to store animation options)
+	 * @property {number}                              dataset.sscItem           - add the sscItem property to each item
+	 * @property {string}                              dataset.sscProps          - the item options
+	 * @property {string}                              dataset.sscSequence       - the scc animation used for the "itemCustomAnimation"
+	 * @property {?string}                             dataset.sscSequence.scene - the scene sequence data
+	 *
+	 * @property {Function}                            unWatch                   - remove from observed items
+	 * @property {Object}                              sscItemData               - a copy of the dataset
+	 * @property {string}                              sscItemData.sscItem       - the ssc id
+	 * @property {Object}                              sscItemOpts               - the scc general animation parameters
+	 * @property {?Object}                             sscScene                  - the scc animation used for the "timeline"
 	 */
 	addMetaToCollected = ( el, index ) => {
 		// add data-ssc-item="n" to each item
@@ -248,7 +233,7 @@ class _ssc {
 
 		// scroll animated video needs custom settings
 		if (
-			[ 'sscVideoParallax', 'sscVideoScroll', 'ssc360' ].includes(
+			[ 'sscVideoParallax', 'sscVideoScroll', 'sscVideoFocusPlay', 'ssc360' ].includes(
 				el.sscItemData.sscAnimation
 			)
 		) {
@@ -269,7 +254,7 @@ class _ssc {
 		switch ( el.sscItemData.sscAnimation ) {
 			case 'sscScrollJacking':
 				Object.assign( el.style, {
-					minHeight: 'calc(100vh + 30px)',
+					minHeight: 'calc(100vh + 2px)',
 					width: '100%',
 					paddingTop: 0,
 					paddingBottom: 0,
@@ -322,23 +307,25 @@ class _ssc {
 			 * @typedef collected - the collection of animated elements
 			 * @property {Object} collected - the animated item collection
 			 */
-			this.collected.forEach(
-				function( el, index ) {
-					this.addMetaToCollected( el, index );
+			this.collected.forEach( function ( el, index ) {
+				this.addMetaToCollected( el, index );
 
-					if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
+				if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
 					// init ScrollMagic
-						addToTimeline( el );
-					} else {
+					addToTimeline( el );
+				} else {
 					// watch the elements to detect the screen margins intersection
-						this.observer.observe( el );
-					}
-				}, this );
+					this.observer.observe( el );
+				}
+			}, this );
 
 			// injects animate.css stylesheet
 			this.applyAnimateCssStylesheet( this.collected );
 
-			const hasIndicators = document.body.classList.contains( 'logged-in' ) ? enableScrollMagicIndicators() : false;
+			const isAdmin = document.body.classList.contains( 'logged-in' );
+			if ( isAdmin ) {
+				enableScrollMagicIndicators();
+			}
 
 			this.initTimeline();
 
@@ -363,7 +350,7 @@ class _ssc {
 	};
 
 	sscAnimation = ( entry ) => {
-		// this item is entering the view
+		// this item is entering or leaving the view
 		if ( entry.target.action ) {
 			switch ( entry.target.sscItemData.sscAnimation ) {
 				case 'sscParallax':
@@ -471,11 +458,15 @@ class _ssc {
 		screenBodyClass();
 	};
 
+	updateBodyClass() {
+		screenBodyClass();
+	}
+
 	initMutationObserver( mutationsList, mutationObserver ) {
 		//for every mutation
-		mutationsList.forEach( function( mutation ) {
+		mutationsList.forEach( function ( mutation ) {
 			//for every added element
-			mutation.addedNodes.forEach( function( node ) {
+			mutation.addedNodes.forEach( function ( node ) {
 				// Check if we appended a node type that isn't
 				// an element that we can search for images inside,
 				// like a text node.
@@ -486,7 +477,7 @@ class _ssc {
 				const objCollection = node.querySelectorAll( '.ssc' );
 
 				if ( objCollection.length ) {
-					objCollection.forEach( function( el ) {
+					objCollection.forEach( function ( el ) {
 						this.addMetaToCollected( el, this.collected.length );
 
 						// watch the elements to detect the screen margins intersection
@@ -520,5 +511,3 @@ class _ssc {
 		} );
 	}
 }
-
-export default _ssc;
