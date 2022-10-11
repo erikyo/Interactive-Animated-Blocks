@@ -6,7 +6,6 @@
   "main": "build/index.js",
   "files": [
     "build/*",
-    "tools/*",
     "ssc.php",
     "LICENSE.md",
     "readme.txt"
