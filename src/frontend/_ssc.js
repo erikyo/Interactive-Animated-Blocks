@@ -14,10 +14,7 @@
 // UTILITY
 import { options } from '../ssc';
 import { getElelementData } from '../utils/fn';
-import {
-	delay,
-	scrollDirection,
-} from '../utils/utils';
+import { delay, scrollDirection, screenBodyClass } from '../utils/utils';
 
 // MODULES
 import video360Controller from './modules/image360';
@@ -37,10 +34,32 @@ import {
 } from './modules/itemParallax';
 import animationSequence from './modules/itemCustomAnimation';
 import videoParallaxController from './modules/videoParallax';
-import { addToTimeline, initTimeline, enableScrollMagicIndicators } from './modules/timeline';
+import {
+	addToTimeline,
+	initTimeline,
+	enableScrollMagicIndicators,
+} from './modules/timeline';
 
-// on load and on hashchange (usually on history back/forward)
-const jumpToHash = () => {
+/**
+ * This object holds the window data to avoid unnecessary calculations
+ * and has 2 properties: viewHeight and lastScrollPosition.
+ *
+ * @typedef {Object} windowData
+ * @property {number} viewHeight         - window.innerHeight alias
+ * @property {number} lastScrollPosition - window.scrollY alias
+ * @property {string} direction          - the scroll direction (up|down)
+ */
+export const windowData = {
+	viewHeight: window.innerHeight,
+	pageHeight: document.body.scrollHeight,
+	lastScrollPosition: window.scrollY,
+	direction: undefined,
+};
+
+/**
+ * on load and on hashchange (usually on history back/forward)
+ */
+export const jumpToHash = () => {
 	if ( typeof window.location.hash !== 'undefined' ) {
 		// GOTO
 		console.log( window.location.hash );
@@ -135,17 +154,16 @@ class _ssc {
 	 */
 	updateScreenSize( waitFor = 250 ) {
 		( async () =>
-			await ( () =>
-				console.warn( 'Old Screensize', this.windowData ) ) )()
+			await ( () => console.warn( 'Old Screensize', windowData ) ) )()
 			.then( () => {
 				return delay( waitFor );
 			} )
 			.then( () => {
-				this.windowData.viewHeight = window.innerHeight;
-				this.windowData.lastScrollPosition = window.scrollY;
+				windowData.viewHeight = window.innerHeight;
+				windowData.lastScrollPosition = window.scrollY;
 				this.updateAnimationPosition();
-				console.warn( 'New Screensize', this.windowData );
-				return this.windowData;
+				console.warn( 'New Screensize', windowData );
+				return windowData;
 			} );
 	}
 
@@ -449,6 +467,8 @@ class _ssc {
 
 			this.sscAnimation( entry );
 		} );
+
+		screenBodyClass();
 	};
 
 	initMutationObserver( mutationsList, mutationObserver ) {
