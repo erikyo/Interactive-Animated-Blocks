@@ -167,3 +167,15 @@ export function ontouchmoveEvent( e ) {
 		console.log( 'finger moving up' );
 	}
 }
+
+/**
+ * It's adding a class to the body element when the user scrolls to the top of the page.
+ */
+export const screenBodyClass = () => {
+	scrollDirection( true );
+	if ( windowData.lastScrollPosition < 5 ) {
+		document.body.classList.add( 'top' );
+	} else {
+		document.body.classList.remove( 'top' );
+	}
+};
