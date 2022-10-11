@@ -45,8 +45,7 @@ function animationSequence( entry, action ) {
 				duration: entry.target.sscItemOpts.duration,
 				easing: entry.target.sscItemOpts.easing, // Can be inherited
 				direction: 'normal', // Is not inherited
-				complete( anim ) {
-					console.log( anim );
+				complete() {
 					entry.target.removeAttribute( 'data-ssc-lock' );
 				},
 			} );
@@ -61,10 +60,19 @@ function animationSequence( entry, action ) {
 
 	// The Enter animation sequence
 	if ( this.sequenceAnimations[ entry.target.sscItemData.sscItem ] ) {
-		if ( action === 'enter' && isActiveArea( entry.target, entry.target.sscItemOpts.intersection ) ) {
+		if (
+			action === 'enter' &&
+			isActiveArea( entry.target, entry.target.sscItemOpts.intersection )
+		) {
 			entry.target.action = 'leave';
 			this.sequenceAnimations[ entry.target.sscItemData.sscItem ].play();
-		} else if ( action === 'leave' && ! isActiveArea( entry.target, entry.target.sscItemOpts.intersection ) ) {
+		} else if (
+			action === 'leave' &&
+			! isActiveArea(
+				entry.target,
+				entry.target.sscItemOpts.intersection
+			)
+		) {
 			entry.target.action = 'enter';
 			this.sequenceAnimations[ entry.target.sscItemData.sscItem ].pause();
 		}

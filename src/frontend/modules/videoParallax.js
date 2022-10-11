@@ -22,26 +22,31 @@ let lastVideoScrollPosition = 0;
  */
 function videoParallaxCallback( video ) {
 	const rect = video.item.getBoundingClientRect();
-	if ( video.hasExtraTimeline ) {
-		// the timeline behaviour
-		// // ( ( window.scrollY - rect.top ) - video.distanceTop )
-		// stands for the total height scrolled
-		// // + rect.height * video duration
-		// stands for the height of the item that is the real needed value
-		// 60% of a timeline of a video 10sec long -> (60 * 0.01) * 10
-		video.item.currentTime = (
-			( ( ( ( window.scrollY - rect.top ) - video.distanceTop ) + rect.height ) /
-        ( video.timelineLength ) ) *
-      video.videoDuration *
-      video.playbackRatio
-		).toFixed( 5 );
-	} else {
-		// the common behaviour
-		video.item.currentTime = (
-			( 1 - ( ( rect.top + rect.height ) / video.timelineLength ) ) *
-      video.videoDuration *
-      video.playbackRatio
-		).toFixed( 5 );
+	if ( video.item.readyState > 1 ) {
+		if ( video.hasExtraTimeline ) {
+			// the timeline behaviour
+			// // ( ( window.scrollY - rect.top ) - video.distanceTop )
+			// stands for the total height scrolled
+			// // + rect.height * video duration
+			// stands for the height of the item that is the real needed value
+			// 60% of a timeline of a video 10sec long -> (60 * 0.01) * 10
+			video.item.currentTime = (
+				( ( window.scrollY -
+					rect.top -
+					video.distanceTop +
+					rect.height ) /
+					video.timelineLength ) *
+				video.videoDuration *
+				video.playbackRatio
+			).toFixed( 5 );
+		} else {
+			// the common behaviour
+			video.item.currentTime = (
+				( 1 - ( rect.top + rect.height ) / video.timelineLength ) *
+				video.videoDuration *
+				video.playbackRatio
+			).toFixed( 5 );
+		}
 	}
 }
 

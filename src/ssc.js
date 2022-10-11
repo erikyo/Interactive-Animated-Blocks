@@ -11,9 +11,9 @@ import _ssc from './frontend/_ssc';
  * container: The element that is used as the viewport for checking visibility of the target.
  */
 const sscOptionsDefault = {
-	rootMargin: document.body.classList.contains( 'admin-bar' ) ? '32px 0px 1px 0px' : '1px', // the IntersectionObserver root margin
+	rootMargin: '0px', // the IntersectionObserver root margin
 	threshold: [ 0 ],
-	container: window.document.scrollingElement || window.document.body, // maybe document.getElementById( 'page' );
+	container: document.body,
 };
 
 export const options = { ...sscOptionsDefault };

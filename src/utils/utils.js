@@ -66,7 +66,7 @@ export const isActiveArea = ( el, rangePosition ) => {
 	const rect = el.getBoundingClientRect();
 	const innerHeight = windowData.viewHeight;
 	const limit = innerHeight * ( 100 - rangePosition ) * 0.005; // 20% of 1000px is 100px from top and 100px from bottom
-	const elementCenter = rect.top + ( rect.height * 0.5 );
+	const elementCenter = rect.top + rect.height * 0.5;
 	return limit < elementCenter && elementCenter < innerHeight - limit;
 };
 
@@ -78,13 +78,14 @@ export const isActiveArea = ( el, rangePosition ) => {
  *
  * @param {HTMLElement} el            - The element you want to check if it's in the active area.
  * @param {number}      rangePosition - The percentage of the viewport's height that represents the active area
+ *
  * @return {boolean}                  - true if the element is inside the active area
  */
 export const isInside = ( el, rangePosition ) => {
 	const rect = el.getBoundingClientRect();
 	const innerHeight = window.innerHeight;
 	// eg. 20 (%) of 1000 (px) are the slice inside 100px from top and 100px from bottom
-	const limit = innerHeight * rangePosition * 0.005;
+	const limit = innerHeight * 0.005 * rangePosition;
 	// if the element top side is inside the view
 
 	if ( windowData.direction === 'down' ) {

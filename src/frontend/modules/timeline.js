@@ -35,7 +35,7 @@ export function initTimeline() {
  * It creates a ScrollMagic scene for each timeline element,
  * and then binds the timeline animation to the scene progress
  *
- * @param  el - The element that is being animated.
+ * @param {HTMLElement} el - The element that is being animated.
  */
 function scrollTimeline( el ) {
 	el.classList.add( 'ssc-timeline' );
@@ -88,7 +88,7 @@ function scrollTimeline( el ) {
 		addIndicators: true,
 	} )
 		// bind animation timeline with anime.js animation progress
-		.on( 'progress', function( event ) {
+		.on( 'progress', ( event ) => {
 			timeline.seek( timeline.duration * event.progress );
 		} )
 		.setPin( el )

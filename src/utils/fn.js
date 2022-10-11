@@ -33,7 +33,9 @@ export function dataStringify( data, type ) {
  */
 export function lintCSS( style ) {
 	return style && Object.keys( style ).length
-		? 'this {\n' + capitalToloDash( autoLintCode( styleObj2String( style ) ) ) + ';\n}'
+		? 'this {\n' +
+				capitalToloDash( autoLintCode( styleObj2String( style ) ) ) +
+				';\n}'
 		: 'this {\n\t\n}';
 }
 
@@ -104,7 +106,7 @@ export const loDashToCapital = ( k ) =>
  * @return {string} the matched value with a new line character appended to it.
  */
 export const autoLintCode = ( k ) =>
-	k.replace( /\;| \{/gi, function( matched ) {
+	k.replace( /\;| \{/gi, function ( matched ) {
 		return matched + '\n';
 	} );
 
@@ -153,7 +155,10 @@ export function splitSentence( sentence, splitBy = 'word' ) {
 		}
 		return (
 			'<span class="word">' +
-			word.replace( /([^\x00-\x80]|\w)/g, `<span class="letter">$&</span>` ) +
+			word.replace(
+				/([^\x00-\x80]|\w)/g,
+				`<span class="letter">$&</span>`
+			) +
 			'</span>'
 		);
 	} );

@@ -39,14 +39,15 @@ export function handleAnimation( entry ) {
 					const targetRect = this.target.getBoundingClientRect();
 					this.position = {
 						yTop: window.scrollY + targetRect.top,
-						yBottom: window.scrollY + targetRect.top + targetRect.height,
+						yBottom:
+							window.scrollY + targetRect.top + targetRect.height,
 					};
 				},
 				animateItem( action ) {
 					// if the animated element is single
 					if (
 						this.animatedElements &&
-            this.animatedElements.nodeType
+						this.animatedElements.nodeType
 					) {
 						// check if the action needed is "enter" and if the element is in viewport
 						return this.applyAnimation(
@@ -65,23 +66,24 @@ export function handleAnimation( entry ) {
 
 							child.locked = true;
 
-							delay( animationDelay )
-								.then( () => {
-									if ( child.sscItemOpts ) {
-										this.applyChildAnimation( child, action );
-									} else {
-										this.applyAnimation( child, action );
-									}
-									// wait the animation has been completed before unlock the element
-									new Promise( ( resolve ) => {
-										setTimeout( function() {
-											child.locked = false;
-											child.lastAction =
-                        child.lastAction === 'enter' ? 'leave' : 'enter';
-											resolve();
-										}, child.duration );
-									} );
+							delay( animationDelay ).then( () => {
+								if ( child.sscItemOpts ) {
+									this.applyChildAnimation( child, action );
+								} else {
+									this.applyAnimation( child, action );
+								}
+								// wait the animation has been completed before unlock the element
+								new Promise( ( resolve ) => {
+									setTimeout( () => {
+										child.locked = false;
+										child.lastAction =
+											child.lastAction === 'enter'
+												? 'leave'
+												: 'enter';
+										resolve();
+									}, child.duration );
 								} );
+							} );
 						}
 					);
 				},
@@ -121,10 +123,12 @@ export function handleAnimation( entry ) {
 							this.animatedElements = entry.target.children;
 						}
 						// init each childrens
-						Object.values( this.animatedElements ).forEach( ( child ) => {
-							child.classList.add( 'ssc-animation-child' );
-							child.isChildren = true;
-						} );
+						Object.values( this.animatedElements ).forEach(
+							( child ) => {
+								child.classList.add( 'ssc-animation-child' );
+								child.isChildren = true;
+							}
+						);
 					} else {
 						this.animatedElements = entry.target;
 					}
@@ -157,30 +161,30 @@ export function handleAnimation( entry ) {
 				applyAnimation( element, action ) {
 					return action === 'enter'
 						? this.removeCssClass(
-							element,
-							this.animationLeave
-						).addCssClass( element, this.animationEnter )
+								element,
+								this.animationLeave
+						  ).addCssClass( element, this.animationEnter )
 						: this.removeCssClass(
-							element,
-							this.animationEnter
-						).addCssClass( element, this.animationLeave );
+								element,
+								this.animationEnter
+						  ).addCssClass( element, this.animationLeave );
 				},
 				applyChildAnimation( element, action ) {
 					return action === 'enter'
 						? this.removeCssClass(
-							element,
-							element.sscItemOpts.animationLeave
-						).addCssClass(
-							element,
-							element.sscItemOpts.animationEnter
-						)
+								element,
+								element.sscItemOpts.animationLeave
+						  ).addCssClass(
+								element,
+								element.sscItemOpts.animationEnter
+						  )
 						: this.removeCssClass(
-							element,
-							element.sscItemOpts.animationEnter
-						).addCssClass(
-							element,
-							element.sscItemOpts.animationLeave
-						);
+								element,
+								element.sscItemOpts.animationEnter
+						  ).addCssClass(
+								element,
+								element.sscItemOpts.animationLeave
+						  );
 				},
 			};
 
@@ -198,7 +202,10 @@ export function handleAnimation( entry ) {
 				duration:
 					parseInt( entry.target.sscItemOpts.duration, 10 ) || 1000,
 			};
-			if ( entry.target.sscItemOpts && entry.target.sscItemOpts.duration ) {
+			if (
+				entry.target.sscItemOpts &&
+				entry.target.sscItemOpts.duration
+			) {
 				entry.target.style.setProperty(
 					'--animate-duration',
 					( parseInt( entry.target.sscItemOpts.duration, 10 ) ||
@@ -230,7 +237,7 @@ export function handleAnimation( entry ) {
 				el.animateItem( el.lastAction );
 				// wait the animation has been completed before unlock the element
 				new Promise( ( resolve ) => {
-					setTimeout( function() {
+					setTimeout( () => {
 						el.locked = false;
 						el.lastAction =
 							el.lastAction === 'enter' ? 'leave' : 'enter';
