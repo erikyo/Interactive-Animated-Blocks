@@ -27,6 +27,7 @@ import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
 import handleAnimation from './modules/itemAnimate';
+import navigator from './modules/navigator';
 import {
 	itemParallaxed,
 	parallax,
@@ -370,6 +371,9 @@ export default class _ssc {
 					break;
 				case 'sscScrollJacking':
 					this.scrollJacking( entry );
+					break;
+				case 'sscNavigator':
+					this.navigator( entry );
 					break;
 				case 'sscCounter':
 					this.textAnimated( entry );
