@@ -300,9 +300,9 @@ export const animationTypes = [
 		label: 'ScrollJacking',
 		value: 'sscScrollJacking',
 		default: {
-			intersection: 90,
+			intersection: 10,
 			duration: 800,
-			delay: 200,
+			delay: 500,
 			reiterate: true,
 			easing: 'easeOutExpo',
 		},
@@ -337,6 +337,11 @@ export const animationTypes = [
 		default: {
 			target: 'none',
 		},
+	},
+	{
+		label: 'Navigator',
+		value: 'sscNavigator',
+		default: {},
 	},
 ];
 
