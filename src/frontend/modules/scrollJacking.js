@@ -1,29 +1,58 @@
 // ScrollTo
+import {
+	delay,
+	disableWheel,
+	isInside,
+	isPartiallyVisible,
+} from '../../utils/utils';
 
-import { options } from '../../ssc';
+import scrollToElement from 'scroll-to-element';
+
 import { mouseWheel } from '../../utils/compat';
-import { isPartiallyVisible, delay, disableWheel, isInside } from '../../utils/utils';
-import anime from 'animejs';
 
 /**
- * Flag if another scroll-jacking is running to avoid to fire multiple this function
+ * store if another scroll-jacking is running to avoid to be fire multiple
  *
  * @type {boolean|number}
  */
 export let hasScrolling = false;
 
 /**
- * If the targetID is a number, then set the hasScrolling variable to that number, otherwise set it to false.
+ * It scrolls to the element passed to it
  *
- * @param {string} targetID - The ID of the target element to scroll to.
+ * @param {IntersectionObserverEntry.target} el - The element that was clicked.
  *
- * @return {string} the value of the variable hasScrolling.
  */
-export function setScrolling( targetID ) {
-	return hasScrolling = parseInt( targetID, 10 );
-}
+export function screenJackTo( el ) {
+	hasScrolling = true;
+	const duration = parseInt( el.sscItemOpts.duration, 10 );
+	const scrollDelay = parseInt( el.sscItemOpts.delay, 10 );
 
-let lastVideoScrollPosition = 0;
+	/** Stores the history state */
+	if ( el.id ) {
+		window.history.pushState( null, null, '#' + el.id );
+	}
+
+	// disable the mouse wheel during scrolling to avoid flickering
+	window.addEventListener( mouseWheel, disableWheel, { passive: false } );
+	window.addEventListener( 'touchmove', disableWheel, false );
+
+	const easing = el.sscItemOpts.easing
+		.replace( 'easeI', 'i' )
+		.replace( 'easeO', 'o' );
+
+	scrollToElement( el, {
+		offset: 0,
+		ease: easing || 'inQuad', // https://github.com/component/ease
+		duration: duration || 1000,
+	} ).on( 'end', () => {
+		delay( scrollDelay ).then( () => {
+			hasScrolling = false;
+			window.removeEventListener( mouseWheel, disableWheel );
+			window.removeEventListener( 'touchmove', disableWheel );
+		} );
+	} );
+}
 
 /**
  * It scrolls to the target element
@@ -34,76 +63,14 @@ let lastVideoScrollPosition = 0;
  *
  * @return {Function} A function that will be called when the IntersectionObserver fires.
  */
-function scrollJacking( entry ) {
-	// if there aren't any defined target, store this one
-	if ( entry.target.action !== 'enter' || hasScrolling ) {
-		return false;
-	}
-
+export function scrollJacking( entry ) {
 	const intersection = parseInt( entry.target.sscItemOpts.intersection, 10 );
-	const duration = parseInt( entry.target.sscItemOpts.duration, 10 );
-	const scrollDelay = parseInt( entry.target.sscItemOpts.delay, 10 );
-
-	/**
-	 * It scrolls to the element passed to it
-	 *
-	 * @param {IntersectionObserverEntry} el - The element that was clicked.
-	 *
-	 * @return {Function} A function that is being called with the element as a parameter.
-	 */
-	function screenJackTo( el ) {
-		// disable the mouse wheel during scrolling to avoid flickering
-		options.container.addEventListener( mouseWheel, disableWheel, { passive: false } );
-    options.container.addEventListener( 'touchmove', disableWheel, false );
-
-		if ( window.scrollY === lastVideoScrollPosition ) {
-			// defer scroll jacking if the window hasn't been scrolled
-			delay( 20 ).then( () => scrollJacking( el ) );
-		}
-
-		// Store the last position
-		lastVideoScrollPosition = window.scrollY;
-
-		setScrolling( el.target.sscItemData.sscItem );
-
-		/** Stores the history state */
-		if ( el.target.id ) {
-			window.history.pushState( null, null, '#' + el.target.id );
-		}
-
-		/**
-		 *  Anime.js animation
-		 *
-		 *  @module Animation
-		 */
-		//anime.remove(); // remove any previous animation
-		anime( {
-			targets: [
-				window.document.scrollingElement ||
-					window.document.body ||
-					window.document.documentElement,
-			],
-			scrollTop: el.target.offsetTop + 10,
-			easing: el.target.sscItemOpts.easing || 'linear',
-			duration: duration || 700,
-			delay: 0,
-		} );
-
-		delay(
-			parseInt( scrollDelay, 10 ) + duration || 1000
-		).then( () => {
-			// this.windowData.lastScrollPosition = window.scrollY;
-			// window.scrollY = el.target.offsetTop;
-			hasScrolling = false;
-			options.container.removeEventListener( mouseWheel, disableWheel );
-			options.container.removeEventListener( 'touchmove', disableWheel );
-		} );
+	if ( ! hasScrolling && isInside( entry.target, intersection ) ) {
+		return screenJackTo( entry.target );
 	}
 
-	if ( ! hasScrolling && isInside( entry.target, intersection ) ) {
-		return screenJackTo( entry );
-	} else if ( isPartiallyVisible( entry.target ) ) {
-		delay( 20 ).then( () => scrollJacking( entry ) );
+	if ( isPartiallyVisible( entry.target ) ) {
+		return delay( 200 ).then( () => scrollJacking( entry ) );
 	}
 }
 
