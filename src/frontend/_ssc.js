@@ -233,9 +233,12 @@ export default class _ssc {
 
 		// scroll animated video needs custom settings
 		if (
-			[ 'sscVideoParallax', 'sscVideoScroll', 'sscVideoFocusPlay', 'ssc360' ].includes(
-				el.sscItemData.sscAnimation
-			)
+			[
+				'sscVideoParallax',
+				'sscVideoScroll',
+				'sscVideoFocusPlay',
+				'ssc360',
+			].includes( el.sscItemData.sscAnimation )
 		) {
 			/** @property {HTMLVideoElement} videoEL - Video element inside a "video-animated" block */
 			const videoEl = el.querySelector( 'video' );
@@ -458,15 +461,11 @@ export default class _ssc {
 		screenBodyClass();
 	};
 
-	updateBodyClass() {
-		screenBodyClass();
-	}
-
 	initMutationObserver( mutationsList, mutationObserver ) {
 		//for every mutation
-		mutationsList.forEach( function ( mutation ) {
+		mutationsList.forEach( ( mutation ) => {
 			//for every added element
-			mutation.addedNodes.forEach( function ( node ) {
+			mutation.addedNodes.forEach( ( node ) => {
 				// Check if we appended a node type that isn't
 				// an element that we can search for images inside,
 				// like a text node.
