@@ -337,7 +337,8 @@ class _ssc {
 			this.updateScreenSize();
 
 			// update the screen size if necessary
-			window.addEventListener( 'resize', this.updateScreenSize );
+			window.addEventListener( 'resize', screenBodyClass );
+			window.addEventListener( 'scroll', screenBodyClass );
 		} else {
 			console.warn( 'IntersectionObserver could not enabled' );
 		}
@@ -390,15 +391,53 @@ class _ssc {
 		}
 	};
 
+	updateItemData = ( entry ) => {
+		const elCenter =
+			( entry.boundingClientRect.top + entry.boundingClientRect.bottom ) /
+			2;
+
+		// stores the direction from which the element appeared
+		entry.target.dataset.intersection =
+			windowData.viewHeight / 2 > elCenter ? 'up' : 'down';
+
+		/**
+		 * @description check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
+		 */
+		if ( entry.isIntersecting !== entry.target.dataset.visible ) {
+			if ( typeof entry.target.dataset.visible === 'undefined' ) {
+				entry.target.action = 'enter';
+			} else {
+				entry.target.action = entry.isIntersecting ? 'enter' : 'leave';
+			}
+		} else {
+			entry.target.action = '';
+		}
+
+		/**
+		 * @description If the item contains the class "ssc-focused",
+		 * add a class to the body element when the element is in view.
+		 * Will be useful to show and hide the "back to top" button or show/hide the header.
+		 */
+		if ( entry.target.classList.contains( 'ssc-focused' ) ) {
+			if ( entry.isIntersecting ) {
+				document.body.classList.add( 'ssc-focus-' + entry.target.id );
+			} else {
+				document.body.classList.remove(
+					'ssc-focus-' + entry.target.id
+				);
+			}
+		}
+
+		// is colliding with borders // used next loop to detect if the object is inside the screen
+		entry.target.dataset.visible = entry.isIntersecting ? 'true' : 'false';
+	};
+
 	/**
 	 * @param {IntersectionObserverEntry[]} entries - the Intersection observer item collection
 	 */
 	screenControl = ( entries ) => {
-		// update the last scroll position
-		this.windowData.lastScrollPosition = window.scrollY;
-
-		// store the scroll direction into body
-		this.scrollDirection();
+		// set the scroll direction to body dataset
+		scrollDirection( true );
 
 		entries.forEach( ( entry ) => {
 			/** @member {IntersectionObserverEntry} entry  */
@@ -406,40 +445,7 @@ class _ssc {
 				return true;
 			}
 
-			// stores the direction from which the element appeared
-			entry.target.dataset.intersection =
-				this.windowData.viewHeight / 2 > entry.boundingClientRect.top
-					? 'up'
-					: 'down';
-
-			// check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
-			if ( entry.isIntersecting !== entry.target.dataset.visible ) {
-				if ( typeof entry.target.dataset.visible === 'undefined' ) {
-					entry.target.action = 'enter';
-				} else {
-					entry.target.action = entry.isIntersecting
-						? 'enter'
-						: 'leave';
-				}
-			} else {
-				entry.target.action = '';
-			}
-
-			/**
-			 * @description If the item contains the class "ssc-focused",
-			 * add a class to the body element when the element is in view.
-			 * Will be useful to show and hide the "back to top" button or show/hide the header.
-			 */
-			if ( entry.target.classList.contains( 'ssc-focused' ) ) {
-				( entry.isIntersecting === true )
-					? document.body.classList.add( 'ssc-focus-' + entry.target.id )
-					: document.body.classList.remove( 'ssc-focus-' + entry.target.id );
-			}
-
-			// is colliding with borders // used next loop to detect if the object is inside the screen
-			entry.target.dataset.visible = entry.isIntersecting
-				? 'true'
-				: 'false';
+			this.updateItemData( entry );
 
 			this.sscAnimation( entry );
 		} );
