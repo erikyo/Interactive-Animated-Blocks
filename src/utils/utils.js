@@ -26,7 +26,15 @@ export function disableWheel( e ) {
  */
 export const isPartiallyVisible = ( el ) => {
 	const rect = el.getBoundingClientRect();
-	return rect.top < window.innerHeight && rect.bottom > 0;
+	const innerHeight = windowData.viewHeight;
+	if ( rect.height <= innerHeight ) {
+		return rect.bottom >= 0 || rect.top <= innerHeight;
+	}
+	return (
+		( rect.top >= 0 && rect.top <= innerHeight ) ||
+		( rect.bottom >= 0 && rect.bottom <= innerHeight ) ||
+		( rect.top < 0 && rect.bottom > innerHeight )
+	);
 };
 
 /**
