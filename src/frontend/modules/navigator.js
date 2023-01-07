@@ -99,11 +99,13 @@ function navigator( entry ) {
 		return false;
 	}
 
-	function navigationDestoy() {
+	function navigationDestroy() {
 		header = null;
 	}
 
 	function observeNavigation() {
+		const progress = document.getElementById( 'navigator-progress-bar' );
+
 		if ( isPartiallyVisible( wrapper ) ) {
 			if ( lastY === windowData.lastScrollPosition ) {
 				return window.requestAnimationFrame( observeNavigation );
@@ -111,11 +113,13 @@ function navigator( entry ) {
 
 			lastY = windowData.lastScrollPosition;
 
+			progress.value = lastY * 0.01;
+
 			console.log( lastY );
 
 			return window.requestAnimationFrame( observeNavigation );
 		}
-		navigationDestoy();
+		navigationDestroy();
 	}
 
 	let header = document.getElementById( 'navigator-header' ) || false;
