@@ -22,7 +22,9 @@ export const options = { ...sscOptionsDefault };
  * On page scripts load trigger immediately ssc using sscOptions
  */
 window.addEventListener( 'load', () => {
-	typeof window.screenControl
-		? ( window.screenControl = new _ssc( options ) )
-		: console.warn( 'SSC ERROR: unable to load multiple instances' );
+	if ( typeof window.screenControl ) {
+		window.screenControl = new _ssc( options );
+	} else {
+		throw new Error( 'SSC ERROR: unable to load multiple instances' );
+	}
 } );

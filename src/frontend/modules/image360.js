@@ -39,7 +39,7 @@ const video360Controller = ( entry ) => {
 		return videoEl.currentTime / videoEl.duration;
 	};
 
-	videoEl.autoplayVideo = function() {
+	videoEl.autoplayVideo = function () {
 		return setTimeout( () => {
 			return videoEl.play();
 		}, 2000 );
@@ -67,8 +67,8 @@ const video360Controller = ( entry ) => {
 				videoEl.nextTime > videoEl.duration
 					? videoEl.nextTime - videoEl.duration
 					: videoEl.nextTime < 0
-						? videoEl.nextTime + videoEl.duration
-						: videoEl.nextTime;
+					? videoEl.nextTime + videoEl.duration
+					: videoEl.nextTime;
 			clearTimeout( videoEl.timeoutAutoplay );
 		}
 	};
@@ -82,7 +82,10 @@ const video360Controller = ( entry ) => {
 
 	videoEl.handle360byTouchPosition = ( e ) => {
 		window.requestAnimationFrame( () => {
-			const currentAngle = e.target.getAngle( e.target, e.changedTouches[ 0 ].clientX );
+			const currentAngle = e.target.getAngle(
+				e.target,
+				e.changedTouches[ 0 ].clientX
+			);
 			return e.target.setAngle( currentAngle );
 		} );
 	};
@@ -106,10 +109,16 @@ const video360Controller = ( entry ) => {
 		const video = e.target;
 		// store the event initial position
 		videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
-		videoEl.startAngle = video.getTouchAngle( e.target, e.changedTouches[ 0 ].clientX );
+		videoEl.startAngle = video.getTouchAngle(
+			e.target,
+			e.changedTouches[ 0 ].clientX
+		);
 		video.ontouchmove = ( ev ) => {
 			window.requestAnimationFrame( () => {
-				const currentAngle = video.getTouchAngle( ev.target, ev.changedTouches[ 0 ].clientX );
+				const currentAngle = video.getTouchAngle(
+					ev.target,
+					ev.changedTouches[ 0 ].clientX
+				);
 				return video.setAngle( currentAngle );
 			} );
 		};

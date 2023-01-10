@@ -42,7 +42,7 @@ const animateWord = ( el ) => {
 
 		//loop through random letters
 		let i = 0;
-		const letterInterval = setInterval( function() {
+		const letterInterval = setInterval( function () {
 			// Get random letter
 			const randomLetter =
 				alpha[ Math.floor( Math.random() * alpha.length ) ];
@@ -60,14 +60,14 @@ const animateWord = ( el ) => {
 	const letters = el.querySelectorAll( '.letter' );
 	const shuffleDuration = el.sscItemOpts.duration;
 
-	letters.forEach( function( letter, index ) {
+	letters.forEach( function ( letter, index ) {
 		//trigger animation for each letter in word
-		setTimeout( function() {
+		setTimeout( function () {
 			animateLetter( letter, shuffleDuration );
 		}, 100 * index ); //small delay for each letter
 	} );
 
-	setTimeout( function() {
+	setTimeout( function () {
 		el.removeAttribute( 'data-ssc-count' );
 	}, shuffleDuration );
 };
