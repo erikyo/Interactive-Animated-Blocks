@@ -1,5 +1,5 @@
 /*!
- * SSC 0.0.1
+ * SSC 0.1.0
  * The javascript frontend script of ssc
  * 2022
  * Project Website: http://codekraft.it
@@ -12,7 +12,6 @@
  */
 
 // UTILITY
-import { options } from '../ssc';
 import { getElelementData } from '../utils/fn';
 import { delay, scrollDirection, screenBodyClass } from '../utils/utils';
 
@@ -40,17 +39,19 @@ import {
 	initTimeline,
 	enableScrollMagicIndicators,
 } from './modules/timeline';
+import {Coords, SscElement, SscElementData, SscOptions, WindowProps} from './types';
+import { AnimateCssUrl, WAITFOR } from './constants';
 
 /**
  * This object holds the window data to avoid unnecessary calculations
  * and has 2 properties: viewHeight and lastScrollPosition.
  *
- * @typedef {Object} windowData
+ * @typedef {Object} windowProps
  * @property {number} viewHeight         - window.innerHeight alias
  * @property {number} lastScrollPosition - window.scrollY alias
  * @property {string} direction          - the scroll direction (up|down)
  */
-export const windowData = {
+export const windowProps: WindowProps = {
 	viewHeight: window.innerHeight,
 	pageHeight: document.body.scrollHeight,
 	lastScrollPosition: window.scrollY,
@@ -62,22 +63,84 @@ export const windowData = {
  */
 export const jumpToHash = () => {
 	if ( typeof window.location.hash !== 'undefined' ) {
-		// GOTO
+		// TODO: GO to the location hash instead
 		console.log( window.location.hash );
 	}
 };
 window.addEventListener( 'load', jumpToHash );
 window.addEventListener( 'hashchange', jumpToHash );
 
+export const logScreenSize = () => {
+	console.info( 'New Screen size:', windowProps );
+};
+
+/**
+ * It waits 250 milliseconds for resize to be completely done,
+ * then updates the windowData object with the current window height and scroll position
+ *
+ * @param          animations
+ * @param {number} waitFor
+ */
+export const updateScreenSize = (
+	animations: never[],
+	waitFor: number = WAITFOR
+) => {
+	delay( waitFor )
+		.then( () => {
+			windowProps.viewHeight = window.innerHeight;
+			windowProps.lastScrollPosition = window.scrollY;
+			updateAnimationPosition( animations );
+		} )
+		.then( () => logScreenSize() );
+};
+
+/**
+ * Updates the position of the animated item.
+ * if the item has not the position it's a child, and it doesn't need to be updated
+ *
+ * @param animations
+ */
+export const updateAnimationPosition = ( animations ) =>
+	animations.forEach( ( item ) =>
+		item.position ? item.updatePosition() : null
+	);
+
 /**
  * The main frontend plugin script
  * collects all the elements with the class "ssc" and applies the animation to them
  *
- * @class _ssc
- *
  */
 export default class _ssc {
-	constructor() {
+	private observer: IntersectionObserver | undefined;
+	private mutationObserver!: MutationObserver | undefined;
+	options: SscOptions;
+	collected: NodeListOf< SscElement > | [];
+	video360Controller: ( entry: any ) => true | undefined;
+	imageScaleController: ( entry: any ) => void;
+	jumpToScreen: ( jumpers: any ) => void;
+	videoWheelController: ( el: any ) => void;
+	videoFocusPlay: ( entry: any ) => any;
+	textStagger: ( entry: any ) => any;
+	textAnimated: ( el: any ) => true | undefined;
+	animationSvgPath: (
+		entry: any,
+		action: any,
+		animationInstance?: boolean
+	) => void;
+	initTimeline: () => void;
+	navigator: ( entry: any ) => void;
+	scrollJacking: ( entry: any ) => any;
+	sequenceAnimations: never[];
+	animationSequence: ( entry: any, action: any ) => void;
+	animations: never[];
+	handleAnimation: ( entry: any ) => void;
+	videoParallaxController: ( entry: any ) => any[] | undefined;
+	itemParallaxed: never[];
+	parallax: () => number | undefined;
+	parallaxController: ( entry: any ) => void;
+	touchPos: Coords;
+
+	constructor( options: SscOptions ) {
 		this.options = options;
 
 		/**
@@ -96,7 +159,7 @@ export default class _ssc {
 		this.collected = [];
 
 		// will hold the intersection observer
-		this.observer = [];
+		this.observer = undefined;
 		this.initMutationObserver = this.initMutationObserver.bind( this );
 
 		// MODULES
@@ -133,32 +196,11 @@ export default class _ssc {
 	}
 
 	/**
-	 * It waits 250 milliseconds for resize to be completely done,
-	 * then updates the windowData object with the current window height and scroll position
-	 *
-	 * @param {number} waitFor
-	 */
-	updateScreenSize( waitFor = 250 ) {
-		( async () =>
-			await ( () => console.warn( 'Old Screensize', windowData ) ) )()
-			.then( () => {
-				return delay( waitFor );
-			} )
-			.then( () => {
-				windowData.viewHeight = window.innerHeight;
-				windowData.lastScrollPosition = window.scrollY;
-				this.updateAnimationPosition();
-				console.warn( 'New Screensize', windowData );
-				return windowData;
-			} );
-	}
-
-	/**
 	 * Detach an element from screen control
 	 *
 	 * @param {IntersectionObserverEntry} el - the element to unmount
 	 */
-	static unmount = ( el ) => el.unWatch;
+	static unmount = ( el: SscElement ) => el.unWatch;
 
 	/**
 	 * Inject the animate.css stylesheet if needed
@@ -167,70 +209,54 @@ export default class _ssc {
 	 *
 	 * @param {HTMLCollection} collected - the object with the collection of animated items
 	 */
-	applyAnimateCssStylesheet = ( collected ) => {
-		const hasAnimate = Object.values( collected ).filter(
+	applyAnimateCssStylesheet = ( collected: NodeListOf< SscElement > ) => {
+		const hasAnimate = Object.values( collected ).find(
 			( observed ) => observed.sscItemData.sscAnimation === 'sscAnimation'
 		);
 		if ( hasAnimate ) {
 			const animateCSS = document.createElement( 'link' );
 			animateCSS.rel = 'stylesheet';
 			animateCSS.id = 'ssc_animate-css';
-			animateCSS.href =
-				'https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css';
+			animateCSS.href = AnimateCssUrl;
 			document.head.appendChild( animateCSS );
 		}
 	};
 
 	/**
-	 * Updates the position of the animated item.
-	 * if the item has not the position it's a child, and it doesn't need to be updated
-	 */
-	updateAnimationPosition = () =>
-		this.animations.forEach( ( item ) =>
-			item.position ? item.updatePosition() : null
-		);
-
-	/**
 	 * After collecting all the animation-enabled elements
 	 * this function prepares them by applying css styles and classes
 	 *
-	 * @param    {(IntersectionObserverEntry|dataset)} el
-	 * @param    {number}                              index
+	 * @param {(IntersectionObserverEntry|dataset)} el                           - the ssc item
+	 * @param                                       el.dataset                   - The item dataset (used to store animation options)
+	 * @param {number}                              index
 	 *
-	 * @typedef sscItem - the ssc item
-	 * @property {dataset}                             dataset                   - The item dataset (used to store animation options)
-	 * @property {number}                              dataset.sscItem           - add the sscItem property to each item
-	 * @property {string}                              dataset.sscProps          - the item options
-	 * @property {string}                              dataset.sscSequence       - the scc animation used for the "itemCustomAnimation"
-	 * @property {?string}                             dataset.sscSequence.scene - the scene sequence data
-	 *
-	 * @property {Function}                            unWatch                   - remove from observed items
-	 * @property {Object}                              sscItemData               - a copy of the dataset
-	 * @property {string}                              sscItemData.sscItem       - the ssc id
-	 * @property {Object}                              sscItemOpts               - the scc general animation parameters
-	 * @property {?Object}                             sscScene                  - the scc animation used for the "timeline"
+	 * @param                                       el.dataset.sscItem           - add the sscItem property to each item
+	 * @param                                       el.dataset.sscProps          - the item options
+	 * @param                                       el.dataset.sscSequence       - the scc animation used for the "itemCustomAnimation"
+	 * @param                                       el.dataset.sscSequence.scene - the scene sequence data
+	 * @param                                       el.unWatch                   - remove from observed items
+	 * @param                                       el.sscItemData               - a copy of the dataset
+	 * @param                                       el.sscItemData.sscAnimation
+	 * @param                                       el.sscItemData.sscItem       - the ssc id
+	 * @param                                       el.sscItemOpts               - the scc general animation options
+	 * @param                                       el.sscSequence               - the scc animation used for the "timeline"
 	 */
-	addMetaToCollected = ( el, index ) => {
+	initializeItem = ( el: SscElement, index: any ) => {
 		// add data-ssc-item="n" to each item
 		el.dataset.sscItem = index;
 
-		el.unWatch = () => this.observer.unobserve( el );
+		el.unWatch = () => this.observer?.unobserve( el );
 
-		el.sscItemData = el.dataset;
+		el.sscItemData = el.dataset as any as SscElementData;
 
 		el.sscItemOpts = el.dataset.sscProps
 			? getElelementData( el.dataset.sscProps, 'data' )
-			: null;
+			: undefined;
 
-		el.sscSequence =
+		el.sscItemData.sscSequence =
 			el.dataset && el.dataset.sscSequence
 				? getElelementData( el.dataset.sscSequence, 'style' )
-				: null;
-
-		el.sscScene =
-			el.dataset && el.dataset.sscSequence && el.dataset.sscSequence.scene
-				? el.dataset.sscSequence.scene
-				: null;
+				: undefined;
 
 		// scroll animated video needs custom settings
 		if (
@@ -242,13 +268,13 @@ export default class _ssc {
 			].includes( el.sscItemData.sscAnimation )
 		) {
 			/** @property {HTMLVideoElement} videoEL - Video element inside a "video-animated" block */
-			const videoEl = el.querySelector( 'video' );
+			const videoEl = el.querySelector( 'video' ) as HTMLVideoElement;
 			if ( videoEl ) {
 				videoEl.autoplay = false;
 				videoEl.controls = false;
 				videoEl.loop = false;
 				videoEl.muted = true;
-				videoEl.playsinline = true;
+				videoEl.playsInline = true;
 				videoEl.preload = 'auto';
 				videoEl.pause();
 			}
@@ -284,89 +310,120 @@ export default class _ssc {
 		}
 	};
 
-	// Main.js
-	// Screen Control Initialization
+	/**
+	 * Screen Control Initialization
+	 */
 	init = () => {
 		if ( 'IntersectionObserver' in window ) {
-			/** this is mandatory because animation could exit from left or right*/
+			/**
+			 *  This will avoid problems with the width of the screen, as some animations may come out from the left or right by widening the page
+			 */
 			document.body.style.overflowX = 'hidden';
 
-			const page = options.container || document.body;
+			/**
+			 * This element is the wrapper of all the ssc elements available
+			 *
+			 * @param options
+			 */
+			const page = this.options.container || document.body;
 
+			/**
+			 * get all SSC elements
+			 */
 			this.collected = page.querySelectorAll( '.ssc' );
-			console.log( 'SSC ready' );
 
+			console.log(
+				'SSC ready using ' +
+					page +
+					'as container and ' +
+					this.collected +
+					' as items'
+			);
+
+			/**
+			 * Init the intersection observer
+			 */
 			this.observer = new window.IntersectionObserver(
-				this.screenControl,
+				this.screenControl as IntersectionObserverCallback,
 				{
 					root: null,
-					rootMargin: options.rootMargin,
-					threshold: options.threshold,
+					rootMargin: this.options.rootMargin,
+					threshold: this.options.threshold,
 				}
 			);
 
 			/**
-			 * Animated items - Let's start the intersection observer
+			 * Add the collected items to intersection observer
 			 *
 			 * @typedef collected - the collection of animated elements
 			 * @property {Object} collected - the animated item collection
 			 */
-			this.collected.forEach( function ( el, index ) {
-				this.addMetaToCollected( el, index );
+			this.collected.forEach( ( el: SscElement, index: number ) => {
+				this.initializeItem( el, index );
 
 				if ( el.sscItemData.sscAnimation === 'sscScrollTimeline' ) {
 					// init ScrollMagic
 					addToTimeline( el );
 				} else {
 					// watch the elements to detect the screen margins intersection
-					this.observer.observe( el );
+					this.observer?.observe( el );
 				}
 			}, this );
 
-			// injects animate.css stylesheet
-			this.applyAnimateCssStylesheet( this.collected );
+			/**
+			 * Watch for new objects added to the DOM with the mutation observer
+			 */
+			if ( this.observer ) {
+				this.interceptor( this.options.container );
+			}
 
+			/**
+			 * Animate.css stuff
+			 * if at least one element need animate.css stylesheet inject it
+			 */
+			this.applyAnimateCssStylesheet(
+				this.collected as NodeListOf< SscElement >
+			);
+
+			/**
+			 * ScrollMagic Stuff
+			 * whenever is the admin user show the scroll magic indicators
+			 */
 			const isAdmin = document.body.classList.contains( 'logged-in' );
 			if ( isAdmin ) {
 				enableScrollMagicIndicators();
 			}
-
 			this.initTimeline();
 
-			// start parallax
+			/**
+			 * Init the Parallax
+			 */
 			this.parallax();
 
-			// if the window has in the page url an anchor scroll target, get it then jump to that element
-			if ( window.location.hash ) {
-				const destination = window.location.hash.substring( 1 );
-				// get the element by its id
-				const destinationY =
-					document.getElementById( destination ).offsetTop;
-				// scroll to the element
-				window.scrollTo( {
-					top: destinationY,
-					behavior: 'smooth',
-				} );
-			}
-
+			/**
+			 * Collect items for smooth link scrolling
+			 */
 			this.jumpToScreen(
 				document.querySelectorAll( '.ssc-screen-jumper' )
 			);
 
-			// watch for new objects added to the DOM
-			this.interceptor( options.container );
-
-			this.updateScreenSize();
+			/**
+			 * Update the stored screensize then set a callback to update the stored window stored data
+			 */
+			updateScreenSize( this.animations );
+			window.addEventListener( 'resize', () =>
+				updateScreenSize( this.animations )
+			);
 
 			// update the screen size if necessary
 			window.addEventListener( 'resize', screenBodyClass );
 			window.addEventListener( 'scroll', screenBodyClass );
 		} else {
-			console.warn( 'IntersectionObserver could not enabled' );
+			throw new Error( 'IntersectionObserver could not enabled' );
 		}
 	};
 
-	sscAnimation = ( entry ) => {
+	sscAnimation = ( entry: IntersectionObserverEntry ) => {
 		// this item is entering or leaving the view
 		if ( entry.target.action ) {
 			switch ( entry.target.sscItemData.sscAnimation ) {
@@ -416,17 +473,17 @@ export default class _ssc {
 		}
 	};
 
-	updateItemData = ( entry ) => {
+	updateItemData = ( entry: IntersectionObserverEntry ) => {
 		const elCenter =
 			( entry.boundingClientRect.top + entry.boundingClientRect.bottom ) /
 			2;
 
 		// stores the direction from which the element appeared
-		entry.target.dataset.intersection =
-			windowData.viewHeight / 2 > elCenter ? 'up' : 'down';
+		( entry.target as HTMLElement ).dataset.intersection =
+			windowProps.viewHeight / 2 > elCenter ? 'up' : 'down';
 
 		/**
-		 * @description check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
+		 * check if the current "is Intersecting" has been changed, eg if was visible and now it isn't the element has left the screen
 		 */
 		if ( entry.isIntersecting !== entry.target.dataset.visible ) {
 			if ( typeof entry.target.dataset.visible === 'undefined' ) {
@@ -454,19 +511,20 @@ export default class _ssc {
 		}
 
 		// is colliding with borders // used next loop to detect if the object is inside the screen
-		entry.target.dataset.visible = entry.isIntersecting ? 'true' : 'false';
+		( entry.target as HTMLElement ).dataset.visible = entry.isIntersecting
+			? 'true'
+			: 'false';
 	};
 
 	/**
 	 * @param {IntersectionObserverEntry[]} entries - the Intersection observer item collection
 	 */
-	screenControl = ( entries ) => {
+	screenControl = ( entries: IntersectionObserverEntry[] ) => {
 		// set the scroll direction to body dataset
 		scrollDirection( true );
 
 		entries.forEach( ( entry ) => {
-			/** @member {IntersectionObserverEntry} entry  */
-			if ( entry.target.dataset.lock ) {
+			if ( ( entry.target as HTMLElement ).dataset.lock ) {
 				return true;
 			}
 
@@ -478,7 +536,7 @@ export default class _ssc {
 		screenBodyClass();
 	};
 
-	initMutationObserver( mutationsList, mutationObserver ) {
+	initMutationObserver( mutationsList: MutationRecord[] ) {
 		//for every mutation
 		mutationsList.forEach( ( mutation ) => {
 			//for every added element
@@ -486,18 +544,23 @@ export default class _ssc {
 				// Check if we appended a node type that isn't
 				// an element that we can search for images inside,
 				// like a text node.
-				if ( typeof node.getElementsByTagName !== 'function' ) {
+				if ( node.nodeType !== 1 ) {
 					return;
 				}
 
-				const objCollection = node.querySelectorAll( '.ssc' );
+				const objCollection = ( node as SscElement ).querySelectorAll(
+					'.ssc'
+				);
 
 				if ( objCollection.length ) {
-					objCollection.forEach( function ( el ) {
-						this.addMetaToCollected( el, this.collected.length );
+					objCollection.forEach( ( el: Element ) => {
+						this.initializeItem(
+							el as SscElement,
+							this.collected.length
+						);
 
 						// watch the elements to detect the screen margins intersection
-						return this.observer.observe( el );
+						this.observer?.observe( el );
 					} );
 				}
 			} );
@@ -513,17 +576,19 @@ export default class _ssc {
 	 *
 	 * @param {HTMLElement} content - The element to watch for changes.
 	 */
-	interceptor( content ) {
-		// Create an observer instance linked to the callback function
-		this.mutationObserver = new window.MutationObserver(
-			this.initMutationObserver
-		);
+	interceptor( content: HTMLElement ) {
+		if ( 'mutationObserver' in window ) {
+			// Create an observer instance linked to the callback function
+			this.mutationObserver = new window.MutationObserver(
+				this.initMutationObserver as MutationCallback
+			);
 
-		// Start observing the target node for configured mutations
-		this.mutationObserver.observe( content, {
-			attributes: false,
-			childList: true,
-			subtree: true,
-		} );
+			// Start observing the target node for configured mutations
+			this.mutationObserver.observe( content, {
+				attributes: false,
+				childList: true,
+				subtree: true,
+			} );
+		}
 	}
 }
