@@ -1,34 +1,57 @@
 {
   "tags": {
-	"allowUnknownTags": true,
-	"dictionaries": ["jsdoc", "closure"]
+    "allowUnknownTags": true,
+    "dictionaries": [
+      "jsdoc",
+      "closure"
+    ]
   },
   "source": {
-	"include": ["src"],
-	"includePattern": ".+\\.js(doc|x)?$",
-	"excludePattern": "(^|\\/|\\\\)_"
+    "include": [
+      "src"
+    ],
+    "includePattern": "\\.(jsx|js|ts|tsx)$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "plugins": [
+    "plugins/markdown",
+    "node_modules/better-docs/typescript"
+  ],
+  "typescript": {
+    "moduleRoot": "src"
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
   },
   "templates": {
-	"better-docs": {
-	  "name": "Interactive Animated Blocks"
-	}
+    "cleverLinks": false,
+    "monospaceLinks": false,
+    "better-docs": {
+      "name": "Interactive Animated Blocks",
+      "title": "Interactive Animated Blocks",
+      "hideGenerator": true
+    }
   },
   "opts": {
-	"encoding": "utf8",
-	"template": "node_modules/clean-jsdoc-theme",
-	"readme": "./readme.md",
-	"destination": "docs",
-	"recurse": true,
-	"sort": true,
-	"theme_opts": {
-	  "menu" : [
-		{
-		  "title": "Interactive Animated Blocks",
-		  "link": "https://github.com/erikyo/ssc/"
-		}
-	  ],
-	  "favicon": "../assets/icon.svg",
-	  "create_style": ".type-signature { color: #6314d1 }; a, a:active { color: #9ac122 }"
-	}
+    "encoding": "utf8",
+    "destination": "docs",
+    "template": "./node_modules/better-docs",
+    "readme": "./readme.txt",
+    "recurse": true,
+    "sort": true,
+    "theme_opts": {
+      "menu": [
+        {
+          "title": "Interactive Animated Blocks",
+          "link": "https://github.com/erikyo/ssc/"
+        }
+      ]
+    },
+    "allowUnknownTags": true,
+    "dictionaries": [
+      "jsdoc",
+      "closure"
+    ]
   }
 }

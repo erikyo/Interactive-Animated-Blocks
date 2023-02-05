@@ -6,7 +6,7 @@ const entry = {};
 	( script ) =>
 		( entry[ script ] = path.resolve(
 			process.cwd(),
-			`src/${ script }.js`
+			`src/${ script }.ts`
 		) )
 );
 

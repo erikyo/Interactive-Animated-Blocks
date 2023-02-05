@@ -17,28 +17,53 @@
     "blocks"
   ],
   "scripts": {
-    "build": "wp-scripts build",
     "start": "wp-scripts start",
-    "format": "wp-scripts format",
-    "lint:css": "wp-scripts lint-style",
-    "lint:js": "wp-scripts lint-js",
-    "packages-update": "wp-scripts packages-update",
+    "build": "wp-scripts build",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:withTypes": "npm run build && npm run build:types",
+    "format": "wp-scripts format /src",
+    "lint:css": "wp-scripts lint-style /src",
+    "lint:js": "wp-scripts lint-js /src",
+    "wp-env:start": "wp-env start",
+    "wp-env:stop": "wp-env stop",
+    "wp-env:destroy": "wp-env destroy",
+    "test": "jest --silent=false --coverage",
     "plugin-zip": "wp-scripts plugin-zip",
+    "packages-update": "wp-scripts packages-update",
     "docGen": "jsdoc -c jsdoc.conf.json"
   },
   "devDependencies": {
+    "@babel/core": "^7.20.5",
+    "@babel/preset-typescript": "^7.18.6",
     "@dnd-kit/core": "^6.0.3",
     "@dnd-kit/sortable": "^7.0.0",
     "@dnd-kit/utilities": "^3.2.0",
+    "@jest/globals": "^29.3.1",
+    "@types/babel__core": "^7.20.0",
+    "@types/expect-puppeteer": "^5.0.2",
+    "@types/jest": "^29.2.5",
+    "@types/jest-environment-puppeteer": "^5.0.3",
+    "@types/node": "^18.11.18",
+    "@types/puppeteer": "^7.0.4",
+    "@types/wordpress__block-editor": "^11.0.1",
+    "@types/wordpress__blocks": "^12.0.1",
+    "@types/wordpress__components": "^23.0.1",
+    "@types/wordpress__compose": "^6.0.1",
     "@wordpress/block-editor": "^11.1.0",
     "@wordpress/components": "^23.1.0",
     "@wordpress/compose": "^6.1.0",
+    "@wordpress/e2e-test-utils": "^9.1.0",
+    "@wordpress/e2e-tests": "^6.1.0",
     "@wordpress/element": "^5.1.0",
+    "@wordpress/env": "^5.10.0",
     "@wordpress/i18n": "^4.19.0",
-    "@wordpress/scripts": "^25.1.0",
+    "@wordpress/jest-preset-default": "^10.5.0",
+    "@wordpress/scripts": "^25.0.0",
+    "babel-jest": "^29.3.1",
     "clean-jsdoc-theme": "^4.1.7",
     "codemirror": "^6.0.1",
-    "jsdoc": "^3.6.11"
+    "jest-puppeteer": "^6.2.0",
+    "typescript": "^4.9.4"
   },
   "dependencies": {
     "animate.css": "^4.1.1",
@@ -51,12 +76,14 @@
     "node": ">=14.0.0",
     "npm": ">=6.9.0"
   },
-  "eslintConfig": {
-    "extends": [
-      "plugin:@wordpress/eslint-plugin/recommended"
-    ]
-  },
   "browserslist": [
     "extends @wordpress/browserslist-config"
-  ]
+  ],
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.test.json"
+      }
+    }
+  }
 }

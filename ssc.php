@@ -28,7 +28,7 @@ function ssc_editor_style() {
 	wp_register_style( 'ssc_css_editor', plugin_dir_url( __FILE__ ) . 'build/ssc-editor.css' );
 	wp_enqueue_style( 'ssc_css_editor' );
 }
-add_action( 'enqueue_block_editor_assets', 'ssc_editor_style' );
+// add_action( 'enqueue_block_editor_assets', 'ssc_editor_style' );
 
 /**
  * Register and enqueue the ssc stylesheet
@@ -38,4 +38,4 @@ function ssc_style() {
 	wp_enqueue_style( 'ssc_css' );
 }
 
-add_action( 'wp_enqueue_scripts', 'ssc_style' );
+// add_action( 'wp_enqueue_scripts', 'ssc_style' );
