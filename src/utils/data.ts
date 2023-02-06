@@ -1,5 +1,7 @@
+import {Label, SSCActionDef, SSCAnimationType, SSCAnimationTypeDef} from '../frontend/types';
+
 /** the advanced animation available parameters and defaults  */
-export const actionsTemplate = [
+export const actionsTemplate: SSCActionDef[] = [
 	{
 		actionLabel: 'Keyframe (duration in ms)',
 		action: 'duration',
@@ -80,7 +82,7 @@ export const actionsTemplate = [
 	},
 ];
 
-export const cssAnimationsEasings = [
+export const cssAnimationsEasings: Label[] = [
 	{
 		label: 'Linear',
 		value: 'linear',
@@ -103,7 +105,7 @@ export const cssAnimationsEasings = [
 	},
 ];
 
-export const animationEasings = [
+export const animationEasings: Label[] = [
 	{
 		label: 'Linear',
 		value: 'linear',
@@ -188,7 +190,7 @@ export const animationEasings = [
 	},
 ];
 
-export const animationTypes = [
+export const animationTypes: SSCAnimationTypeDef[] = [
 	{
 		label: 'Animation',
 		value: 'sscAnimation',
@@ -335,17 +337,21 @@ export const animationTypes = [
 		label: 'Screen Jump',
 		value: 'sscScreenJump',
 		default: {
+			reiterate: true,
 			target: 'none',
 		},
 	},
 	{
 		label: 'Navigator',
 		value: 'sscNavigator',
-		default: {},
+		default: {
+			reiterate: true,
+			color: 'var(--color-primary)',
+		},
 	},
 ];
 
-export const animationList = [
+export const animationList: Label[] = [
 	{
 		label: 'No Animation',
 		value: false,
@@ -747,7 +753,7 @@ export const textStaggerPresets = {
 	],
 };
 
-export const textStaggerPresetsNames = [];
+export const textStaggerPresetsNames: Label[] = [];
 Object.keys( textStaggerPresets ).map( ( item ) =>
 	textStaggerPresetsNames.push( {
 		label: item,
