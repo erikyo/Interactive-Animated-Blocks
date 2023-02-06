@@ -1,18 +1,20 @@
-import { windowData } from '../frontend/_ssc';
+import { windowProps } from '../frontend/_ssc';
+import { SscPositionYDef, WindowProps } from '../frontend/types';
 
 /**
  * This function returns a promise that resolves after the given number of milliseconds.
  *
  * @param {number} ms - The number of milliseconds to delay.
  */
-export const delay = ( ms ) => new Promise( ( r ) => setTimeout( r, ms ) );
+export const delay = ( ms: number ) =>
+	new Promise( ( r ) => setTimeout( r, ms ) );
 
 /**
  * It prevents That the mouse wheel can change the position on the page
  *
  * @param {Event} e - The event object.
  */
-export function disableWheel( e ) {
+export function disableWheel( e: WheelEvent ) {
 	e.preventDefault();
 	e.stopPropagation();
 	return false;
@@ -26,9 +28,9 @@ export function disableWheel( e ) {
  * @param {HTMLElement} el - The element you want to check.
  * @return {boolean} true when the element is shown inside the viewport
  */
-export const isPartiallyVisible = ( el ) => {
+export const isPartiallyVisible = ( el: HTMLElement ) => {
 	const rect = el.getBoundingClientRect();
-	const innerHeight = windowData.viewHeight;
+	const innerHeight = windowProps.viewHeight;
 	if ( rect.height <= innerHeight ) {
 		return rect.bottom >= 0 || rect.top <= innerHeight;
 	}
@@ -47,9 +49,9 @@ export const isPartiallyVisible = ( el ) => {
  * @param {HTMLElement} el - The element you want to check if it's fully visible.
  * @return {boolean} if the item edges are completely inside the viewport
  */
-export const isFullyVisible = ( el ) => {
+export const isFullyVisible = ( el: HTMLElement ) => {
 	const rect = el.getBoundingClientRect();
-	return rect.top >= 0 && rect.bottom <= windowData.viewHeight;
+	return rect.top >= 0 && rect.bottom <= windowProps.viewHeight;
 };
 
 /**
@@ -62,9 +64,9 @@ export const isFullyVisible = ( el ) => {
  * @param {number}      rangePosition - The percentage of the viewport's height that represents the active area
  * @return {boolean}                  - true if the element is inside the active area
  */
-export const isActiveArea = ( el, rangePosition ) => {
+export const isActiveArea = ( el: HTMLElement, rangePosition: number ) => {
 	const rect = el.getBoundingClientRect();
-	const innerHeight = windowData.viewHeight;
+	const innerHeight = windowProps.viewHeight;
 	const limit = innerHeight * ( 100 - rangePosition ) * 0.005; // 20% of 1000px is 100px from top and 100px from bottom
 	const elementCenter = rect.top + rect.height * 0.5;
 	return limit < elementCenter && elementCenter < innerHeight - limit;
@@ -79,18 +81,20 @@ export const isActiveArea = ( el, rangePosition ) => {
  * @param {HTMLElement} el            - The element you want to check if it's in the active area.
  * @param {number}      rangePosition - The percentage of the viewport's height that represents the active area
  *
- * @return {boolean}                  - true if the element is inside the active area
+ * @return {boolean|undefined}                  - true if the element is inside the active area
  */
-export const isInside = ( el, rangePosition ) => {
+export const isInside = (
+	el: HTMLElement,
+	rangePosition: number
+): boolean | undefined => {
 	const rect = el.getBoundingClientRect();
 	const innerHeight = window.innerHeight;
 	// eg. 20 (%) of 1000 (px) are the slice inside 100px from top and 100px from bottom
 	const limit = innerHeight * 0.005 * rangePosition;
 	// if the element top side is inside the view
-
-	if ( windowData.direction === 'down' ) {
+	if ( windowProps.direction === 'down' ) {
 		return limit < rect.top && rect.top < innerHeight - limit;
-	} else if ( windowData.direction === 'up' ) {
+	} else if ( windowProps.direction === 'up' ) {
 		return limit < rect.bottom && rect.bottom < innerHeight - limit;
 	}
 };
@@ -102,7 +106,10 @@ export const isInside = ( el, rangePosition ) => {
  * @param {number} intersectionArea - The percentage of the element that needs to be visible in order to trigger the animation.
  * @return {boolean}                - the element is in view true / false
  */
-export const isInView = ( position, intersectionArea ) => {
+export const isInView = (
+	position: SscPositionYDef,
+	intersectionArea: number
+) => {
 	position.ycenter = ( position.yTop + position.yBottom ) * 0.5;
 	const activeArea = intersectionArea * ( window.innerHeight * 0.01 );
 	const inactiveArea = ( window.innerHeight - activeArea ) * 0.5;
@@ -119,14 +126,14 @@ export const isInView = ( position, intersectionArea ) => {
  *
  * @param {boolean} update
  */
-export function scrollDirection( update = false ) {
+export function scrollDirection( update: boolean = false ) {
 	const scrollY = window.scrollY;
-	if ( windowData.lastScrollPosition < scrollY ) {
-		windowData.direction = 'down';
-	} else if ( windowData.lastScrollPosition > scrollY ) {
-		windowData.direction = 'up';
+	if ( windowProps.lastScrollPosition < scrollY ) {
+		windowProps.direction = 'down';
+	} else if ( windowProps.lastScrollPosition > scrollY ) {
+		windowProps.direction = 'up';
 	}
-	if ( update ) windowData.lastScrollPosition = scrollY;
+	if ( update ) windowProps.lastScrollPosition = scrollY;
 }
 
 /**
@@ -135,12 +142,17 @@ export function scrollDirection( update = false ) {
  * @param {Event} e - The event object
  * @return {boolean} - Return true when the given element has the mouse over
  */
-export const hasMouseOver = ( e ) => {
-	const mouseX = e;
-	const mouseY = e;
-	const rect = e.target.getBoundingClientRect();
+export const hasMouseOver = ( e: MouseEvent ) => {
+	const mouseX: number = e.clientX;
+	const mouseY: number = e.clientY;
+	const rect: DOMRect = ( e.target as HTMLElement ).getBoundingClientRect();
 
-	return rect.left < mouseX < rect.right && rect.top < mouseY < rect.bottom;
+	return rect
+		? rect.left < mouseX &&
+				mouseX < rect.right &&
+				rect.top < mouseY &&
+				mouseY < rect.bottom
+		: false;
 };
 
 /**
@@ -148,8 +160,8 @@ export const hasMouseOver = ( e ) => {
  *
  * @param {TouchEvent} e - The event object.
  */
-export function touchstartEvent( e ) {
-	this.touchPos.Y = e.changedTouches[ 0 ].clientY;
+export function touchstartEvent( e: Event ) {
+	//this.touchPos.Y = e.changedTouches[ 0 ].clientY;
 }
 
 /**
@@ -158,14 +170,19 @@ export function touchstartEvent( e ) {
  * If the new touch position is greater than the old touch position, the finger is moving down.
  * If the new touch position is less than the old touch position, the finger is moving up.
  *
- * @param {TouchEvent} e - the event object
+ * @param {TouchEvent} e          - the event object
+ * @param              windowData
  */
-export function ontouchmoveEvent( e ) {
+function ontouchmoveEvent( e: TouchEvent, windowData: WindowProps ) {
 	const newTouchPos = e.changedTouches[ 0 ].clientY;
-	if ( newTouchPos > this.touchPos.Y ) {
-		console.log( 'finger moving down' );
-	} else if ( newTouchPos < this.touchPos.Y ) {
-		console.log( 'finger moving up' );
+	if ( windowData.touchPos.y ) {
+		if ( newTouchPos > windowData.touchPos.y ) {
+			// eslint-disable-next-line no-console
+			console.log( 'finger moving down' );
+		} else if ( newTouchPos < windowData.touchPos.y ) {
+			// eslint-disable-next-line no-console
+			console.log( 'finger moving up' );
+		}
 	}
 }
 
@@ -174,7 +191,7 @@ export function ontouchmoveEvent( e ) {
  */
 export const screenBodyClass = () => {
 	scrollDirection( true );
-	if ( windowData.lastScrollPosition < 5 ) {
+	if ( windowProps.lastScrollPosition < 5 ) {
 		document.body.classList.add( 'top' );
 	} else {
 		document.body.classList.remove( 'top' );
