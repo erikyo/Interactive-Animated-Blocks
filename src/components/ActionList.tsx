@@ -23,7 +23,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { actionsTemplate } from '../utils/data';
 
-class sscPointerSensor extends PointerSensor {
+export class sscPointerSensor extends PointerSensor {
 	static activators = [
 		{
 			eventName: 'onPointerDown',
@@ -42,7 +42,7 @@ class sscPointerSensor extends PointerSensor {
 	];
 }
 
-function isInteractiveElement( element ) {
+function isInteractiveElement( element: Element | null ) {
 	const interactiveElements = [
 		'button',
 		'input',
@@ -51,7 +51,14 @@ function isInteractiveElement( element ) {
 		'option',
 		'span',
 	];
-	return interactiveElements.includes( element.tagName.toLowerCase() );
+	if (
+		element?.tagName &&
+		interactiveElements.includes( element.tagName.toLowerCase() )
+	) {
+		return true;
+	}
+
+	return false;
 }
 
 const HandleIcon = createElement(
@@ -66,7 +73,17 @@ const HandleIcon = createElement(
 	} )
 );
 
-function ActionRow( props ) {
+function ActionRow( props: {
+	id: string;
+	action: string;
+	actionList: readonly SelectControl.Option[] | undefined;
+	handleChange: (
+		arg0: string,
+		arg1: { id: any; changed: string; action: any; value: any }
+	) => void;
+	value: string | number;
+	removeAction: ( arg0: any ) => any;
+} ) {
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable( { id: props.id } );
 
@@ -121,7 +138,10 @@ function ActionRow( props ) {
 	);
 }
 
-export function ActionList( props ) {
+export function ActionList( props: {
+	data: any;
+	onSave: ( arg0: any[] ) => void;
+} ) {
 	const [ animationProps, setAnimationProps ] = useState( props.data || [] );
 
 	const sensors = useSensors(
@@ -131,7 +151,11 @@ export function ActionList( props ) {
 		} )
 	);
 
-	const provideSelectOptions = ( array, label, value ) => {
+	const provideSelectOptions = (
+		array: any[],
+		label: string,
+		value: string
+	) => {
 		return array.map( ( item ) => {
 			return { label: item[ label ], value: item[ value ] };
 		} );
@@ -139,7 +163,7 @@ export function ActionList( props ) {
 
 	const wrapperStyle = { margin: '24px 0', position: 'relative' };
 
-	function handleDragEnd( event ) {
+	function handleDragEnd( event: { active: any; over: any } ) {
 		const { active, over } = event;
 
 		if ( active.id !== over.id ) {
@@ -169,8 +193,10 @@ export function ActionList( props ) {
 		props.onSave( animationProps );
 	};
 
-	function removeAction( id ) {
-		const selectedItem = animationProps.map( ( x ) => x.id ).indexOf( id );
+	function removeAction( id: any ) {
+		const selectedItem = animationProps
+			.map( ( x: { id: number } ) => x.id )
+			.indexOf( id );
 
 		const newAnimationProps = [
 			...animationProps.slice( 0, selectedItem ),
@@ -180,7 +206,12 @@ export function ActionList( props ) {
 		props.onSave( newAnimationProps );
 	}
 
-	function handleChange( ev, data ) {
+	interface DndChangedProps {
+		id: any;
+		changed: string;
+	}
+
+	function handleChange( ev: string, data: DndChangedProps ) {
 		const newAnimationProps = animationProps;
 		const selectedItem = animationProps
 			.map( ( x ) => x.id )
