@@ -1,4 +1,5 @@
 import { animationTypes } from './data';
+import { SSCAnimationTypeDef, StylePropDef } from '../frontend/types';
 
 /**
  * It takes a data object and a type string, and returns a string of the data object's key/value pairs, separated by semicolons
@@ -8,7 +9,7 @@ import { animationTypes } from './data';
  *
  * @return {string}     - A stringified version of the Object
  */
-export function dataStringify( data, type ) {
+export function dataStringify( data: Object, type: string ): string | null {
 	let csv = '';
 
 	csv += Object.entries( data )
@@ -27,14 +28,15 @@ export function dataStringify( data, type ) {
 /**
  * It takes a jss style object and returns a string of linted CSS code
  *
- * @param {string} style - The style object to be linted.
- *
+ * @param {Object} styleObject       - The style object to be linted.
  * @return {string} A string of CSS code.
  */
-export function lintCSS( style ) {
-	return style && Object.keys( style ).length
+export function lintCSS( styleObject: Object ): string {
+	return styleObject && Object.keys( styleObject ).length
 		? 'this {\n' +
-				capitalToloDash( autoLintCode( styleObj2String( style ) ) ) +
+				capitalToloDash(
+					autoLintCode( styleObj2String( styleObject ) )
+				) +
 				';\n}'
 		: 'this {\n\t\n}';
 }
@@ -47,14 +49,15 @@ export function lintCSS( style ) {
  *
  * @return {Object} - the css string converted into an object
  */
-export const parseCSS = ( style ) => {
-	// remove all breaklines
-	let result = style.replaceAll( '\n', '' );
-	// get all the content inside "this{ }"
-	result = result.match( 'this {(.*?)}' )[ 1 ];
-	// convert jss to css
-	result = css2obj( result );
-	return result;
+export const parseCSS = ( style: string ): Object => {
+	// Remove all breaklines
+	const result: string = style?.replace( /\n/g, '' );
+	// Get all the content inside "this{ }"
+	const cssResult = result.match( 'this {(.*?)}' );
+	// Convert jss to css
+	return css2obj(
+		cssResult && cssResult.length > 0 ? cssResult[ 1 ] : false
+	);
 };
 
 /**
@@ -63,11 +66,18 @@ export const parseCSS = ( style ) => {
  * @param {string} css - The CSS string to convert to an object.
  * @return {Object} An object with the CSS properties as keys and the CSS values as values.
  */
-export const css2obj = ( css ) => {
-	const r = /(?<=^|;)\s*([^:]+)\s*:\s*([^;]+)\s*/g,
-		style = {};
-	css.replace( r, ( m, p, v ) => ( style[ loDashToCapital( p ) ] = v ) );
-	return style;
+export const css2obj = ( css: string | false ) => {
+	const regExp = /(?<=^|;)\s*([^:]+)\s*:\s*([^;]+)\s*/g;
+	const style: { [ x: string ]: string } = {};
+	if ( css ) {
+		css.replace(
+			regExp,
+			( m, p: string, value: string ) =>
+				( style[ loDashToCapital( p ) ] = value )
+		);
+		return style;
+	}
+	return {};
 };
 
 /**
@@ -78,7 +88,7 @@ export const css2obj = ( css ) => {
  * @param {Object} style       - The style object to convert to a string.
  * @param {string} [indent=\t] - The string to use for indentation.
  */
-export const styleObj2String = ( style, indent = '\t' ) =>
+export const styleObj2String = ( style: object, indent: string = '\t' ) =>
 	Object.entries( style )
 		.map( ( [ k, v ] ) => indent + `${ k }: ${ v }` )
 		.join( ';' );
@@ -88,7 +98,7 @@ export const styleObj2String = ( style, indent = '\t' ) =>
  *
  * @param {string} k - The string to be converted.
  */
-export const capitalToloDash = ( k ) =>
+export const capitalToloDash = ( k: string ) =>
 	k.replace( /[A-Z]/g, ( match ) => `-${ match.toLowerCase() }` );
 
 /**
@@ -96,7 +106,7 @@ export const capitalToloDash = ( k ) =>
  *
  * @param {string} k - The string to be converted.
  */
-export const loDashToCapital = ( k ) =>
+export const loDashToCapital = ( k: string ): string =>
 	k.replace( /-[a-z]/g, ( match ) => `${ match[ 1 ].toUpperCase() }` );
 
 /**
@@ -105,7 +115,7 @@ export const loDashToCapital = ( k ) =>
  * @param {string} k - The code to be linted.
  * @return {string} the matched value with a new line character appended to it.
  */
-export const autoLintCode = ( k ) =>
+export const autoLintCode = ( k: string ) =>
 	k.replace( /\;| \{/gi, function ( matched ) {
 		return matched + '\n';
 	} );
@@ -117,19 +127,31 @@ export const autoLintCode = ( k ) =>
  * @param {string} [type=data] - The type of data you want to get. Use style to parse css style
  * @return {Object}            - An object with the key being the first element of the array and the value being the second element of the array.
  */
-export const getElelementData = ( opts, type = 'data' ) => {
+export const getElelementData = (
+	opts: string,
+	type: string = 'data'
+): object | false => {
 	if ( opts ) {
 		const rawArgs = opts.split( ';' );
 		let parsedArgs = [];
 		parsedArgs = rawArgs.map( ( arg ) => arg.split( ':' ) );
-		const args = {};
-		parsedArgs.forEach( ( el, index ) => {
-			if ( el[ 0 ] !== 'defalut' ) {
-				if ( type === 'style' ) {
-					args[ index ] = { property: el[ 0 ], value: el[ 1 ] };
-				} else {
-					args[ el[ 0 ] ] = el[ 1 ];
+
+		if ( type === 'style' ) {
+			const style: Object[] = [];
+			parsedArgs.forEach( ( el: string[], index: number ) => {
+				if ( el[ 0 ] !== 'defalut' ) {
+					style[ index ] = {
+						property: el[ 0 ],
+						value: el[ 1 ],
+					};
 				}
+			} );
+			return style;
+		}
+		const args: StylePropDef = {};
+		parsedArgs.forEach( ( el: string[] ) => {
+			if ( el[ 0 ] !== 'defalut' ) {
+				args[ el[ 0 ] as keyof StylePropDef ] = el[ 1 ];
 			}
 		} );
 		return args;
@@ -147,7 +169,10 @@ export const getElelementData = ( opts, type = 'data' ) => {
  *
  * @return {string} A string of HTML with the words and letters wrapped in span tags.
  */
-export function splitSentence( sentence, splitBy = 'word' ) {
+export function splitSentence(
+	sentence: string,
+	splitBy: string = 'word'
+): string {
 	const words = sentence.split( ' ' );
 	const result = words.map( ( word ) => {
 		if ( splitBy === 'word' ) {
@@ -172,7 +197,7 @@ export function splitSentence( sentence, splitBy = 'word' ) {
  *
  * @return {Object} The default values for the animation type.
  */
-export const getDefaults = ( opt ) => {
+export const getDefaults = ( opt: string ): SSCAnimationTypeDef | {} => {
 	const animationType = animationTypes.filter( ( animation ) => {
 		return animation.value ? animation.value === opt : null;
 	} );
