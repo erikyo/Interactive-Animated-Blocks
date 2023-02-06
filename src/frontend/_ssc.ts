@@ -241,9 +241,9 @@ export default class _ssc {
 	 * @param                                       el.sscItemOpts               - the scc general animation options
 	 * @param                                       el.sscSequence               - the scc animation used for the "timeline"
 	 */
-	initializeItem = ( el: SscElement, index: any ) => {
+	initializeItem = ( el: SscElement, index: number ) => {
 		// add data-ssc-item="n" to each item
-		el.dataset.sscItem = index;
+		el.dataset.sscItem = index.toString();
 
 		el.unWatch = () => this.observer?.unobserve( el );
 
