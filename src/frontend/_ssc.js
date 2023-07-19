@@ -336,6 +336,19 @@ export default class _ssc {
 			// start parallax
 			this.parallax();
 
+			// if the window has in the page url an anchor scroll target, get it then jump to that element
+			if ( window.location.hash ) {
+				const destination = window.location.hash.substring( 1 );
+				// get the element by its id
+				const destinationY =
+					document.getElementById( destination ).offsetTop;
+				// scroll to the element
+				window.scrollTo( {
+					top: destinationY,
+					behavior: 'smooth',
+				} );
+			}
+
 			this.jumpToScreen(
 				document.querySelectorAll( '.ssc-screen-jumper' )
 			);
