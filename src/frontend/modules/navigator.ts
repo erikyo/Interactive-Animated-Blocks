@@ -7,7 +7,7 @@
  *
  */
 import { isPartiallyVisible } from '../../utils/utils';
-import { windowData } from '../_ssc';
+import { windowProps } from '../_ssc';
 
 function navigator( entry ) {
 	const wrapper = entry.target;
@@ -107,11 +107,11 @@ function navigator( entry ) {
 		const progress = document.getElementById( 'navigator-progress-bar' );
 
 		if ( isPartiallyVisible( wrapper ) ) {
-			if ( lastY === windowData.lastScrollPosition ) {
+			if ( lastY === windowProps.lastScrollPosition ) {
 				return window.requestAnimationFrame( observeNavigation );
 			}
 
-			lastY = windowData.lastScrollPosition;
+			lastY = windowProps.lastScrollPosition;
 
 			progress.value = lastY * 0.01;
 
