@@ -2,8 +2,10 @@ import { __ } from '@wordpress/i18n';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { Fragment } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
+import { seen } from '@wordpress/icons';
 
 import {
+	Panel,
 	PanelBody,
 	RangeControl,
 	SelectControl,
@@ -21,6 +23,7 @@ import {
 	animationTypes,
 	textStaggerPresetsNames,
 } from '../utils/data';
+import { SSCAnimationScene } from '../types';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -30,8 +33,8 @@ import {
  * @return {Function} BlockEdit Modified block edit component.
  */
 export const AnimationAdvancedControls = createHigherOrderComponent(
-	( BlockEdit ) => {
-		return ( props ) => {
+	(BlockEdit) => {
+		return (props) => {
 			const {
 				name,
 				setAttributes,
@@ -40,31 +43,33 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			} = props;
 
 			const {
-				sscAnimated = false,
-				sscAnimationType = false,
-				sscAnimationOptions = {},
+				sscAnimated: sscAnimated = false,
+				sscAnimationType: sscAnimationType = false,
+				sscAnimationOptions: sscAnimationOptions = {},
 			} = ssc;
 
 			/**
 			 * Set the animation options
 			 *
-			 * @param    {Object|boolean} data - the data to store
-			 * @param    {string}         prop - the property
-			 *
-			 * @typedef {Object} sscAnimationOptions
-			 * @property {Object}         type - the type of animation (each animation has its own set of default parameters)
-			 *
+			 * @param data - the data to store
+			 * @param prop - the property to set
 			 */
-			const setOption = ( data, prop ) => {
-				setAttributes( {
-					ssc: {
-						...ssc,
-						sscAnimationOptions: {
-							...ssc.sscAnimationOptions,
-							[ prop ]: data,
+			const setOption = (
+				data: number | string | {} | undefined,
+				prop: string
+			) => {
+				return (
+					!!data &&
+					setAttributes({
+						ssc: {
+							...ssc,
+							sscAnimationOptions: {
+								...ssc.sscAnimationOptions,
+								[prop]: data,
+							},
 						},
-					},
-				} );
+					})
+				);
 			};
 
 			/**
@@ -76,8 +81,8 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 *
 			 * @type {data}
 			 */
-			function pullScene( data ) {
-				setOption( data, 'scene' );
+			function pullScene(data: {}) {
+				setOption(data, 'scene');
 			}
 
 			/**
@@ -86,25 +91,27 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 * `updateAnimation` is a function that takes the type of animation and
 			 * sets the default attributes if none have been set previously
 			 *
-			 * @param {string} type            - The attribute type chosen by the user
-			 * @param {Object} additionalProps - props to be added to the animation
-			 *
-			 * @type {sscAnimationOptions|null}
+			 * @param type                        - The attribute type chosen by the user
+			 * @param additionalProps             - props to be added to the animation
+			 * @param additionalProps.sscAnimated - Whether the animation is animated
 			 */
-			function updateAnimation( type, additionalProps = {} ) {
-				if ( type === sscAnimationType ) return null;
+			function updateAnimation(
+				type: string,
+				additionalProps?: { sscAnimated: any }
+			) {
+				if (type === sscAnimationType) return null;
 
-				const defaultOptions = getDefaults( type );
+				const defaultOptions = getDefaults(type);
 
 				// get default options if the animation isn't initialized
-				setAttributes( {
+				setAttributes({
 					ssc: {
 						...ssc,
 						sscAnimationType: type,
 						sscAnimationOptions: defaultOptions, // the default values for this animation
 						...additionalProps,
 					},
-				} );
+				});
 			}
 
 			/**
@@ -112,67 +119,69 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 */
 			const toggleAnimated = () => {
 				// If the animation settings aren't set, set the default.
-				if ( ssc?.sscAnimated !== true ) {
-					updateAnimation( 'sscAnimation', {
-						sscAnimated: ! sscAnimated,
-					} );
+				if (ssc?.sscAnimated !== true) {
+					updateAnimation('sscAnimation', {
+						sscAnimated: !sscAnimated,
+					});
 				}
 			};
 
 			return (
 				<Fragment>
-					<BlockEdit { ...props } />
+					<BlockEdit {...props} />
 					<InspectorControls>
 						<PanelBody
-							initialOpen={ true }
-							icon="visibility"
-							title={ __( 'Screen Control' ) }
+							initialOpen={true}
+							icon={seen}
+							title={__('Screen Control')}
 						>
-							{ isSelected && (
+							{isSelected && (
 								<>
 									<ToggleControl
 										// ENABLE ANIMATION
-										label={ __( 'Animated' ) }
-										checked={ sscAnimated }
-										onChange={ toggleAnimated }
+										label={__('Animated')}
+										checked={sscAnimated}
+										onChange={toggleAnimated}
 										help={
-											!! sscAnimated
+											!!sscAnimated
 												? __(
 														'Please choose an animation from the select input below.'
 												  )
-												: __( 'Not Animated.' )
+												: __('Not Animated.')
 										}
 									/>
 
-									{ sscAnimated && (
+									{sscAnimated && (
 										<>
 											<SelectControl
 												label={
 													'Choose an animation type for ' +
-													name.split( '/' ).pop()
+													name.split('/').pop()
 												}
-												value={ sscAnimationType }
-												options={ animationTypes }
-												onChange={ ( newType ) =>
-													updateAnimation( newType )
+												value={sscAnimationType}
+												options={
+													animationTypes as SSCAnimationScene[]
+												}
+												onChange={(newType) =>
+													updateAnimation(newType)
 												}
 											></SelectControl>
 
 											<ToggleControl
-												label={ __( 'Reiterate' ) }
+												label={__('Reiterate')}
 												checked={
 													sscAnimationOptions?.reiterate ||
 													true
 												}
-												onChange={ () =>
+												onChange={() =>
 													setOption(
-														! sscAnimationOptions.reiterate,
+														!sscAnimationOptions.reiterate,
 														'reiterate'
 													)
 												}
 											/>
 
-											{ sscAnimationType &&
+											{sscAnimationType &&
 												[
 													'sscSvgPath',
 													'sscSequence',
@@ -186,41 +195,41 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												) && (
 													<>
 														<RangeControl
-															label={ __(
+															label={__(
 																'Delay (ms)'
-															) }
+															)}
 															value={
 																sscAnimationOptions.delay
 															}
-															onChange={ ( e ) =>
+															onChange={(e) =>
 																setOption(
 																	e,
 																	'delay'
 																)
 															}
-															min={ 0 }
-															max={ 10000 }
-															step={ 10 }
+															min={0}
+															max={10000}
+															step={10}
 														/>
 														<RangeControl
-															label={ __(
+															label={__(
 																'Duration (ms)'
-															) }
+															)}
 															value={
 																sscAnimationOptions.duration
 															}
-															onChange={ ( e ) =>
+															onChange={(e) =>
 																setOption(
 																	e,
 																	'duration'
 																)
 															}
-															min={ 0 }
-															max={ 10000 }
-															step={ 10 }
+															min={0}
+															max={10000}
+															step={10}
 														/>
 														<SelectControl
-															label={ 'Easing' }
+															label={'Easing'}
 															value={
 																sscAnimationOptions.easing
 															}
@@ -230,7 +239,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																	? animationEasings
 																	: cssAnimationsEasings
 															}
-															onChange={ ( e ) =>
+															onChange={(e) =>
 																setOption(
 																	e,
 																	'easing'
@@ -238,29 +247,29 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															}
 														></SelectControl>
 													</>
-												) }
+												)}
 
-											{ sscAnimationType ===
+											{sscAnimationType ===
 												'sscSequence' && (
 												<ActionList
 													data={
 														sscAnimationOptions.scene
 													}
-													type={ sscAnimationType }
-													onSave={ pullScene }
+													type={sscAnimationType}
+													onSave={pullScene}
 												/>
-											) }
+											)}
 
-											{ sscAnimationType === 'ssc360' && (
+											{sscAnimationType === 'ssc360' && (
 												<>
 													<TextControl
-														label={ 'Spin ratio' }
-														type={ 'number' }
+														label={'Spin ratio'}
+														type={'number'}
 														value={
 															sscAnimationOptions.spinRatio ||
 															1
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'spinRatio'
@@ -269,17 +278,17 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													/>
 
 													<SelectControl
-														label={ 'Controls' }
+														label={'Controls'}
 														value={
 															sscAnimationOptions.control
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'control'
 															)
 														}
-														options={ [
+														options={[
 															{
 																label: 'Pointer position',
 																value: 'pointer',
@@ -288,32 +297,26 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																label: 'Drag',
 																value: 'drag',
 															},
-														] }
+														]}
 													/>
 												</>
-											) }
+											)}
 
-											{ [
+											{[
 												'sscVideoParallax',
 												'sscVideoScroll',
-											].includes( sscAnimationType ) && (
+											].includes(sscAnimationType) && (
 												<>
 													<RangeControl
-														label={
-															'Playback Ratio'
-														}
-														description={
-															'the mouse wheel speed playback speed'
-														}
-														type={ 'number' }
+														label={'Playback Ratio'}
 														value={
 															sscAnimationOptions.playbackRatio ||
 															1
 														}
-														min={ 0 }
-														max={ 10 }
-														step={ 0.1 }
-														onChange={ ( e ) =>
+														min={0}
+														max={10}
+														step={0.1}
+														onChange={(e) =>
 															setOption(
 																e,
 																'playbackRatio'
@@ -321,20 +324,20 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 												</>
-											) }
+											)}
 
-											{ sscAnimationType ===
+											{sscAnimationType ===
 												'sscParallax' && (
 												<>
 													<TextControl
 														label={
 															'The speed of the parallaxed object (expressed in pixels - negative value enabled)'
 														}
-														type={ 'number' }
+														type={'number'}
 														value={
 															sscAnimationOptions.speed
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'speed'
@@ -342,17 +345,17 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 													<SelectControl
-														label={ 'Direction' }
+														label={'Direction'}
 														value={
 															sscAnimationOptions.direction
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'direction'
 															)
 														}
-														options={ [
+														options={[
 															{
 																label: 'vertical',
 																value: 'y',
@@ -361,15 +364,15 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																label: 'horizontal',
 																value: 'x',
 															},
-														] }
+														]}
 													/>
 													<TextControl
-														label={ 'Level' }
-														type={ 'number' }
+														label={'Level'}
+														type={'number'}
 														value={
 															sscAnimationOptions.level
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'level'
@@ -377,14 +380,12 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 													<TextControl
-														label={
-															'Motion (in ms)'
-														}
-														type={ 'number' }
+														label={'Motion (in ms)'}
+														type={'number'}
 														value={
 															sscAnimationOptions.motion
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'motion'
@@ -392,22 +393,20 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 												</>
-											) }
+											)}
 
-											{ sscAnimationType ===
+											{sscAnimationType ===
 												'sscAnimation' && (
 												<>
 													<SelectControl
 														label={
 															'Entering animation name'
 														}
-														options={
-															animationList
-														}
+														options={animationList}
 														value={
 															sscAnimationOptions.animationEnter
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'animationEnter'
@@ -418,13 +417,11 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														label={
 															'Exiting animation name (checkout animate.css)'
 														}
-														options={
-															animationList
-														}
+														options={animationList}
 														value={
 															sscAnimationOptions.animationLeave
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'animationLeave'
@@ -432,17 +429,17 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 													<SelectControl
-														label={ 'Stagger' }
+														label={'Stagger'}
 														value={
 															sscAnimationOptions.stagger
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'stagger'
 															)
 														}
-														options={ [
+														options={[
 															{
 																label: 'none',
 																value: 'none',
@@ -459,22 +456,22 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																label: 'Word',
 																value: 'word',
 															},
-														] }
+														]}
 													/>
 												</>
-											) }
-											{ sscAnimationType ===
+											)}
+											{sscAnimationType ===
 												'sscTextStagger' && (
 												<>
 													<SelectControl
-														label={ 'preset' }
+														label={'preset'}
 														options={
 															textStaggerPresetsNames
 														}
 														value={
 															sscAnimationOptions.preset
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'preset'
@@ -482,17 +479,17 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 													<SelectControl
-														label={ 'Split by' }
+														label={'Split by'}
 														value={
 															sscAnimationOptions.splitBy
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'splitBy'
 															)
 														}
-														options={ [
+														options={[
 															{
 																label: 'Letter',
 																value: 'letter',
@@ -501,11 +498,11 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 																label: 'Word',
 																value: 'word',
 															},
-														] }
+														]}
 													/>
 												</>
-											) }
-											{ sscAnimationType &&
+											)}
+											{sscAnimationType &&
 												[
 													'sscSvgPath',
 													'sscSequence',
@@ -520,12 +517,11 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															label={
 																'Viewport Minimum Active Zone (%)'
 															}
-															type={ 'number' }
 															value={
 																sscAnimationOptions.intersection ||
 																80
 															}
-															onChange={ ( e ) =>
+															onChange={(e) =>
 																setOption(
 																	e,
 																	'intersection'
@@ -533,19 +529,19 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															}
 														/>
 													</>
-												) }
+												)}
 
-											{ sscAnimationType ===
+											{sscAnimationType ===
 												'sscCounter' && (
 												<SelectControl
-													label={ 'Target' }
+													label={'Target'}
 													value={
 														sscAnimationOptions.target
 													}
-													onChange={ ( e ) =>
-														setOption( e, 'target' )
+													onChange={(e) =>
+														setOption(e, 'target')
 													}
-													options={ [
+													options={[
 														{
 															label: 'Number',
 															value: 'number',
@@ -554,21 +550,21 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															label: 'Word',
 															value: 'word',
 														},
-													] }
+													]}
 												/>
-											) }
+											)}
 
-											{ sscAnimationType ===
+											{sscAnimationType ===
 												'sscScreenJump' && (
 												<SelectControl
-													label={ 'Target' }
+													label={'Target'}
 													value={
 														sscAnimationOptions.target
 													}
-													onChange={ ( e ) =>
-														setOption( e, 'target' )
+													onChange={(e) =>
+														setOption(e, 'target')
 													}
-													options={ [
+													options={[
 														{
 															label: 'Next View',
 															value: 'none',
@@ -577,55 +573,53 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															label: 'Anchor',
 															value: 'anchor',
 														},
-													] }
+													]}
 												/>
-											) }
+											)}
 
-											{ sscAnimationType ===
+											{sscAnimationType ===
 												'sscScrollTimeline' && (
 												<>
 													<RangeControl
 														label={
 															'Duration (height in px)'
 														}
-														type={ 'number' }
 														value={
 															sscAnimationOptions.duration
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'duration'
 															)
 														}
-														min={ 100 }
-														step={ 10 }
-														max={ 10000 }
+														min={100}
+														step={10}
+														max={10000}
 													/>
 													<RangeControl
 														label={
 															'triggerHook (0:top - 1:bottom)'
 														}
-														type={ 'number' }
 														value={
 															sscAnimationOptions.triggerHook
 														}
-														onChange={ ( e ) =>
+														onChange={(e) =>
 															setOption(
 																e,
 																'triggerHook'
 															)
 														}
-														min={ 0 }
-														step={ 0.01 }
-														max={ 1 }
+														min={0}
+														step={0.01}
+														max={1}
 													/>
 												</>
-											) }
+											)}
 										</>
-									) }
+									)}
 								</>
-							) }
+							)}
 						</PanelBody>
 					</InspectorControls>
 				</Fragment>
