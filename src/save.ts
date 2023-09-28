@@ -1,21 +1,17 @@
 import classnames from 'classnames';
 import { capitalToloDash, dataStringify, getDefaults } from './utils/fn';
-import { SSCBlockProps, SSCHtmlDataProps } from './frontend/types';
+import { SSCBlockProps, SscElement, SSCHtmlDataProps } from './types';
 
 /**
  * I know this is not the save function but is a hook to change some data before
  * Add custom dataset to element before save.
  *
- * @param {Object} extraProps                         Block element.
- * @param          extraProps.className
- * @param {Object} blockType                          Blocks object.
- * @param {Object} attributes                         Blocks attributes.
- *
- * @param          attributes.ssc
- * @param          attributes.ssc.sscAnimated
- * @param          attributes.ssc.sscAnimationType
- * @param          attributes.ssc.sscAnimationOptions
- * @return {Object} extraProps Modified block element.
+ * @param extraProps           Block element.
+ * @param extraProps.className Block class name.
+ * @param blockType            Blocks object.
+ * @param attributes           Blocks attributes.
+ * @param attributes.ssc       The ssc additional panel settings.
+ * @return extraProps Modified block element.
  */
 export const addExtraProps = (
 	extraProps: SSCHtmlDataProps,
@@ -23,70 +19,66 @@ export const addExtraProps = (
 	attributes: {
 		ssc: SSCBlockProps;
 	}
-) => {
+): object => {
 	const { sscAnimated, sscAnimationType, sscAnimationOptions } =
 		attributes.ssc;
 
 	const classes = [];
 
-	if ( !! sscAnimated && sscAnimationType ) {
-		const defaults = getDefaults( sscAnimationType );
+	if (sscAnimated && sscAnimationType) {
+		const defaults = getDefaults(sscAnimationType);
 
-		const animationOptions: SSCHtmlDataProps = {
+		const animationOptions = {
 			...defaults,
 			...sscAnimationOptions,
 		};
 
 		// this adds to the dataset sscAnimation="theTypeOfAnimation"
-		extraProps[ 'data-ssc-animation' ] = sscAnimationType;
+		extraProps['data-ssc-animation'] = sscAnimationType;
 
-		if ( Object.keys( animationOptions ).length ) {
-			extraProps[ 'data-ssc-props' ] = dataStringify(
+		if (Object.keys(animationOptions).length) {
+			extraProps['data-ssc-props'] = dataStringify(
 				animationOptions,
 				sscAnimationType
 			);
 		}
 
-		if (
-			sscAnimationType === 'sscTimelineChild' &&
-			animationOptions.scene
-		) {
+		if (sscAnimationType === 'sscTimelineChild' && animationOptions.scene) {
 			try {
-				extraProps[ 'data-scene' ] =
+				extraProps['data-scene'] =
 					JSON.stringify(
 						animationOptions.scene,
 						undefined,
 						undefined
 					) || null;
-			} catch ( err ) {
-				extraProps[ 'data-scene' ] = '';
+			} catch (err) {
+				extraProps['data-scene'] = '';
 			}
 		}
 
-		if ( sscAnimationType === 'sscScreenJump' ) {
-			extraProps[ 'data-ssc-jumper-target' ] =
-				animationOptions.target || 'none';
+		if (sscAnimationType === 'sscScreenJump' && animationOptions.target) {
+			extraProps['data-ssc-jumper-target'] = animationOptions.target;
 		}
 
 		// map the original array into a single key value object
-		if ( sscAnimationType === 'sscSequence' ) {
+		if (sscAnimationType === 'sscSequence') {
 			const selected = animationOptions.scene || false;
-			if ( selected && Object.keys( animationOptions ).length ) {
-				extraProps[ 'data-ssc-sequence' ] = dataStringify(
+			if (selected && Object.keys(animationOptions).length) {
+				extraProps['data-ssc-sequence'] = dataStringify(
 					selected,
 					'sequence'
 				);
 			}
 		}
 
-		classes.push( 'ssc' );
-		classes.push( capitalToloDash( sscAnimationType ) );
+		classes.push('ssc');
+		classes.push(capitalToloDash(sscAnimationType));
 	}
 
 	// add all the custom properties to the element
-	Object.assign( extraProps, {
-		className: classnames( extraProps.className, classes ),
-	} );
+	Object.assign(extraProps, {
+		className: classnames(extraProps.className, classes),
+	});
 
 	return extraProps;
 };
