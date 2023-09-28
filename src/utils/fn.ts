@@ -1,5 +1,5 @@
 import { animationTypes } from './data';
-import {
+import type {
 	SSCAnimationScene,
 	SSCAnimationTypeDefaults,
 	StyleRule,

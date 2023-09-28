@@ -4,6 +4,7 @@
   "author": "Erik",
   "license": "GPL-2.0-or-later",
   "main": "build/index.js",
+  "types": "src/types.d.ts",
   "files": [
     "build/*",
     "ssc.php",
@@ -64,12 +65,5 @@
   },
   "browserslist": [
     "extends @wordpress/browserslist-config"
-  ],
-  "jest": {
-    "globals": {
-      "ts-jest": {
-        "tsConfig": "tsconfig.test.json"
-      }
-    }
-  }
+  ]
 }

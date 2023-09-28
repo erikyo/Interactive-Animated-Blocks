@@ -5,7 +5,6 @@ import { InspectorControls } from '@wordpress/block-editor';
 import { seen } from '@wordpress/icons';
 
 import {
-	Panel,
 	PanelBody,
 	RangeControl,
 	SelectControl,
@@ -23,7 +22,7 @@ import {
 	animationTypes,
 	textStaggerPresetsNames,
 } from '../utils/data';
-import { SSCAnimationScene } from '../types';
+import type { SSCAnimationScene } from '../types.d.ts';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.

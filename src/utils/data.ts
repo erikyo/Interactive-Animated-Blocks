@@ -1,4 +1,9 @@
-import { Label, SSCActionDef, SSCAnimationScene } from '../types';
+import type {
+	Label,
+	SSCActionDef,
+	SSCAnimationScene,
+	StaggerPreset,
+} from '../types.d.ts';
 
 /** the advanced animation available parameters and defaults  */
 export const actionsTemplate: SSCActionDef[] = [
@@ -699,19 +704,6 @@ export const animationList: Label[] = [
 	},
 ];
 
-interface StaggerPreset {
-	opacity?: number[];
-	scale?: number[];
-	scaleX?: number[];
-	translateX?: (string | number)[];
-	translateY?: (string | number)[];
-	translateZ?: number;
-	elasticity?: number;
-
-	transformOrigin?: string;
-	rotateZ?: number[];
-	rotateY?: number[];
-}
 export const textStaggerPresets: { [key: string]: StaggerPreset[] } = {
 	default: [
 		{

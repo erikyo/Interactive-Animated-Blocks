@@ -39,16 +39,14 @@ import {
 	initTimeline,
 	enableScrollMagicIndicators,
 } from './modules/timeline';
-import {
-	Coords,
-	SSCAnimationScene,
+import { AnimateCssUrl, WAITFOR } from './constants';
+import type {
 	SSCAnimationTypeTimelineChild,
 	SscElement,
 	SscElementData,
 	SscOptions,
 	WindowProps,
-} from '../types';
-import { AnimateCssUrl, WAITFOR } from './constants';
+} from '../types.d.ts';
 
 /**
  * This object holds the window data to avoid unnecessary calculations

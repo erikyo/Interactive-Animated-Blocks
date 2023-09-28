@@ -1,4 +1,4 @@
-import { SscOptionsDefault } from '../types';
+import type { SscOptions } from '../types.d.ts';
 
 export const WAITFOR: number = 250;
 
@@ -11,7 +11,7 @@ export const WAITFOR: number = 250;
  * threshold: An array of numbers between 0 and 1 that defines the percentage of the target element that should be visible before it is considered visible.
  * container: The element that is used as the viewport for checking visibility of the target.
  */
-export const sscOptionsDefault: SscOptionsDefault = {
+export const sscOptionsDefault: SscOptions = {
 	rootMargin: '0px', // the IntersectionObserver root margin
 	threshold: [0],
 	container: document.body,

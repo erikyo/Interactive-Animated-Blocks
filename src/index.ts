@@ -1,8 +1,7 @@
 import './styles/ssc.scss';
 import _ssc from './frontend/_ssc';
 import { sscOptionsDefault } from './frontend/constants';
-import { SscOptions } from './types';
-
+import type { SscOptions } from './types.d.ts';
 /**
  * this is for further customization of the default options
  */

@@ -1,15 +1,23 @@
-declare global {
+export declare global {
 	interface Window {
 		screenControl: any;
 		onmousewheel: any;
 	}
 }
 
-export interface SscOptionsDefault {
-	container: HTMLElement;
-	rootMargin: string;
-	threshold: number[];
-}
+export type SscOptions = {
+  container: HTMLElement;
+  rootMargin: string;
+  threshold: number[];
+};
+
+export type WindowProps = {
+  lastScrollPosition: number;
+  viewHeight: number;
+  pageHeight: number;
+  touchPos: Coords;
+  direction: undefined | 'up' | 'down';
+};
 
 /**
  * The Animated Element interface
@@ -48,20 +56,6 @@ export interface SSCBlockProps {
 	sscAnimationType: string;
 	sscAnimationOptions: SSCAnimationType;
 }
-
-export type SscOptions = {
-	container: HTMLElement;
-	rootMargin: string;
-	threshold: number[];
-};
-
-export type WindowProps = {
-	lastScrollPosition: number;
-	viewHeight: number;
-	pageHeight: number;
-	touchPos: Coords;
-	direction: undefined | 'up' | 'down';
-};
 
 export type Coords = {
 	x: number | undefined;
@@ -104,6 +98,20 @@ export type SSCHtmlDataProps = {
 	'data-ssc-sequence': string | null;
 	className: string;
 };
+
+interface StaggerPreset {
+  opacity?: number[];
+  scale?: number[];
+  scaleX?: number[];
+  translateX?: (string | number)[];
+  translateY?: (string | number)[];
+  translateZ?: number;
+  elasticity?: number;
+
+  transformOrigin?: string;
+  rotateZ?: number[];
+  rotateY?: number[];
+}
 
 export type SSCAnimationTypeDefault = {
 	reiterate: boolean;

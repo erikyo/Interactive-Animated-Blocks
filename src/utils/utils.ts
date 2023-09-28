@@ -1,5 +1,5 @@
 import { windowProps } from '../frontend/_ssc';
-import { SscPositionYDef, WindowProps } from '../types';
+import type {SscPositionYDef, WindowProps} from '../types.d.ts';
 
 /**
  * This function returns a promise that resolves after the given number of milliseconds.

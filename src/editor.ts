@@ -5,8 +5,8 @@ import { addFilter } from '@wordpress/hooks';
 
 import { AnimationAdvancedControls } from './admin/panelExtras';
 
-import { addAttributes } from './blockAttributes';
-import { addExtraProps } from './save';
+import { addAttributes } from './admin/blockAttributes';
+import { addExtraProps } from './admin/blockSave';
 
 // css style
 import './styles/editor.scss';

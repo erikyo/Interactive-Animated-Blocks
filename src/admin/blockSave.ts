@@ -1,6 +1,6 @@
 import classnames from 'classnames';
-import { capitalToloDash, dataStringify, getDefaults } from './utils/fn';
-import { SSCBlockProps, SscElement, SSCHtmlDataProps } from './types';
+import { capitalToloDash, dataStringify, getDefaults } from '../utils/fn';
+import type { SSCBlockProps, SSCHtmlDataProps } from '../types.d.ts';
 
 /**
  * I know this is not the save function but is a hook to change some data before
