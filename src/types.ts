@@ -1,10 +1,28 @@
+/**
+ * The Animated Element interface
+ */
 export interface SscElement extends HTMLElement {
 	unWatch: () => any;
 	sscItemData?: SscElementData;
-	sscItemOpts?: {};
+	sscItemOpts?: {} | undefined;
+	dataset: DOMStringMap;
+	action?: string;
+	lock?: boolean;
+	isAnimated: boolean;
+	isInViewport: boolean;
+	isIntersecting: boolean;
+	position?: SscPositionYDef;
+	sscAnimation?: string;
+	sscSequence?: {};
+	sscAnimationType?: string;
+	sscAnimationOptions?: Object;
+	sscAnimated?: boolean;
+	boundingClientRect: DOMRect;
+	updatePosition(): void;
 }
 
 export interface SscElementData {
+	el: HTMLElement;
 	lock: boolean;
 	sscItem: IntersectionObserverEntry;
 	sscItemOpts?: {};
@@ -15,7 +33,7 @@ export interface SscElementData {
 export interface SSCBlockProps {
 	sscAnimated: boolean;
 	sscAnimationType: string;
-	sscAnimationOptions: Object;
+	sscAnimationOptions: SSCAnimationType;
 }
 
 export type SscOptions = {
@@ -43,23 +61,13 @@ export type SscPositionYDef = {
 	yBottom: number;
 };
 
-export type StylePropDef = {
-	[ key: string ]: string;
-};
-
-export type SSCHtmlDataProps = {
-	'data-scene': string | null;
-	'data-ssc-jumper-target': string;
-	'data-ssc-animation': string;
-	'data-ssc-props': string | null;
-	'data-ssc-sequence': string | null;
-	scene: string;
-	className: string;
-};
-
 export type Label = {
 	label: string;
-	value: string | number | false | undefined;
+	value: string;
+};
+
+export type StylePropDef = {
+	[key: string]: string;
 };
 
 export type SSCActionDef = {
@@ -72,6 +80,15 @@ export type SSCActionDef = {
 /** Animations types */
 export type SSCAnimationTypeDefault = {
 	reiterate: boolean;
+};
+
+export type SSCHtmlDataProps = {
+	'data-scene': string | null;
+	'data-ssc-jumper-target': HTMLElement | null;
+	'data-ssc-animation': string;
+	'data-ssc-props': string | null;
+	'data-ssc-sequence': string | null;
+	className: string;
 };
 
 export interface SSCAnimationTypeAnimation extends SSCAnimationTypeDefault {
@@ -117,12 +134,20 @@ export interface SSCAnimationTypePlaybackControl
 	extends SSCAnimationTypeDefault {
 	playbackRatio: number;
 }
+
+/**
+ * Animation type Counter
+ */
 export interface SSCAnimationTypeCounter extends SSCAnimationTypeDefault {
 	duration: number;
 	delay: number;
 	easing: string;
 	target: string;
 }
+
+/**
+ * Animation type Stagger
+ */
 export interface SSCAnimationTypeStagger extends SSCAnimationTypeDefault {
 	duration: number;
 	delay: number;
@@ -131,13 +156,20 @@ export interface SSCAnimationTypeStagger extends SSCAnimationTypeDefault {
 	splitBy: string;
 	intersection: number;
 }
+
+/**
+ * Animation type Jump
+ */
 export interface SSCAnimationTypeJump extends SSCAnimationTypeDefault {
 	target: string;
 }
+
+/** Animation type Navigator */
 export interface SSCAnimationTypeNavigator extends SSCAnimationTypeDefault {
 	color: string;
 }
 
+/** Animations types */
 export type SSCAnimationType = {
 	default:
 		| SSCAnimationTypeDefault
@@ -153,9 +185,24 @@ export type SSCAnimationType = {
 		| SSCAnimationTypeStagger
 		| SSCAnimationTypeJump
 		| SSCAnimationTypeNavigator;
+	scene?: SSCAnimationScene[];
+	target?: HTMLElement;
 };
 
-export interface SSCAnimationTypeDef extends SSCAnimationType {
+/**
+ * The scene animation step
+ */
+export interface SSCAnimationScene {
 	label: string;
 	value: string;
+	default?: {};
+}
+
+export interface SSCAnimationSceneData {
+	id: number;
+	key: number;
+	action: string;
+	defaultValue?: string;
+	label?: string;
+	value?: string;
 }

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "es2015",
+    "target": "ESNext",
+    "module": "esnext",
     "jsx": "react-jsx",
 
     // Search under node_modules for non-relative imports.
