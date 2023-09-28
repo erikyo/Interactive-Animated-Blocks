@@ -4,22 +4,21 @@
  * @module navigator
  *
  * @param {IntersectionObserverEntry} entry - the navigation container
- *
  */
 import { isPartiallyVisible } from '../../utils/utils';
 import { windowProps } from '../_ssc';
 
-function navigator( entry ) {
+function navigator(entry) {
 	const wrapper = entry.target;
 	const navigationSteps = {};
 	let lastY = 0;
 
-	function createNavigation( childrens ) {
-		const header = document.createElement( 'div' );
+	function createNavigation(childrens) {
+		const header = document.createElement('div');
 
 		header.innerHTML = '';
 		header.id = 'navigator-header';
-		header.classList.add( 'navigator-header' );
+		header.classList.add('navigator-header');
 
 		const headerData = {
 			labels: [],
@@ -27,22 +26,22 @@ function navigator( entry ) {
 			html: '',
 		};
 
-		if ( childrens ) {
+		if (childrens) {
 			// contain the list of steps
-			const headerLabels = document.createElement( 'div' );
+			const headerLabels = document.createElement('div');
 			headerLabels.id = 'navigator-labels';
 			// append the steps list to the header
-			header.append( headerLabels );
+			header.append(headerLabels);
 
 			// the progress bar wrapper
-			const progressBarContainer = document.createElement( 'div' );
+			const progressBarContainer = document.createElement('div');
 			progressBarContainer.id = 'navigator-progress-container';
 
 			// contains the dots
-			const headerDotWrapper = document.createElement( 'div' );
+			const headerDotWrapper = document.createElement('div');
 			headerDotWrapper.id = 'navigator-progress';
 
-			Object.values( childrens ).forEach( ( child, key ) => {
+			Object.values(childrens).forEach((child, key) => {
 				const c = {};
 				const lastScrollPosition = window.scrollY;
 
@@ -53,43 +52,43 @@ function navigator( entry ) {
 					lastScrollPosition + child.getBoundingClientRect().top;
 
 				// store the step Y position
-				navigationSteps[ c.id ] = c.scrollY;
+				navigationSteps[c.id] = c.scrollY;
 
 				// store the navigation data (id, title)
-				headerData.data[ key ] = c;
+				headerData.data[key] = c;
 
-				const labelContainer = document.createElement( 'p' );
-				labelContainer.classList.add( 'label-' + c.id );
+				const labelContainer = document.createElement('p');
+				labelContainer.classList.add('label-' + c.id);
 				labelContainer.textContent = c.title;
 
-				headerLabels.append( labelContainer );
+				headerLabels.append(labelContainer);
 
-				const dot = document.createElement( 'div' );
-				dot.classList.add( 'dot-' + c.id );
-				headerDotWrapper.append( dot );
-			} );
+				const dot = document.createElement('div');
+				dot.classList.add('dot-' + c.id);
+				headerDotWrapper.append(dot);
+			});
 
 			// append the steps titles list
-			progressBarContainer.append( headerDotWrapper );
+			progressBarContainer.append(headerDotWrapper);
 
 			// the progress bar
-			const progressBar = document.createElement( 'progress' );
+			const progressBar = document.createElement('progress');
 			progressBar.id = 'navigator-progress-bar';
 			progressBar.value = 0;
 			progressBar.max = 100;
 			progressBar.style = 'width: 100%; transition:100ms';
 
 			// ally
-			const progressBarLabel = document.createElement( 'label' );
+			const progressBarLabel = document.createElement('label');
 			progressBarLabel.htmlFor = 'navigator-progress-bar';
 			progressBarLabel.style.display = 'none';
 			progressBarLabel.textContent = 'navigations step progress';
 
 			// append the progress bar
-			progressBarContainer.append( progressBar );
-			progressBarContainer.append( progressBarLabel );
+			progressBarContainer.append(progressBar);
+			progressBarContainer.append(progressBarLabel);
 
-			header.append( progressBarContainer );
+			header.append(progressBarContainer);
 
 			headerData.html = header;
 
@@ -104,38 +103,38 @@ function navigator( entry ) {
 	}
 
 	function observeNavigation() {
-		const progress = document.getElementById( 'navigator-progress-bar' );
+		const progress = document.getElementById('navigator-progress-bar');
 
-		if ( isPartiallyVisible( wrapper ) ) {
-			if ( lastY === windowProps.lastScrollPosition ) {
-				return window.requestAnimationFrame( observeNavigation );
+		if (isPartiallyVisible(wrapper)) {
+			if (lastY === windowProps.lastScrollPosition) {
+				return window.requestAnimationFrame(observeNavigation);
 			}
 
 			lastY = windowProps.lastScrollPosition;
 
 			progress.value = lastY * 0.01;
 
-			console.log( lastY );
+			console.log(lastY);
 
-			return window.requestAnimationFrame( observeNavigation );
+			return window.requestAnimationFrame(observeNavigation);
 		}
 		navigationDestroy();
 	}
 
-	let header = document.getElementById( 'navigator-header' ) || false;
+	let header = document.getElementById('navigator-header') || false;
 
-	if ( ! header ) {
+	if (!header) {
 		const childrens = wrapper.children;
-		header = createNavigation( childrens );
+		header = createNavigation(childrens);
 	}
 
-	if ( header ) {
-		wrapper.prepend( header.html );
+	if (header) {
+		wrapper.prepend(header.html);
 
 		wrapper.sscData = header.data;
 		wrapper.dataset.steps = header.data;
 
-		if ( navigationSteps ) observeNavigation();
+		if (navigationSteps) observeNavigation();
 	}
 }
 

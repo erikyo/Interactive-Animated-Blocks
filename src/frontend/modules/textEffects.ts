@@ -8,8 +8,8 @@ import { splitSentence } from '../../utils/fn';
  *
  * @param {HTMLElement} el - The element that is being animated.
  */
-const animateWord = ( el ) => {
-	const animateLetter = ( letter ) => {
+const animateWord = (el) => {
+	const animateLetter = (letter) => {
 		const alpha = [
 			'!',
 			'#',
@@ -32,7 +32,7 @@ const animateWord = ( el ) => {
 			'K',
 		];
 
-		letter.classList.add( 'changing' ); //change color of letter
+		letter.classList.add('changing'); //change color of letter
 		const original = letter.innerHTML; //get original letter for use later
 		/*.letter{
       &.changing{
@@ -42,34 +42,34 @@ const animateWord = ( el ) => {
 
 		//loop through random letters
 		let i = 0;
-		const letterInterval = setInterval( function () {
+		const letterInterval = setInterval(function () {
 			// Get random letter
 			const randomLetter =
-				alpha[ Math.floor( Math.random() * alpha.length ) ];
+				alpha[Math.floor(Math.random() * alpha.length)];
 			letter.innerHTML = randomLetter;
-			if ( i >= Math.random() * 100 || randomLetter === original ) {
+			if (i >= Math.random() * 100 || randomLetter === original) {
 				//if letter has changed around 10 times then stop
-				clearInterval( letterInterval );
+				clearInterval(letterInterval);
 				letter.innerHTML = original; //set back to original letter
-				letter.classList.remove( 'changing' ); //reset color
+				letter.classList.remove('changing'); //reset color
 			}
 			++i;
-		}, 100 );
+		}, 100);
 	};
 
-	const letters = el.querySelectorAll( '.letter' );
+	const letters = el.querySelectorAll('.letter');
 	const shuffleDuration = el.sscItemOpts.duration;
 
-	letters.forEach( function ( letter, index ) {
+	letters.forEach(function (letter, index) {
 		//trigger animation for each letter in word
-		setTimeout( function () {
-			animateLetter( letter, shuffleDuration );
-		}, 100 * index ); //small delay for each letter
-	} );
+		setTimeout(function () {
+			animateLetter(letter, shuffleDuration);
+		}, 100 * index); //small delay for each letter
+	});
 
-	setTimeout( function () {
-		el.removeAttribute( 'data-ssc-count' );
-	}, shuffleDuration );
+	setTimeout(function () {
+		el.removeAttribute('data-ssc-count');
+	}, shuffleDuration);
 };
 
 /**
@@ -77,16 +77,16 @@ const animateWord = ( el ) => {
  *
  * @param {Object} el Element to animate.
  */
-function animateCount( el ) {
-	anime( {
+function animateCount(el) {
+	anime({
 		targets: el.target || el.target.lastChild,
-		textContent: [ 0, parseInt( el.target.lastChild.textContent, 10 ) ],
+		textContent: [0, parseInt(el.target.lastChild.textContent, 10)],
 		round: 1,
-		duration: parseInt( el.target.sscItemOpts.duration ) || 5000,
-		delay: parseInt( el.target.sscItemOpts.delay ) || 500,
+		duration: parseInt(el.target.sscItemOpts.duration) || 5000,
+		delay: parseInt(el.target.sscItemOpts.delay) || 500,
 		easing: el.target.sscItemOpts.easing,
-		complete: () => el.target.removeAttribute( 'data-ssc-count' ),
-	} );
+		complete: () => el.target.removeAttribute('data-ssc-count'),
+	});
 }
 
 /**
@@ -96,27 +96,25 @@ function animateCount( el ) {
  *
  * @param {IntersectionObserverEntry} el - The element that is being animated.
  */
-function textAnimated( el ) {
-	if ( el.target.dataset.sscCount || el.target.action === 'leave' ) {
+function textAnimated(el) {
+	if (el.target.dataset.sscCount || el.target.action === 'leave') {
 		return true;
 	}
 	el.target.dataset.sscCount = 'true';
 
-	if ( el.target.sscItemOpts.target === 'number' ) {
-		animateCount( el );
+	if (el.target.sscItemOpts.target === 'number') {
+		animateCount(el);
 	} else {
-		if ( ! el.target.dataset.init ) {
-			const replaced = splitSentence( el.target.textContent, 'letters' );
+		if (!el.target.dataset.init) {
+			const replaced = splitSentence(el.target.textContent, 'letters');
 
-			if ( el.target.innerHTML ) {
+			if (el.target.innerHTML) {
 				el.target.innerHTML = replaced;
 			}
 			el.target.dataset.init = 'true';
 		}
 
-		delay( el.target.sscItemOpts.delay ).then( () =>
-			animateWord( el.target )
-		);
+		delay(el.target.sscItemOpts.delay).then(() => animateWord(el.target));
 	}
 }
 

@@ -13,18 +13,18 @@ export let itemParallaxed = [];
  *
  */
 export function parallax() {
-	if ( typeof itemParallaxed !== 'undefined' ) {
+	if (typeof itemParallaxed !== 'undefined') {
 		// if last position is the same as current
-		if ( window.scrollY === lastParallaxScrollPosition ) {
+		if (window.scrollY === lastParallaxScrollPosition) {
 			// callback the animationFrame and exit the current loop
-			return window.requestAnimationFrame( parallax );
+			return window.requestAnimationFrame(parallax);
 		}
 
-		itemParallaxed.forEach( ( element ) => {
+		itemParallaxed.forEach((element) => {
 			// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
 			const rect = element.getBoundingClientRect();
 			const motion = window.innerHeight - rect.top;
-			if ( motion > 0 ) {
+			if (motion > 0) {
 				const styleValue =
 					element.sscItemOpts.speed *
 					element.sscItemOpts.level *
@@ -33,9 +33,9 @@ export function parallax() {
 				const heightFix = styleValue + rect.height;
 				element.style.transform =
 					'translate3d(' +
-					( element.sscItemOpts.direction === 'y'
+					(element.sscItemOpts.direction === 'y'
 						? '0,' + heightFix + 'px'
-						: heightFix + 'px,0' ) +
+						: heightFix + 'px,0') +
 					',0)';
 			}
 
@@ -43,8 +43,8 @@ export function parallax() {
 			lastParallaxScrollPosition = window.scrollY;
 
 			// requestAnimationFrame callback
-			window.requestAnimationFrame( parallax );
-		} );
+			window.requestAnimationFrame(parallax);
+		});
 	}
 }
 
@@ -56,17 +56,17 @@ export function parallax() {
  *
  * @param {IntersectionObserverEntry} entry - the entry object that is passed to the callback function
  */
-export function parallaxController( entry ) {
+export function parallaxController(entry) {
 	// add this object to the watched list
-	itemParallaxed[ entry.target.sscItemData.sscItem ] = entry.target;
+	itemParallaxed.push( entry.target );
 	// if the parallax function wasn't running before we need to start it
-	if ( itemParallaxed.length ) {
+	if (itemParallaxed.length) {
 		this.parallax();
 	}
-	if ( entry.target.action === 'leave' ) {
+	if (entry.target.action === 'leave') {
 		// remove the animated item from the watched list
 		itemParallaxed = itemParallaxed.filter(
-			( item ) =>
+			(item) =>
 				item.sscItemData.sscItem !== entry.target.sscItemData.sscItem
 		);
 	}

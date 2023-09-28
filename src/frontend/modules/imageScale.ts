@@ -7,21 +7,21 @@ import { mouseWheel } from '../../utils/compat';
  *
  * @param {Event} event - The event object.
  */
-const imageScale = ( event ) => {
+const imageScale = (event) => {
 	event.preventDefault();
-	window.requestAnimationFrame( () => {
-		let scale = parseFloat( event.target.dataset.sscZoom ) || 1;
+	window.requestAnimationFrame(() => {
+		let scale = parseFloat(event.target.dataset.sscZoom) || 1;
 		scale += event.deltaY * -0.001;
 
 		// Restrict scale
 		// TODO: options
-		scale = Math.min( Math.max( 1, scale ), 4 );
+		scale = Math.min(Math.max(1, scale), 4);
 
 		event.target.dataset.sscZoom = scale;
 
 		// Apply scale transform
-		event.target.style.transform = `scale(${ scale })`;
-	} );
+		event.target.style.transform = `scale(${scale})`;
+	});
 };
 
 /**
@@ -36,12 +36,12 @@ const imageScale = ( event ) => {
  *
  * @param {IntersectionObserverEntry} entry - The IntersectionObserverEntry object that is passed to the callback function.
  */
-function imageScaleController( entry ) {
-	const imageEl = entry.target.querySelector( 'img' );
-	if ( entry.target.action === 'enter' ) {
-		imageEl.addEventListener( mouseWheel, imageScale );
-	} else if ( entry.target.action === 'leave' ) {
-		imageEl.removeEventListener( mouseWheel, imageScale );
+function imageScaleController(entry) {
+	const imageEl = entry.target.querySelector('img');
+	if (entry.target.action === 'enter') {
+		imageEl.addEventListener(mouseWheel, imageScale);
+	} else if (entry.target.action === 'leave') {
+		imageEl.removeEventListener(mouseWheel, imageScale);
 	}
 }
 

@@ -21,37 +21,36 @@ export let hasScrolling = false;
  * It scrolls to the element passed to it
  *
  * @param {IntersectionObserverEntry.target} el - The element that was clicked.
- *
  */
-export function screenJackTo( el ) {
+export function screenJackTo(el) {
 	hasScrolling = true;
-	const duration = parseInt( el.sscItemOpts.duration, 10 );
-	const scrollDelay = parseInt( el.sscItemOpts.delay, 10 );
+	const duration = parseInt(el.sscItemOpts.duration, 10);
+	const scrollDelay = parseInt(el.sscItemOpts.delay, 10);
 
 	/** Stores the history state */
-	if ( el.id ) {
-		window.history.pushState( null, null, '#' + el.id );
+	if (el.id) {
+		window.history.pushState(null, null, '#' + el.id);
 	}
 
 	// disable the mouse wheel during scrolling to avoid flickering
-	window.addEventListener( mouseWheel, disableWheel, { passive: false } );
-	window.addEventListener( 'touchmove', disableWheel, false );
+	window.addEventListener(mouseWheel, disableWheel, { passive: false });
+	window.addEventListener('touchmove', disableWheel, false);
 
 	const easing = el.sscItemOpts.easing
-		.replace( 'easeI', 'i' )
-		.replace( 'easeO', 'o' );
+		.replace('easeI', 'i')
+		.replace('easeO', 'o');
 
-	scrollToElement( el, {
+	scrollToElement(el, {
 		offset: 0,
 		ease: easing || 'inQuad', // https://github.com/component/ease
 		duration: duration || 1000,
-	} ).on( 'end', () => {
-		delay( scrollDelay ).then( () => {
+	}).on('end', () => {
+		delay(scrollDelay).then(() => {
 			hasScrolling = false;
-			window.removeEventListener( mouseWheel, disableWheel );
-			window.removeEventListener( 'touchmove', disableWheel );
-		} );
-	} );
+			window.removeEventListener(mouseWheel, disableWheel);
+			window.removeEventListener('touchmove', disableWheel);
+		});
+	});
 }
 
 /**
@@ -63,14 +62,14 @@ export function screenJackTo( el ) {
  *
  * @return {Function} A function that will be called when the IntersectionObserver fires.
  */
-export function scrollJacking( entry ) {
-	const intersection = parseInt( entry.target.sscItemOpts.intersection, 10 );
-	if ( ! hasScrolling && isInside( entry.target, intersection ) ) {
-		return screenJackTo( entry.target );
+export function scrollJacking(entry) {
+	const intersection = parseInt(entry.target.sscItemOpts.intersection, 10);
+	if (!hasScrolling && isInside(entry.target, intersection)) {
+		return screenJackTo(entry.target);
 	}
 
-	if ( isPartiallyVisible( entry.target ) ) {
-		return delay( 200 ).then( () => scrollJacking( entry ) );
+	if (isPartiallyVisible(entry.target)) {
+		return delay(200).then(() => scrollJacking(entry));
 	}
 }
 

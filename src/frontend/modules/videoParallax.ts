@@ -20,10 +20,10 @@ let lastVideoScrollPosition = 0;
  * @param {number}           video.distanceTop      - the video distanceTop
  * @param {number}           video.playbackRatio    - the video playbackRatio
  */
-function videoParallaxCallback( video ) {
+function videoParallaxCallback(video) {
 	const rect = video.item.getBoundingClientRect();
-	if ( video.item.readyState > 1 ) {
-		if ( video.hasExtraTimeline ) {
+	if (video.item.readyState > 1) {
+		if (video.hasExtraTimeline) {
 			// the timeline behaviour
 			// // ( ( window.scrollY - rect.top ) - video.distanceTop )
 			// stands for the total height scrolled
@@ -31,21 +31,18 @@ function videoParallaxCallback( video ) {
 			// stands for the height of the item that is the real needed value
 			// 60% of a timeline of a video 10sec long -> (60 * 0.01) * 10
 			video.item.currentTime = (
-				( ( window.scrollY -
-					rect.top -
-					video.distanceTop +
-					rect.height ) /
-					video.timelineLength ) *
+				((window.scrollY - rect.top - video.distanceTop + rect.height) /
+					video.timelineLength) *
 				video.videoDuration *
 				video.playbackRatio
-			).toFixed( 5 );
+			).toFixed(5);
 		} else {
 			// the common behaviour
 			video.item.currentTime = (
-				( 1 - ( rect.top + rect.height ) / video.timelineLength ) *
+				(1 - (rect.top + rect.height) / video.timelineLength) *
 				video.videoDuration *
 				video.playbackRatio
-			).toFixed( 5 );
+			).toFixed(5);
 		}
 	}
 }
@@ -57,18 +54,18 @@ function videoParallaxCallback( video ) {
  * @return {Function} The function parallaxVideo is being returned.
  */
 export function parallaxVideos() {
-	if ( window.scrollY === lastVideoScrollPosition ) {
+	if (window.scrollY === lastVideoScrollPosition) {
 		// callback the animationFrame and exit the current loop
-		return window.requestAnimationFrame( parallaxVideos );
+		return window.requestAnimationFrame(parallaxVideos);
 	}
 
 	// for each video inside the screen fire the update of the displayed frame
-	videoParallaxed.forEach( ( video ) => videoParallaxCallback( video ) );
+	videoParallaxed.forEach((video) => videoParallaxCallback(video));
 
 	// Store the last position
 	lastVideoScrollPosition = window.scrollY;
 
-	return window.requestAnimationFrame( parallaxVideos );
+	return window.requestAnimationFrame(parallaxVideos);
 }
 
 /**
@@ -78,16 +75,16 @@ export function parallaxVideos() {
  * @param {IntersectionObserverEntry} entry - The entry object returned by the Intersection Observer API.
  * @return {Array} the filtered array of videoParallaxed.
  */
-function videoParallaxController( entry ) {
-	const videoEl = entry.target.querySelector( 'video' );
-	if ( videoEl && ! videoParallaxed[ entry.target.sscItemData.sscItem ] ) {
-		if ( isPartiallyVisible( videoEl ) ) {
+function videoParallaxController(entry) {
+	const videoEl = entry.target.querySelector('video');
+	if (videoEl && !videoParallaxed[entry.target.sscItemData.sscItem]) {
+		if (isPartiallyVisible(videoEl)) {
 			const rect = entry.target.getBoundingClientRect();
 			const timelineDuration =
-				parseInt( entry.target.sscItemData.timelineDuration, 10 ) || 0;
+				parseInt(entry.target.sscItemData.timelineDuration, 10) || 0;
 			const duration =
 				rect.height + window.innerHeight + timelineDuration;
-			videoParallaxed[ entry.target.sscItemData.sscItem ] = {
+			videoParallaxed[entry.target.sscItemData.sscItem] = {
 				item: videoEl,
 				videoDuration: videoEl.duration,
 				sscItemData: entry.target.sscItemData,
@@ -96,17 +93,17 @@ function videoParallaxController( entry ) {
 				distanceTop: window.scrollY + rect.top, // works 99% of the time but needs to be fixed in case of timeline-child (in this case we need to get the parent container Y)
 				playbackRatio: parseFloat(
 					entry.target.sscItemOpts.playbackRatio
-				).toFixed( 5 ),
+				).toFixed(5),
 			};
 		}
 		parallaxVideos();
 	}
 
-	if ( entry.target.action === 'leave' ) {
-		return ( videoParallaxed = videoParallaxed.filter(
-			( item ) =>
+	if (entry.target.action === 'leave') {
+		return (videoParallaxed = videoParallaxed.filter(
+			(item) =>
 				item.sscItemData.sscItem !== entry.target.sscItemData.sscItem
-		) );
+		));
 	}
 }
 export default videoParallaxController;

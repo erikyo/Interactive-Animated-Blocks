@@ -11,60 +11,56 @@ import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
  * @param {IntersectionObserverEntry} entry                     - The IntersectionObserverEntry object.
  * @param {string}                    action                    - The action to be performed.
  * @param {SVGAnimateElement}         [animationInstance=false] - This is the instance of the animation. It's used to reverse the animation.
- *
  */
-const animationSvgPath = ( entry, action, animationInstance = false ) => {
+const animationSvgPath = (entry, action, animationInstance = false) => {
 	let animation = animationInstance ? animationInstance : anime;
-	const path = entry.target.querySelectorAll( 'path' );
+	const path = entry.target.querySelectorAll('path');
 	if (
 		action === 'enter' &&
-		isActiveArea( entry.target, entry.target.sscItemOpts.intersection )
+		isActiveArea(entry.target, entry.target.sscItemOpts.intersection)
 	) {
 		action = 'leave';
-		if ( animation.began && animation.currentTime !== 0 ) {
+		if (animation.began && animation.currentTime !== 0) {
 			animation.reverse();
 		} else {
-			animation = anime( {
+			animation = anime({
 				targets: path,
 				direction: 'normal',
-				strokeDashoffset: [ anime.setDashoffset, 0 ],
+				strokeDashoffset: [anime.setDashoffset, 0],
 				easing: entry.target.sscItemOpts.easing || 'linear',
 				duration: entry.target.sscItemOpts.duration || 5000,
-				delay( el, i ) {
+				delay(el, i) {
 					return (
-						( i * entry.target.sscItemOpts.duration ) / path.length
+						(i * entry.target.sscItemOpts.duration) / path.length
 					);
 				},
-			} );
+			});
 		}
 	} else if (
 		action === 'leave' &&
-		! isActiveArea( entry.target, entry.target.sscItemOpts.intersection )
+		!isActiveArea(entry.target, entry.target.sscItemOpts.intersection)
 	) {
 		action = 'enter';
-		if (
-			! animation.completed &&
-			typeof animation.reverse === 'function'
-		) {
+		if (!animation.completed && typeof animation.reverse === 'function') {
 			animation.reverse();
 		} else {
-			animation = anime( {
+			animation = anime({
 				targets: path,
-				strokeDashoffset: [ anime.setDashoffset, 0 ],
+				strokeDashoffset: [anime.setDashoffset, 0],
 				duration: entry.target.sscItemOpts.duration,
-				delay( el, i ) {
+				delay(el, i) {
 					return (
-						( i * entry.target.sscItemOpts.duration ) / path.length
+						(i * entry.target.sscItemOpts.duration) / path.length
 					);
 				},
 				direction: 'reverse',
-			} );
+			});
 		}
 	}
-	if ( isPartiallyVisible( entry.target ) ) {
-		delay( 100 ).then( () => {
-			animationSvgPath( entry, action, animation );
-		} );
+	if (isPartiallyVisible(entry.target)) {
+		delay(100).then(() => {
+			animationSvgPath(entry, action, animation);
+		});
 	}
 };
 

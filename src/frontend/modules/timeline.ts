@@ -11,8 +11,8 @@ const scrollMagic = new ScrollMagic.Controller();
  * It enables the ScrollMagic indicators plugin.
  */
 export function enableScrollMagicIndicators() {
-	console.log( 'scrollMagic ScrollMagicPluginIndicator enabled' );
-	ScrollMagicPluginIndicator( ScrollMagic );
+	console.log('scrollMagic ScrollMagicPluginIndicator enabled');
+	ScrollMagicPluginIndicator(ScrollMagic);
 }
 
 /**
@@ -20,15 +20,15 @@ export function enableScrollMagicIndicators() {
  *
  * @param {HTMLElement} el - The element that is being added to the timeline.
  */
-export function addToTimeline( el ) {
-	timelines[ el.sscItemData.sscItem ] = el;
+export function addToTimeline(el) {
+	timelines[el.sscItemData.sscItem] = el;
 }
 
 /**
  * For each timeline element, call the scrollTimeline function.
  */
 export function initTimeline() {
-	timelines.forEach( ( el ) => scrollTimeline( el ) );
+	timelines.forEach((el) => scrollTimeline(el));
 }
 
 /**
@@ -37,30 +37,26 @@ export function initTimeline() {
  *
  * @param {HTMLElement} el - The element that is being animated.
  */
-function scrollTimeline( el ) {
-	el.classList.add( 'ssc-timeline' );
+function scrollTimeline(el) {
+	el.classList.add('ssc-timeline');
 	el.style.maxWidth = '100%';
 
 	// Add timeline for each element
-	const timeline = anime.timeline( { autoplay: false } );
+	const timeline = anime.timeline({ autoplay: false });
 
-	el.querySelectorAll( '.ssc-timeline-scene' ).forEach( ( scenes ) => {
-		const sceneData = JSON.parse( scenes.sscItemData.scene );
+	el.querySelectorAll('.ssc-timeline-scene').forEach((scenes) => {
+		const sceneData = JSON.parse(scenes.sscItemData.scene);
 		const sceneOpts = scenes.sscItemOpts;
-		sceneOpts.duration = parseInt( sceneOpts.duration, 10 );
-		sceneOpts.delay = parseInt( sceneOpts.delay, 10 );
+		sceneOpts.duration = parseInt(sceneOpts.duration, 10);
+		sceneOpts.delay = parseInt(sceneOpts.delay, 10);
 
-		const offset = parseInt( sceneOpts.offset, 10 );
+		const offset = parseInt(sceneOpts.offset, 10);
 		const sceneOffset =
 			// eslint-disable-next-line no-nested-ternary
-			offset !== 0
-				? offset > 0
-					? '+=' + offset
-					: '-=' + offset
-				: false;
+			offset !== 0 ? (offset > 0 ? '+=' + offset : '-=' + offset) : false;
 
 		// loop foreach object of the json (each object is a scene of the element timeline)
-		Object.values( sceneData ).forEach( ( scene ) => {
+		Object.values(sceneData).forEach((scene) => {
 			timeline.add(
 				{
 					targets: scenes,
@@ -71,8 +67,8 @@ function scrollTimeline( el ) {
 				},
 				sceneOffset
 			);
-		} );
-	} );
+		});
+	});
 
 	/**
 	 * Create a scene
@@ -81,16 +77,16 @@ function scrollTimeline( el ) {
 	 *
 	 * @function ScrollMagic.Scene
 	 */
-	timelines[ el.sscItemData.sscItem ] = new ScrollMagic.Scene( {
+	timelines[el.sscItemData.sscItem] = new ScrollMagic.Scene({
 		triggerElement: el,
 		duration: el.sscItemOpts.duration,
 		triggerHook: el.sscItemOpts.triggerHook || 0.25,
 		addIndicators: true,
-	} )
+	})
 		// bind animation timeline with anime.js animation progress
-		.on( 'progress', ( event ) => {
-			timeline.seek( timeline.duration * event.progress );
-		} )
-		.setPin( el )
-		.addTo( scrollMagic );
+		.on('progress', (event) => {
+			timeline.seek(timeline.duration * event.progress);
+		})
+		.setPin(el)
+		.addTo(scrollMagic);
 }

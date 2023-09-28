@@ -5,12 +5,12 @@
  *
  * @param {IntersectionObserverEntry} entry
  */
-const videoFocusPlay = ( entry ) => {
-	const video = entry.target.querySelector( 'video' );
-	if ( entry.target.action === 'enter' ) {
+const videoFocusPlay = (entry) => {
+	const video = entry.target.querySelector('video');
+	if (entry.target.action === 'enter') {
 		return video.play();
 	}
-	if ( ! video.ended ) {
+	if (!video.ended) {
 		return video.pause();
 	}
 	video.pause();
