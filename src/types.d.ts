@@ -1,3 +1,16 @@
+declare global {
+	interface Window {
+		screenControl: any;
+		onmousewheel: any;
+	}
+}
+
+export interface SscOptionsDefault {
+	container: HTMLElement;
+	rootMargin: string;
+	threshold: number[];
+}
+
 /**
  * The Animated Element interface
  */
