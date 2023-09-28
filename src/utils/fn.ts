@@ -1,5 +1,9 @@
 import { animationTypes } from './data';
-import { SSCAnimationScene, StylePropDef } from '../types';
+import {
+	SSCAnimationScene,
+	SSCAnimationTypeDefaults,
+	StyleRule,
+} from '../types';
 
 /**
  * It takes a data object and a type string, and returns a string of the data object's key/value pairs, separated by semicolons
@@ -116,42 +120,63 @@ export const autoLintCode = (k: string) =>
 	});
 
 /**
+ * Parses the options string and returns an array of parsed arguments.
+ *
+ * @param {string} opts - The options string to parse.
+ * @return {Array<Array<string>>} An array of parsed arguments.
+ */
+export const parseOptions = (opts: string): string[][] => {
+	const rawArgs = opts.split(';');
+	let parsedArgs = [];
+	parsedArgs = rawArgs.map((arg) => arg.split(':'));
+	return parsedArgs;
+};
+
+/**
  * Parses the dataset stored with wp editor and returns an object with the arguments as keys and values
  *
- * @param {string} opts        - The string of data attributes that we want to parse.
- * @param {string} [type=data] - The type of data you want to get. Use style to parse css style
- * @return {Object}            - An object with the key being the first element of the array and the value being the second element of the array.
+ * @param {string} opts - The string of data attributes that we want to parse.
+ * @return {Object | undefined} - An object with the key being the first element of the array and the value being the second element of the array.
  */
 export const getElementData = (
-	opts: string,
-	type: string = 'data'
-): object | false => {
+	opts: string
+): SSCAnimationTypeDefaults | undefined => {
 	if (opts) {
-		const rawArgs = opts.split(';');
-		let parsedArgs = [];
-		parsedArgs = rawArgs.map((arg) => arg.split(':'));
+		const parsedArgs = parseOptions(opts);
 
-		if (type === 'style') {
-			const style: Object[] = [];
-			parsedArgs.forEach((el: string[], index: number) => {
-				if (el[0] !== 'defalut') {
-					style[index] = {
-						property: el[0],
-						value: el[1],
-					};
-				}
-			});
-			return style;
-		}
-		const args: StylePropDef = {};
-		parsedArgs.forEach((el: string[]) => {
-			if (el[0] !== 'defalut') {
-				args[el[0] as keyof StylePropDef] = el[1];
+		const args: any = {};
+		parsedArgs.forEach((el) => {
+			if (el[0] !== 'default') {
+				args[el[0]] = el[1];
 			}
 		});
-		return args;
+		return args as SSCAnimationTypeDefaults;
 	}
-	return false;
+	return undefined;
+};
+
+/**
+ * Parses the dataset stored with wp editor and returns an object with the arguments as keys and values
+ *
+ * @param {string} opts - The string of data attributes that we want to parse.
+ * @return {Object | undefined} - An object with the key being the first element of the array and the value being the second element of the array.
+ */
+export const getElementStyle = (opts: string): StyleRule[] | undefined => {
+	if (opts) {
+		const parsedArgs = parseOptions(opts);
+
+		const style: StyleRule[] = [];
+		parsedArgs.forEach((el: string[], index: number) => {
+			if (el[0] !== 'defalut') {
+				style[index] = {
+					property: el[0],
+					value: el[1],
+				};
+			}
+		});
+		return style;
+	}
+	return undefined;
 };
 
 /**
