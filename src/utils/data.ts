@@ -1,4 +1,4 @@
-import {Label, SSCActionDef, SSCAnimationType, SSCAnimationTypeDef} from '../frontend/types';
+import { Label, SSCActionDef, SSCAnimationScene } from '../types';
 
 /** the advanced animation available parameters and defaults  */
 export const actionsTemplate: SSCActionDef[] = [
@@ -190,7 +190,7 @@ export const animationEasings: Label[] = [
 	},
 ];
 
-export const animationTypes: SSCAnimationTypeDef[] = [
+export const animationTypes: SSCAnimationScene[] = [
 	{
 		label: 'Animation',
 		value: 'sscAnimation',
@@ -354,7 +354,7 @@ export const animationTypes: SSCAnimationTypeDef[] = [
 export const animationList: Label[] = [
 	{
 		label: 'No Animation',
-		value: false,
+		value: '',
 	},
 	{
 		label: 'bounce',
@@ -699,64 +699,77 @@ export const animationList: Label[] = [
 	},
 ];
 
-export const textStaggerPresets = {
+interface StaggerPreset {
+	opacity?: number[];
+	scale?: number[];
+	scaleX?: number[];
+	translateX?: (string | number)[];
+	translateY?: (string | number)[];
+	translateZ?: number;
+	elasticity?: number;
+
+	transformOrigin?: string;
+	rotateZ?: number[];
+	rotateY?: number[];
+}
+export const textStaggerPresets: { [key: string]: StaggerPreset[] } = {
 	default: [
 		{
-			translateY: [ '1em', 0 ],
+			translateY: ['1em', 0],
 			translateZ: 0,
 		},
 	],
 	expo: [
 		{
-			scale: [ 15, 1 ],
-			opacity: [ 0, 1 ],
+			scale: [15, 1],
+			opacity: [0, 1],
 		},
 	],
 	domino: [
 		{
-			rotateY: [ -90, 0 ],
+			rotateY: [-90, 0],
 			transformOrigin: '0 0',
 		},
 	],
 	ghosting: [
 		{
-			translateX: [ 40, 0 ],
+			translateX: [40, 0],
 			translateZ: 0,
 		},
 		{
-			translateX: [ 0, -30 ],
-			opacity: [ 1, 0 ],
+			translateX: [0, -30],
+			opacity: [1, 0],
 		},
 	],
 	elasticIn: [
 		{
-			scale: [ 0, 1 ],
+			scale: [0, 1],
 			elasticity: 1200,
 		},
 	],
 	rain: [
 		{
-			translateY: [ '-2em', 0 ],
-			scaleX: [ 0, 1 ],
-			opacity: [ 0, 1 ],
+			translateY: ['-2em', 0],
+			scaleX: [0, 1],
+			opacity: [0, 1],
 		},
 	],
 	snake: [
 		{
-			scaleX: [ 0, 1 ],
-			translateY: [ '1em', 0 ],
-			translateX: [ '.5em', 0 ],
+			scaleX: [0, 1],
+			translateY: ['1em', 0],
+			translateX: ['.5em', 0],
 			translateZ: 0,
-			rotateZ: [ 90, 0 ],
+			rotateZ: [90, 0],
 			transformOrigin: '100% 50%',
 		},
 	],
 };
 
 export const textStaggerPresetsNames: Label[] = [];
-Object.keys( textStaggerPresets ).map( ( item ) =>
-	textStaggerPresetsNames.push( {
+Object.keys(textStaggerPresets).map((item) =>
+	textStaggerPresetsNames.push({
 		label: item,
 		value: item,
-	} )
+	})
 );

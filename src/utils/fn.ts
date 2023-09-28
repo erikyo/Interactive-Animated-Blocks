@@ -1,5 +1,5 @@
 import { animationTypes } from './data';
-import { SSCAnimationTypeDef, StylePropDef } from '../frontend/types';
+import { SSCAnimationScene, StylePropDef } from '../types';
 
 /**
  * It takes a data object and a type string, and returns a string of the data object's key/value pairs, separated by semicolons
@@ -9,34 +9,32 @@ import { SSCAnimationTypeDef, StylePropDef } from '../frontend/types';
  *
  * @return {string}     - A stringified version of the Object
  */
-export function dataStringify( data: Object, type: string ): string | null {
+export function dataStringify(data: Object, type: string): string | null {
 	let csv = '';
 
-	csv += Object.entries( data )
-		.map( ( item ) => {
-			if ( type === 'sequence' ) {
-				return item[ 1 ].action + ':' + item[ 1 ].value;
+	csv += Object.entries(data)
+		.map((item) => {
+			if (type === 'sequence') {
+				return item[1].action + ':' + item[1].value;
 			}
-			return item[ 0 ] !== 'steps' && item[ 0 ] !== 'scene'
-				? item[ 0 ] + ':' + item[ 1 ]
+			return item[0] !== 'steps' && item[0] !== 'scene'
+				? item[0] + ':' + item[1]
 				: null;
-		} )
-		.join( ';' );
+		})
+		.join(';');
 	return csv || null;
 }
 
 /**
  * It takes a jss style object and returns a string of linted CSS code
  *
- * @param {Object} styleObject       - The style object to be linted.
+ * @param {Object} styleObject - The style object to be linted.
  * @return {string} A string of CSS code.
  */
-export function lintCSS( styleObject: Object ): string {
-	return styleObject && Object.keys( styleObject ).length
+export function lintCSS(styleObject: Object): string {
+	return styleObject && Object.keys(styleObject).length
 		? 'this {\n' +
-				capitalToloDash(
-					autoLintCode( styleObj2String( styleObject ) )
-				) +
+				capitalToloDash(autoLintCode(styleObj2String(styleObject))) +
 				';\n}'
 		: 'this {\n\t\n}';
 }
@@ -49,15 +47,13 @@ export function lintCSS( styleObject: Object ): string {
  *
  * @return {Object} - the css string converted into an object
  */
-export const parseCSS = ( style: string ): Object => {
+export const parseCSS = (style: string): Object => {
 	// Remove all breaklines
-	const result: string = style?.replace( /\n/g, '' );
+	const result: string = style?.replace(/\n/g, '');
 	// Get all the content inside "this{ }"
-	const cssResult = result.match( 'this {(.*?)}' );
+	const cssResult = result.match('this {(.*?)}');
 	// Convert jss to css
-	return css2obj(
-		cssResult && cssResult.length > 0 ? cssResult[ 1 ] : false
-	);
+	return css2obj(cssResult && cssResult.length > 0 ? cssResult[1] : false);
 };
 
 /**
@@ -66,14 +62,13 @@ export const parseCSS = ( style: string ): Object => {
  * @param {string} css - The CSS string to convert to an object.
  * @return {Object} An object with the CSS properties as keys and the CSS values as values.
  */
-export const css2obj = ( css: string | false ) => {
+export const css2obj = (css: string | false) => {
 	const regExp = /(?<=^|;)\s*([^:]+)\s*:\s*([^;]+)\s*/g;
-	const style: { [ x: string ]: string } = {};
-	if ( css ) {
+	const style: { [x: string]: string } = {};
+	if (css) {
 		css.replace(
 			regExp,
-			( m, p: string, value: string ) =>
-				( style[ loDashToCapital( p ) ] = value )
+			(m, p: string, value: string) => (style[loDashToCapital(p)] = value)
 		);
 		return style;
 	}
@@ -88,37 +83,37 @@ export const css2obj = ( css: string | false ) => {
  * @param {Object} style       - The style object to convert to a string.
  * @param {string} [indent=\t] - The string to use for indentation.
  */
-export const styleObj2String = ( style: object, indent: string = '\t' ) =>
-	Object.entries( style )
-		.map( ( [ k, v ] ) => indent + `${ k }: ${ v }` )
-		.join( ';' );
+export const styleObj2String = (style: object, indent: string = '\t') =>
+	Object.entries(style)
+		.map(([k, v]) => indent + `${k}: ${v}`)
+		.join(';');
 
 /**
  * It takes a string and replaces all capital letters with a dash followed by the lowercase version of the letter
  *
  * @param {string} k - The string to be converted.
  */
-export const capitalToloDash = ( k: string ) =>
-	k.replace( /[A-Z]/g, ( match ) => `-${ match.toLowerCase() }` );
+export const capitalToloDash = (k: string) =>
+	k.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
 
 /**
  * Replace all hyphens followed by a lowercase letter with the same letter capitalized.
  *
  * @param {string} k - The string to be converted.
  */
-export const loDashToCapital = ( k: string ): string =>
-	k.replace( /-[a-z]/g, ( match ) => `${ match[ 1 ].toUpperCase() }` );
+export const loDashToCapital = (k: string): string =>
+	k.replace(/-[a-z]/g, (match) => `${match[1].toUpperCase()}`);
 
 /**
  * It takes a string of JavaScript code and adds a newline after every semicolon and opening curly brace
  *
- * @param {string} k - The code to be linted.
- * @return {string} the matched value with a new line character appended to it.
+ * @param k The code to be linted.
+ * @return value the matched value with a new line character appended to it.
  */
-export const autoLintCode = ( k: string ) =>
-	k.replace( /\;| \{/gi, function ( matched ) {
+export const autoLintCode = (k: string) =>
+	k.replace(/\;| \{/gi, function (matched) {
 		return matched + '\n';
-	} );
+	});
 
 /**
  * Parses the dataset stored with wp editor and returns an object with the arguments as keys and values
@@ -127,33 +122,33 @@ export const autoLintCode = ( k: string ) =>
  * @param {string} [type=data] - The type of data you want to get. Use style to parse css style
  * @return {Object}            - An object with the key being the first element of the array and the value being the second element of the array.
  */
-export const getElelementData = (
+export const getElementData = (
 	opts: string,
 	type: string = 'data'
 ): object | false => {
-	if ( opts ) {
-		const rawArgs = opts.split( ';' );
+	if (opts) {
+		const rawArgs = opts.split(';');
 		let parsedArgs = [];
-		parsedArgs = rawArgs.map( ( arg ) => arg.split( ':' ) );
+		parsedArgs = rawArgs.map((arg) => arg.split(':'));
 
-		if ( type === 'style' ) {
+		if (type === 'style') {
 			const style: Object[] = [];
-			parsedArgs.forEach( ( el: string[], index: number ) => {
-				if ( el[ 0 ] !== 'defalut' ) {
-					style[ index ] = {
-						property: el[ 0 ],
-						value: el[ 1 ],
+			parsedArgs.forEach((el: string[], index: number) => {
+				if (el[0] !== 'defalut') {
+					style[index] = {
+						property: el[0],
+						value: el[1],
 					};
 				}
-			} );
+			});
 			return style;
 		}
 		const args: StylePropDef = {};
-		parsedArgs.forEach( ( el: string[] ) => {
-			if ( el[ 0 ] !== 'defalut' ) {
-				args[ el[ 0 ] as keyof StylePropDef ] = el[ 1 ];
+		parsedArgs.forEach((el: string[]) => {
+			if (el[0] !== 'defalut') {
+				args[el[0] as keyof StylePropDef] = el[1];
 			}
-		} );
+		});
 		return args;
 	}
 	return false;
@@ -173,10 +168,10 @@ export function splitSentence(
 	sentence: string,
 	splitBy: string = 'word'
 ): string {
-	const words = sentence.split( ' ' );
-	const result = words.map( ( word ) => {
-		if ( splitBy === 'word' ) {
-			return `<span class="word">${ word }</span>`;
+	const words = sentence.split(' ');
+	const result = words.map((word) => {
+		if (splitBy === 'word') {
+			return `<span class="word">${word}</span>`;
 		}
 		return (
 			'<span class="word">' +
@@ -186,8 +181,8 @@ export function splitSentence(
 			) +
 			'</span>'
 		);
-	} );
-	return result.join( ' ' );
+	});
+	return result.join(' ');
 }
 
 /**
@@ -197,9 +192,6 @@ export function splitSentence(
  *
  * @return {Object} The default values for the animation type.
  */
-export const getDefaults = ( opt: string ): SSCAnimationTypeDef | {} => {
-	const animationType = animationTypes.filter( ( animation ) => {
-		return animation.value ? animation.value === opt : null;
-	} );
-	return animationType[ 0 ] ? animationType[ 0 ].default : {};
+export const getDefaults = (opt: string): SSCAnimationScene | undefined => {
+	return animationTypes.find((animation) => animation.value === opt);
 };
