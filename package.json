@@ -40,6 +40,7 @@
     "@dnd-kit/utilities": "^3.2.1",
     "@types/babel__core": "^7.20.0",
     "@types/node": "^18.11.18",
+    "@types/wordpress__block-editor": "^11.5.4",
     "@wordpress/block-editor": "^12.10.0",
     "@wordpress/components": "^25.8.0",
     "@wordpress/compose": "^6.1.0",
