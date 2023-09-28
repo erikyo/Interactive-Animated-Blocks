@@ -12,6 +12,9 @@ artifacts
 # Dependency directories
 node_modules/
 
+# Build
+build/
+
 # Optional npm cache directory
 .npm
 
