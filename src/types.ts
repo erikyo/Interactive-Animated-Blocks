@@ -4,7 +4,7 @@
 export interface SscElement extends HTMLElement {
 	unWatch: () => any;
 	sscItemData?: SscElementData;
-	sscItemOpts?: {} | undefined;
+	sscItemOpts?: SSCAnimationTypeDefaults;
 	dataset: DOMStringMap;
 	action?: string;
 	lock?: boolean;
@@ -70,6 +70,11 @@ export type StylePropDef = {
 	[key: string]: string;
 };
 
+export type StyleRule = {
+	property: string;
+	value: string;
+};
+
 export type SSCActionDef = {
 	actionLabel: string;
 	action: string;
@@ -78,10 +83,6 @@ export type SSCActionDef = {
 };
 
 /** Animations types */
-export type SSCAnimationTypeDefault = {
-	reiterate: boolean;
-};
-
 export type SSCHtmlDataProps = {
 	'data-scene': string | null;
 	'data-ssc-jumper-target': HTMLElement | null;
@@ -89,6 +90,10 @@ export type SSCHtmlDataProps = {
 	'data-ssc-props': string | null;
 	'data-ssc-sequence': string | null;
 	className: string;
+};
+
+export type SSCAnimationTypeDefault = {
+	reiterate: boolean;
 };
 
 export interface SSCAnimationTypeAnimation extends SSCAnimationTypeDefault {
@@ -169,22 +174,24 @@ export interface SSCAnimationTypeNavigator extends SSCAnimationTypeDefault {
 	color: string;
 }
 
+export type SSCAnimationTypeDefaults =
+	| SSCAnimationTypeDefault
+	| SSCAnimationTypeAnimation
+	| SSCAnimationTypeScrollTimeline
+	| SSCAnimationTypeTimelineChild
+	| SSCAnimationTypeScrollParallax
+	| SSCAnimationTypeZoom
+	| SSCAnimation360
+	| SSCAnimationTypeParallax
+	| SSCAnimationTypePlaybackControl
+	| SSCAnimationTypeCounter
+	| SSCAnimationTypeStagger
+	| SSCAnimationTypeJump
+	| SSCAnimationTypeNavigator;
+
 /** Animations types */
 export type SSCAnimationType = {
-	default:
-		| SSCAnimationTypeDefault
-		| SSCAnimationTypeAnimation
-		| SSCAnimationTypeScrollTimeline
-		| SSCAnimationTypeTimelineChild
-		| SSCAnimationTypeScrollParallax
-		| SSCAnimationTypeZoom
-		| SSCAnimation360
-		| SSCAnimationTypeParallax
-		| SSCAnimationTypePlaybackControl
-		| SSCAnimationTypeCounter
-		| SSCAnimationTypeStagger
-		| SSCAnimationTypeJump
-		| SSCAnimationTypeNavigator;
+	default: SSCAnimationTypeDefaults;
 	scene?: SSCAnimationScene[];
 	target?: HTMLElement;
 };
