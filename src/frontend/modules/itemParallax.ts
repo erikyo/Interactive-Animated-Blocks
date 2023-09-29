@@ -1,6 +1,14 @@
-let lastParallaxScrollPosition = 0;
+import type { SSCAnimationTypeParallax, SscElement } from '../../types.d.ts';
 
-export let itemParallaxed = [];
+// The watched list of items to be parallaxed
+export let itemParallaxed: SscElement[] = [];
+
+export function addToParallaxed(el: SscElement) {
+	itemParallaxed.push(el);
+}
+
+/** last scroll position */
+let lastParallaxScrollPosition = 0;
 
 /**
  * The Parallax effect
@@ -12,28 +20,30 @@ export let itemParallaxed = [];
  * The parallax function is called on the window's scroll event
  *
  */
-export function parallax() {
-	if (typeof itemParallaxed !== 'undefined') {
+export function parallax(): number | undefined {
+	if (itemParallaxed.length > 0) {
 		// if last position is the same as current
 		if (window.scrollY === lastParallaxScrollPosition) {
 			// callback the animationFrame and exit the current loop
 			return window.requestAnimationFrame(parallax);
 		}
 
-		itemParallaxed.forEach((element) => {
+		itemParallaxed.forEach((element: SscElement) => {
 			// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
 			const rect = element.getBoundingClientRect();
 			const motion = window.innerHeight - rect.top;
+			const elementOptions =
+				element.sscItemOpts as SSCAnimationTypeParallax;
 			if (motion > 0) {
 				const styleValue =
-					element.sscItemOpts.speed *
-					element.sscItemOpts.level *
+					Number(elementOptions?.speed) *
+					Number(elementOptions?.level) *
 					motion *
-					-0.08;
+					-0.01;
 				const heightFix = styleValue + rect.height;
 				element.style.transform =
 					'translate3d(' +
-					(element.sscItemOpts.direction === 'y'
+					(elementOptions?.direction === 'y'
 						? '0,' + heightFix + 'px'
 						: heightFix + 'px,0') +
 					',0)';
@@ -54,20 +64,21 @@ export function parallax() {
  *
  * @module parallaxController
  *
- * @param {IntersectionObserverEntry} entry - the entry object that is passed to the callback function
+ * @param  sscElement - the entry object that is passed to the callback function
  */
-export function parallaxController(entry) {
+export function parallaxController(sscElement: SscElement) {
 	// add this object to the watched list
-	itemParallaxed.push( entry.target );
+	addToParallaxed(sscElement);
 	// if the parallax function wasn't running before we need to start it
 	if (itemParallaxed.length) {
-		this.parallax();
+		parallax();
 	}
-	if (entry.target.action === 'leave') {
+	// if the item is leaving the viewport
+	if (sscElement.action === 'leave') {
 		// remove the animated item from the watched list
 		itemParallaxed = itemParallaxed.filter(
 			(item) =>
-				item.sscItemData.sscItem !== entry.target.sscItemData.sscItem
+				item.sscItemData?.sscItem !== sscElement.sscItemData?.sscItem
 		);
 	}
 }
