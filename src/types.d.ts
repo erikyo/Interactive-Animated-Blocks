@@ -24,48 +24,67 @@ export type WindowProps = {
  */
 export interface SscElement extends HTMLElement {
 	unWatch: () => any;
-	sscItemData?: SscElementData;
-	sscItemOpts?: SSCAnimationTypeDefaults;
+	sscItemData: SscElementData;
+	sscItemOpts?: SSCAnimationTypeAnimation |
+		SSCAnimationTypeParallax |
+		SSCAnimationTypeScrollTimeline |
+		SSCAnimationTypeTimelineChild |
+		SSCAnimationTypeScrollParallax |
+		SSCAnimationTypeZoom |
+		SSCAnimation360 |
+		SSCAnimationTypePlaybackControl |
+		SSCAnimationTypeCounter |
+		SSCAnimationTypeStagger |
+		SSCAnimationTypeJump |
+		SSCAnimationTypeNavigator;
 	dataset: DOMStringMap;
 	action?: string;
 	lock?: boolean;
-	isAnimated: boolean;
+	isAnimated?: boolean;
+	isChildren?: boolean;
 	isInViewport: boolean;
 	isIntersecting: boolean;
 	position?: SscPositionYDef;
-	sscAnimation?: string;
-	sscSequence?: {};
 	sscAnimationType?: string;
 	sscAnimationOptions?: Object;
 	sscAnimated?: boolean;
-	boundingClientRect: DOMRect;
+	boundingClientRect?: DOMRect;
 	updatePosition(): void;
 }
 
-export interface SscElementData {
+export type SscElementData = {
 	el: HTMLElement;
 	lock: boolean;
-	sscItem: IntersectionObserverEntry;
+	intersection: string;
+	sscItem: number;
 	sscItemOpts?: {};
 	sscAnimation: string;
 	sscSequence?: {};
 }
 
+export interface SscElementParallaxOpts {
+	speed: string;
+	level: string;
+	direction: string;
+}
+
+/**
+ * The SSC animated item save function type for the block
+ */
 export interface SSCBlockProps {
 	sscAnimated: boolean;
 	sscAnimationType: string;
 	sscAnimationOptions: SSCAnimationType;
 }
 
+export type SscPositionYDef = {
+	yTop?: number;
+	yBottom?: number;
+} | undefined;
+
 export type Coords = {
 	x: number | undefined;
 	y: number | undefined;
-};
-
-export type SscPositionYDef = {
-	ycenter: number;
-	yTop: number;
-	yBottom: number;
 };
 
 export type Label = {
@@ -113,58 +132,55 @@ interface StaggerPreset {
   rotateY?: number[];
 }
 
-export type SSCAnimationTypeDefault = {
-	reiterate: boolean;
-};
 
-export interface SSCAnimationTypeAnimation extends SSCAnimationTypeDefault {
-	duration: number;
-	delay: number;
-	intersection: number;
-	animationLeave: string;
-	animationEnter: string;
+export interface SSCAnimationTypeAnimation {
+	reiterate: boolean;
+	duration: string;
+	delay: string;
+	intersection: string;
+	animationLeave?: string;
+	animationEnter?: string;
 	stagger: string;
 	easing: string;
+	sscItem: HTMLElement;
+	isChildren: string;
 }
 
-export interface SSCAnimationTypeParallax extends SSCAnimationTypeDefault {
-	motion: number;
-	level: number;
-	speed: number;
+export interface SSCAnimationTypeParallax {
+	motion: string;
+	level: string;
+	speed: string;
 	direction: string;
 }
-export interface SSCAnimationTypeScrollTimeline
-	extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeScrollTimeline {
 	duration: number;
 	triggerHook: number;
 }
-export interface SSCAnimationTypeTimelineChild extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeTimelineChild {
 	offset: number;
 	delay: number;
 	duration: number;
 	easing: string;
 }
-export interface SSCAnimationTypeScrollParallax
-	extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeScrollParallax {
 	control: string;
 	spinRatio: number;
 }
-export interface SSCAnimation360 extends SSCAnimationTypeDefault {
+export interface SSCAnimation360 {
 	spinRatio: number;
 	control: string; // drag
 }
-export interface SSCAnimationTypeZoom extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeZoom {
 	zoom: number;
 }
-export interface SSCAnimationTypePlaybackControl
-	extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypePlaybackControl {
 	playbackRatio: number;
 }
 
 /**
  * Animation type Counter
  */
-export interface SSCAnimationTypeCounter extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeCounter {
 	duration: number;
 	delay: number;
 	easing: string;
@@ -174,7 +190,7 @@ export interface SSCAnimationTypeCounter extends SSCAnimationTypeDefault {
 /**
  * Animation type Stagger
  */
-export interface SSCAnimationTypeStagger extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeStagger {
 	duration: number;
 	delay: number;
 	easing: string;
@@ -186,29 +202,14 @@ export interface SSCAnimationTypeStagger extends SSCAnimationTypeDefault {
 /**
  * Animation type Jump
  */
-export interface SSCAnimationTypeJump extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeJump {
 	target: string;
 }
 
 /** Animation type Navigator */
-export interface SSCAnimationTypeNavigator extends SSCAnimationTypeDefault {
+export interface SSCAnimationTypeNavigator {
 	color: string;
 }
-
-export type SSCAnimationTypeDefaults =
-	| SSCAnimationTypeDefault
-	| SSCAnimationTypeAnimation
-	| SSCAnimationTypeScrollTimeline
-	| SSCAnimationTypeTimelineChild
-	| SSCAnimationTypeScrollParallax
-	| SSCAnimationTypeZoom
-	| SSCAnimation360
-	| SSCAnimationTypeParallax
-	| SSCAnimationTypePlaybackControl
-	| SSCAnimationTypeCounter
-	| SSCAnimationTypeStagger
-	| SSCAnimationTypeJump
-	| SSCAnimationTypeNavigator;
 
 /** Animations types */
 export type SSCAnimationType = {
