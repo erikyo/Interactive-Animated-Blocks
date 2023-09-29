@@ -14,6 +14,14 @@
 // UTILITY
 import { getElementData, getElementStyle } from '../utils/fn';
 import { delay, scrollDirection, screenBodyClass } from '../utils/utils';
+import type {
+	sscElement,
+	SSCAnimationTypeTimelineChild,
+	SscElement,
+	SscElementData,
+	SscOptions,
+	WindowProps,
+} from '../types.d.ts';
 
 // MODULES
 import video360Controller from './modules/image360';
@@ -25,9 +33,10 @@ import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
-import handleAnimation from './modules/itemAnimate';
+import handleAnimation, {getAnimatedItem} from './modules/itemAnimate';
 import navigator from './modules/navigator';
 import {
+	addToParallaxed,
 	itemParallaxed,
 	parallax,
 	parallaxController,
@@ -40,13 +49,6 @@ import {
 	enableScrollMagicIndicators,
 } from './modules/timeline';
 import { AnimateCssUrl, WAITFOR } from './constants';
-import type {
-	SSCAnimationTypeTimelineChild,
-	SscElement,
-	SscElementData,
-	SscOptions,
-	WindowProps,
-} from '../types.d.ts';
 
 /**
  * This object holds the window data to avoid unnecessary calculations
@@ -101,7 +103,7 @@ export const updateScreenSize = (
 		.then(() => {
 			windowProps.viewHeight = window.innerHeight;
 			windowProps.lastScrollPosition = window.scrollY;
-			updateAnimationPosition(animations);
+			updateAnimationPosition();
 		})
 		.then(() => logScreenSize());
 };
@@ -109,11 +111,9 @@ export const updateScreenSize = (
 /**
  * Updates the position of the animated item.
  * if the item has not the position it's a child, and it doesn't need to be updated
- *
- * @param animations
  */
-export const updateAnimationPosition = (animations: SscElement[]) =>
-	animations.forEach((item) =>
+export const updateAnimationPosition = () =>
+	getAnimatedItem().forEach((item) =>
 		item.position ? item.updatePosition() : null
 	);
 
@@ -145,16 +145,14 @@ export default class _ssc {
 		animationInstance?: boolean
 	) => void;
 	initTimeline: () => void;
-	navigator: (entry: any) => void;
-	scrollJacking: (entry: any) => any;
-	sequenceAnimations: never[];
-	animationSequence: (entry: any, action: any) => void;
-	animations: SscElement[];
-	handleAnimation: (entry: any) => void;
-	videoParallaxController: (entry: any) => any[] | undefined;
-	itemParallaxed: SscElement[];
+	navigator: (sscElement: SscElement) => void;
+	scrollJacking: (sscElement: SscElement) => any;
+	sequenceAnimations: any[];
+	animationSequence: (sscElement: SscElement) => void;
+	handleAnimation: (sscElement: SscElement) => void;
+	videoParallaxController: (sscElement: SscElement) => any[] | undefined;
 	parallax: () => number | undefined;
-	parallaxController: (entry: any) => void;
+	parallaxController: (sscElement: SscElement) => void;
 
 	constructor(options: SscOptions) {
 		/**
@@ -196,15 +194,12 @@ export default class _ssc {
 		this.animationSequence = animationSequence;
 
 		// The standard animation (animate.css)
-		this.animations = [];
 		this.handleAnimation = handleAnimation.bind(this);
 
 		// Video playback controlled by scroll Y position
 		this.videoParallaxController = videoParallaxController.bind(this);
 
 		// Parallax Items
-		this.itemParallaxed = itemParallaxed;
-		this.parallax = parallax.bind(this);
 		this.parallaxController = parallaxController.bind(this);
 
 		this.init();
@@ -306,7 +301,7 @@ export default class _ssc {
 				});
 				break;
 			case 'sscParallax':
-				this.itemParallaxed.push(el);
+				addToParallaxed(el);
 				break;
 			case 'sscScrollTimeline':
 				const sscItems: NodeListOf<SscElement> =
@@ -352,11 +347,11 @@ export default class _ssc {
 
 			// eslint-disable-next-line no-console
 			console.log(
-				'SSC ready using ' +
-					page +
-					'as container and ' +
-					this.collected +
-					' as items'
+				'SSC ready using ',
+				page,
+				'as container and ',
+				this.collected,
+				' as items'
 			);
 
 			/**
@@ -412,11 +407,6 @@ export default class _ssc {
 			this.initTimeline();
 
 			/**
-			 * Init the Parallax
-			 */
-			this.parallax();
-
-			/**
 			 * Collect items for smooth link scrolling
 			 */
 			// if the window has in the page url an anchor scroll target, get it then jump to that element
@@ -437,10 +427,8 @@ export default class _ssc {
 			/**
 			 * Update the stored screensize then set a callback to update the stored window stored data
 			 */
-			updateScreenSize(this.animations);
-			window.addEventListener('resize', () =>
-				updateScreenSize(this.animations)
-			);
+			updateScreenSize();
+			window.addEventListener('resize', () => updateScreenSize());
 
 			// update the screen size if necessary
 			window.addEventListener('resize', screenBodyClass);
@@ -451,26 +439,21 @@ export default class _ssc {
 	};
 
 	sscAnimation = (entry: IntersectionObserverEntry) => {
+		const sscElement = entry.target as SscElement;
 		// this item is entering or leaving the view
-		if ((entry.target as SscElement).action) {
-			switch ((entry.target as SscElement).sscItemData?.sscAnimation) {
+		if (sscElement.action) {
+			switch (sscElement.sscItemData?.sscAnimation) {
 				case 'sscParallax':
-					this.parallaxController(entry); // yup
+					this.parallaxController(sscElement);
 					break;
 				case 'sscAnimation':
-					this.handleAnimation(entry);
+					this.handleAnimation(sscElement);
 					break;
 				case 'sscSequence':
-					this.animationSequence(
-						entry,
-						(entry.target as SscElement).action
-					);
+					this.animationSequence(sscElement);
 					break;
 				case 'sscSvgPath':
-					this.animationSvgPath(
-						entry,
-						(entry.target as SscElement).action
-					); // yup (missing some options)
+					this.animationSvgPath(entry, sscElement.action); // yup (missing some options)
 					break;
 				case 'sscScrollJacking':
 					this.scrollJacking(entry);
@@ -507,8 +490,8 @@ export default class _ssc {
 	};
 
 	updateItemData = (el: SscElement) => {
-		const elCenter =
-			(el.boundingClientRect.top + el.boundingClientRect.bottom) / 2;
+		const elBBox = el.getBoundingClientRect();
+		const elCenter = (elBBox.top + elBBox.bottom) / 2;
 
 		// stores the direction from which the element appeared
 		el.dataset.intersection =
@@ -525,7 +508,7 @@ export default class _ssc {
 				el.action = el.dataset.visible === 'true' ? 'enter' : 'leave';
 			}
 		} else {
-			el.action = '';
+			el.action = 'enter';
 		}
 
 		/**
