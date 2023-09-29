@@ -1,5 +1,6 @@
 import anime from 'animejs';
 import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
+import type { SscElement } from '../../types.d.ts';
 
 /**
  * It creates an animation sequence for each element that has a `sscSequence` attribute,
@@ -7,14 +8,14 @@ import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
  *
  * @module animationSequence
  *
- * @param {IntersectionObserverEntry} entry  - The entry object passed by the IntersectionObserver.
- * @param {string}                    action - The action to be performed.
+ * @param element - the element to be animated
  */
-function animationSequence(entry, action) {
-	const animation = entry.target.sscSequence || {};
+function animationSequence(element: SscElement) {
+	const action = element.action;
+	const animation = element.sscSequence || {};
 
 	// build the animation if isn't already stored
-	if (!this.sequenceAnimations[entry.target.sscItemData.sscItem]) {
+	if (!this.sequenceAnimations[element.sscItemData.sscItem]) {
 		let i = 0;
 		const currentStep = {};
 
@@ -39,14 +40,14 @@ function animationSequence(entry, action) {
 		if (currentStep[0]) {
 			// creates the animation initializer
 			const a = anime.timeline({
-				targets: entry.target,
+				targets: element,
 				autoplay: false,
-				delay: entry.target.sscItemOpts.delay,
-				duration: entry.target.sscItemOpts.duration,
-				easing: entry.target.sscItemOpts.easing, // Can be inherited
+				delay: element.sscItemOpts.delay,
+				duration: element.sscItemOpts.duration,
+				easing: element.sscItemOpts.easing, // Can be inherited
 				direction: 'normal', // Is not inherited
 				complete() {
-					entry.target.removeAttribute('data-ssc-lock');
+					element.removeAttribute('data-ssc-lock');
 				},
 			});
 
@@ -54,29 +55,29 @@ function animationSequence(entry, action) {
 			Object.entries(currentStep).forEach((step) => {
 				a.add(step[1]);
 			});
-			this.sequenceAnimations[entry.target.sscItemData.sscItem] = a;
+			this.sequenceAnimations[element.sscItemData.sscItem] = a;
 		}
 	}
 
 	// The Enter animation sequence
-	if (this.sequenceAnimations[entry.target.sscItemData.sscItem]) {
+	if (this.sequenceAnimations[element.sscItemData.sscItem]) {
 		if (
 			action === 'enter' &&
-			isActiveArea(entry.target, entry.target.sscItemOpts.intersection)
+			isActiveArea(element, element.sscItemOpts.intersection)
 		) {
-			entry.target.action = 'leave';
-			this.sequenceAnimations[entry.target.sscItemData.sscItem].play();
+			element.action = 'leave';
+			this.sequenceAnimations[element.sscItemData.sscItem].play();
 		} else if (
 			action === 'leave' &&
-			!isActiveArea(entry.target, entry.target.sscItemOpts.intersection)
+			!isActiveArea(element, element.sscItemOpts.intersection)
 		) {
-			entry.target.action = 'enter';
-			this.sequenceAnimations[entry.target.sscItemData.sscItem].pause();
+			element.action = 'enter';
+			this.sequenceAnimations[element.sscItemData.sscItem].pause();
 		}
 	}
-	if (isPartiallyVisible(entry.target)) {
+	if (isPartiallyVisible(element)) {
 		delay(100).then(() => {
-			this.animationSequence(entry, action);
+			this.animationSequence(element);
 		});
 	}
 }
