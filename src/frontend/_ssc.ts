@@ -33,7 +33,7 @@ import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/svgPath';
-import handleAnimation, {getAnimatedItem} from './modules/itemAnimate';
+import handleAnimation, { getAnimatedItem } from './modules/itemAnimate';
 import navigator from './modules/navigator';
 import {
 	addToParallaxed,
@@ -95,10 +95,7 @@ export const logScreenSize = () => {
  * @param          animations
  * @param {number} waitFor
  */
-export const updateScreenSize = (
-	animations: SscElement[],
-	waitFor: number = WAITFOR
-) => {
+export const updateScreenSize = (waitFor: number = WAITFOR) => {
 	delay(waitFor)
 		.then(() => {
 			windowProps.viewHeight = window.innerHeight;

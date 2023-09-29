@@ -51,14 +51,14 @@ export function prepareAnimatedItem(
 			yTop: undefined,
 			yBottom: undefined,
 		},
-		delay: Number(options.delay) ?? 0,
-		duration: Number(options.duration) ?? 1000,
+		delay: Number(options.delay) || 0,
+		duration: Number(options.duration) || 1000,
 		easing: options.easing || 'EaseInOut',
 		locked: false,
-		intersection: Number(element.sscItemData.intersection) ?? 80,
+		intersection: Number(element.sscItemData.intersection) || 80,
 		lastAction: undefined,
 		/**
-		 * The element methods
+		 * Update the element position when it enters or leaves the viewport
 		 */
 		updatePosition() {
 			const targetRect = element.getBoundingClientRect();
@@ -67,6 +67,11 @@ export function prepareAnimatedItem(
 				yBottom: window.scrollY + targetRect.top + targetRect.height,
 			};
 		},
+		/**
+		 * Animate the element
+		 *
+		 * @param action
+		 */
 		animateItem(action: string) {
 			// if the animated element is single
 			if (this.animatedElements && this.animatedElements.length === 1) {
@@ -106,6 +111,9 @@ export function prepareAnimatedItem(
 				}
 			);
 		},
+		/**
+		 * Initialize the element properties
+		 */
 		initElement() {
 			// stores the current element position (top Y and bottom Y)
 			this.updatePosition();
@@ -150,6 +158,12 @@ export function prepareAnimatedItem(
 			}
 			return this;
 		},
+		/**
+		 * Add a css class to the element
+		 *
+		 * @param item
+		 * @param cssClass
+		 */
 		addCssClass(item, cssClass = 'false') {
 			if (cssClass !== 'false') {
 				const animation = item?.animationEnter
@@ -162,6 +176,11 @@ export function prepareAnimatedItem(
 			}
 			return this;
 		},
+		/**
+		 * Remove a css class to the element
+		 * @param item
+		 * @param cssClass
+		 */
 		removeCssClass(item, cssClass = 'false') {
 			if (cssClass !== 'false') {
 				const animation = item.animationLeave
@@ -174,6 +193,11 @@ export function prepareAnimatedItem(
 			}
 			return this;
 		},
+		/**
+		 * Apply an animation to the element based on the action passed in the param
+		 * @param el
+		 * @param action
+		 */
 		applyAnimation(el, action) {
 			if (action === 'enter') {
 				if (this?.animationLeave)
@@ -186,6 +210,11 @@ export function prepareAnimatedItem(
 				this.removeCssClass(el, this.animationEnter);
 			if (this?.animationLeave) this.addCssClass(el, this.animationLeave);
 		},
+		/**
+		 * Apply a child animation to the element based on the action passed in the param
+		 * @param el     The element to apply the animation
+		 * @param action The action (enter or leave)
+		 */
 		applyChildAnimation(el, action: string) {
 			if (action === 'enter') {
 				if (this?.animationLeave)
@@ -201,7 +230,10 @@ export function prepareAnimatedItem(
 	};
 }
 
-export const getAnimatedItem = () => {
+/**
+ * Get the animations collection
+ */
+export const getAnimatedItem = (): AnimationEl[] => {
 	return animations;
 };
 
