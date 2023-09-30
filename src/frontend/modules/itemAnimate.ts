@@ -263,13 +263,13 @@ export const handleAnimation = (element: SscElement) => {
 				lastAction: undefined,
 				animationEnter: elementOptions.animationEnter || undefined,
 				animationLeave: elementOptions.animationLeave || undefined,
-				delay: parseInt(elementOptions.delay, 10) || 0,
-				duration: parseInt(elementOptions.duration, 10) || 1000,
+				delay: Number(elementOptions.delay) || 0,
+				duration: Number(elementOptions.duration) || 1000,
 			} as AnimationEl;
 			if (elementOptions && elementOptions.duration) {
 				element.style.setProperty(
 					'--animate-duration',
-					(parseInt(elementOptions.duration, 10) || 5000) + 'ms'
+					(Number(elementOptions.duration) || 5000) + 'ms'
 				);
 			}
 		}
@@ -284,13 +284,12 @@ export const handleAnimation = (element: SscElement) => {
 	// get all the animation data stored
 	const el = animations[element.sscItemData.sscItem] as AnimationEl;
 
-	if (
-		!el.lock &&
-		el.position &&
-		(el.lastAction === 'enter'
+	const inView =
+		el.lastAction === 'enter'
 			? isInView(el.position, el.intersection)
-			: !isInView(el.position, el.intersection))
-	) {
+			: !isInView(el.position, el.intersection);
+
+	if (!el.lock && inView) {
 		// lock the item to avoid multiple animations at the same time
 		el.lock = true;
 		delay(el.delay).then(() => {
@@ -299,8 +298,6 @@ export const handleAnimation = (element: SscElement) => {
 			new Promise((resolve) => {
 				setTimeout(() => {
 					el.lock = false;
-					el.lastAction =
-						el.lastAction === 'enter' ? 'leave' : 'enter';
 					resolve(el);
 				}, el.duration);
 			}).then(() => {
@@ -309,6 +306,7 @@ export const handleAnimation = (element: SscElement) => {
 				}
 			});
 		});
+		return;
 	}
 
 	// will catch any animated item that isn't inside the view or hasn't triggered the previous code
