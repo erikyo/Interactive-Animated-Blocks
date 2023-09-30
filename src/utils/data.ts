@@ -206,8 +206,19 @@ export const animationTypes: SSCAnimationScene[] = [
 			easing: 'linear',
 			duration: 0,
 			delay: 0,
-			reiterate: true,
 			stagger: 'none',
+			reiterate: true,
+		},
+	},
+	{
+		label: 'Animation Custom',
+		value: 'sscSequence',
+		default: {
+			duration: 2000,
+			delay: 500,
+			intersection: 80,
+			reiterate: true,
+			easing: 'easeInOutQuad',
 		},
 	},
 	{
@@ -218,7 +229,6 @@ export const animationTypes: SSCAnimationScene[] = [
 			level: 1,
 			speed: 1,
 			motion: 50,
-			reiterate: true,
 		},
 	},
 	{
@@ -237,7 +247,6 @@ export const animationTypes: SSCAnimationScene[] = [
 			offset: 0,
 			delay: 0,
 			duration: 1000,
-			reiterate: true,
 			easing: 'linear',
 		},
 	},
@@ -247,7 +256,6 @@ export const animationTypes: SSCAnimationScene[] = [
 		default: {
 			spinRatio: 1,
 			control: 'pointer', // drag
-			reiterate: true,
 		},
 	},
 	{
@@ -255,7 +263,6 @@ export const animationTypes: SSCAnimationScene[] = [
 		value: 'sscImageZoom',
 		default: {
 			zoom: 1,
-			reiterate: true,
 		},
 	},
 	{
@@ -263,7 +270,6 @@ export const animationTypes: SSCAnimationScene[] = [
 		value: 'sscVideoScroll',
 		default: {
 			playbackRatio: 1,
-			reiterate: true,
 		},
 	},
 	{
@@ -271,15 +277,12 @@ export const animationTypes: SSCAnimationScene[] = [
 		value: 'sscVideoParallax',
 		default: {
 			playbackRatio: 1,
-			reiterate: true,
 		},
 	},
 	{
 		label: 'Video play on screen',
 		value: 'sscVideoFocusPlay',
-		default: {
-			reiterate: true,
-		},
+		default: {},
 	},
 	{
 		label: 'Svg Path Animation',
@@ -288,19 +291,8 @@ export const animationTypes: SSCAnimationScene[] = [
 			duration: 5000,
 			delay: 500,
 			intersection: 80,
-			reiterate: true,
+
 			easing: 'easeInOutExpo',
-		},
-	},
-	{
-		label: 'Custom animation',
-		value: 'sscSequence',
-		default: {
-			duration: 2000,
-			delay: 500,
-			intersection: 80,
-			reiterate: true,
-			easing: 'easeInOutQuad',
 		},
 	},
 	{
@@ -311,6 +303,7 @@ export const animationTypes: SSCAnimationScene[] = [
 			duration: 800,
 			delay: 500,
 			reiterate: true,
+
 			easing: 'easeOutExpo',
 		},
 	},
@@ -321,6 +314,7 @@ export const animationTypes: SSCAnimationScene[] = [
 			duration: 8000,
 			delay: 0,
 			reiterate: true,
+
 			easing: 'easeInOutExpo',
 			target: 'number',
 		},
@@ -332,6 +326,7 @@ export const animationTypes: SSCAnimationScene[] = [
 			duration: 5000,
 			delay: 1000,
 			reiterate: true,
+
 			easing: 'easeInOutQuad',
 			preset: 'default',
 			splitBy: 'letter',
@@ -342,7 +337,6 @@ export const animationTypes: SSCAnimationScene[] = [
 		label: 'Screen Jump',
 		value: 'sscScreenJump',
 		default: {
-			reiterate: true,
 			target: 'none',
 		},
 	},
@@ -350,7 +344,6 @@ export const animationTypes: SSCAnimationScene[] = [
 		label: 'Navigator',
 		value: 'sscNavigator',
 		default: {
-			reiterate: true,
 			color: 'var(--color-primary)',
 		},
 	},

@@ -27,6 +27,7 @@ export interface SscElement extends HTMLElement {
 	sscItemData: SscElementData;
 	sscItemOpts?: SSCAnimationTypeAnimation |
 		SSCAnimationTypeParallax |
+		SSCAnimationTypeJackscrolling |
 		SSCAnimationTypeScrollTimeline |
 		SSCAnimationTypeTimelineChild |
 		SSCAnimationTypeScrollParallax |
@@ -38,8 +39,8 @@ export interface SscElement extends HTMLElement {
 		SSCAnimationTypeJump |
 		SSCAnimationTypeNavigator;
 	dataset: DOMStringMap;
-	action?: string;
 	lock?: boolean;
+	action?: 'enter' | 'leave';
 	isAnimated?: boolean;
 	isChildren?: boolean;
 	isInViewport: boolean;
@@ -52,6 +53,7 @@ export interface SscElement extends HTMLElement {
 export type SscElementData = {
 	el: HTMLElement;
 	lock: boolean;
+	visible: string;
 	intersection: string;
 	sscItem: number;
 	sscItemOpts?: {};
@@ -71,7 +73,7 @@ export interface SscElementParallaxOpts {
 export interface SSCBlockProps {
 	sscAnimated: boolean;
 	sscAnimationType: string;
-	sscAnimationOptions: SSCAnimationType;
+	sscAnimationOptions: any;
 }
 
 export type SscPositionYDef = {
@@ -143,6 +145,12 @@ export interface SSCAnimationTypeAnimation {
 	isChildren: string;
 }
 
+/** Animations types */
+export type SSCAnimationType = {
+	scene?: SSCAnimationScene[];
+	target?: HTMLElement;
+};
+
 export interface SSCAnimationTypeParallax {
 	motion: string;
 	level: string;
@@ -173,6 +181,9 @@ export interface SSCAnimationTypeZoom {
 export interface SSCAnimationTypePlaybackControl {
 	playbackRatio: number;
 }
+export interface SSCAnimationTypeJackscrolling {
+	intersection: number;
+}
 
 /**
  * Animation type Counter
@@ -185,7 +196,7 @@ export interface SSCAnimationTypeCounter {
 }
 
 /**
- * Animation type Stagger
+ * Animation type Text Stagger
  */
 export interface SSCAnimationTypeStagger {
 	duration: number;
@@ -207,13 +218,6 @@ export interface SSCAnimationTypeJump {
 export interface SSCAnimationTypeNavigator {
 	color: string;
 }
-
-/** Animations types */
-export type SSCAnimationType = {
-	default: SSCAnimationTypeDefaults;
-	scene?: SSCAnimationScene[];
-	target?: HTMLElement;
-};
 
 /**
  * The scene animation step

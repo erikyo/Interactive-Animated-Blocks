@@ -22,7 +22,7 @@ import {
 	animationTypes,
 	textStaggerPresetsNames,
 } from '../utils/data';
-import type { SSCAnimationScene } from '../types.d.ts';
+import type { SSCAnimationScene, SSCBlockProps } from '../types.d.ts';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -42,10 +42,10 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			} = props;
 
 			const {
-				sscAnimated: sscAnimated = false,
-				sscAnimationType: sscAnimationType = false,
-				sscAnimationOptions: sscAnimationOptions = {},
-			} = ssc;
+				sscAnimated = false,
+				sscAnimationType = '',
+				sscAnimationOptions = undefined,
+			} = ssc as SSCBlockProps;
 
 			/**
 			 * Set the animation options
@@ -54,7 +54,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 * @param prop - the property to set
 			 */
 			const setOption = (
-				data: number | string | {} | undefined,
+				data: boolean | number | string | {} | undefined,
 				prop: string
 			) =>
 				setAttributes({
@@ -162,19 +162,31 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												}
 											></SelectControl>
 
-											<ToggleControl
-												label={__('Reiterate')}
-												checked={
-													sscAnimationOptions?.reiterate ||
-													true
-												}
-												onChange={() =>
-													setOption(
-														!sscAnimationOptions.reiterate,
-														'reiterate'
-													)
-												}
-											/>
+											{sscAnimationType &&
+												[
+													'sscSvgPath',
+													'sscSequence',
+													'sscScrollJacking',
+													'sscCounter',
+													'sscTextStagger',
+													'sscAnimation',
+													'sscScrollTimeline',
+												].includes(
+													sscAnimationType
+												) && (
+													<ToggleControl
+														label={__('Reiterate')}
+														checked={
+															sscAnimationOptions.reiterate
+														}
+														onChange={() =>
+															setOption(
+																!sscAnimationOptions.reiterate,
+																'reiterate'
+															)
+														}
+													/>
+												)}
 
 											{sscAnimationType &&
 												[
