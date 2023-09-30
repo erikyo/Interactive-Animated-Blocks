@@ -1,23 +1,50 @@
+import type { SscElement, SscElementParallaxOpts } from '../../types';
+import { SSCAnimation360 } from '../../types';
+
+interface SscElementVideo extends HTMLVideoElement {
+	timeoutAutoplay: number | undefined;
+	nextTime: number;
+	spinRatio: number;
+	control: string;
+	currentAngle: number;
+	startAngle: number;
+	currentVideoTimeToAngle: () => number;
+	autoplayVideo: () => void;
+	angleToVideoTime: (currentValue: number) => number;
+	getAngle: (video: HTMLVideoElement, pointerX: number) => number;
+	getTouchAngle: (video: HTMLVideoElement, pointerX: number) => number;
+	setAngle: (currentAngle: number) => void;
+	handle360byTouchPosition: (event: TouchEvent) => void;
+	updateAngle: (currentAngle: number) => void;
+	getVideoTime: (video: HTMLVideoElement) => number;
+	getDuration: (video: HTMLVideoElement) => number;
+	setVideoTime: (video: HTMLVideoElement, time: number) => void;
+	seek: (video: HTMLVideoElement, time: number) => void;
+	handle360byPointerPosition: (event: PointerEvent) => void;
+	handle360Move: (event: MouseEvent) => void;
+	handle360byDrag: (event: MouseEvent) => void;
+	handle360byTouch: (event: TouchEvent) => void;
+	isPlaying: boolean;
+	currentTime: number;
+	duration: number;
+}
+
 /**
  * It adds a mousemove event listener to the video element,
  * which updates the video's current time based on the mouse's position creating the image 360 effect
  *
  * @module video360Controller
- *
- * @param {IntersectionObserverEntry} entry - The entry object passed to the callback function.
+ * @param  element - The entry object passed to the callback function.
  */
-const video360Controller = (entry) => {
-	if (!entry.isIntersecting) {
-		return true;
-	}
-
+const video360Controller = (element: SscElement) => {
 	/** @constant {HTMLVideoElement} videoEl  */
-	const videoEl = entry.target.querySelector('video');
+	const videoEl = element.querySelector('video') as SscElementVideo;
+	const videoOptions = element.sscItemOpts as SSCAnimation360;
 
-	videoEl.timeoutAutoplay = null;
+	videoEl.timeoutAutoplay = undefined;
 	videoEl.style.cursor = 'grab';
-	videoEl.spinRatio = parseFloat(entry.target.sscItemOpts.spinRatio);
-	videoEl.control = entry.target.sscItemOpts.control;
+	videoEl.spinRatio = Number(videoOptions.spinRatio);
+	videoEl.control = videoOptions.control;
 	videoEl.loop = true;
 	videoEl.isPlaying = false;
 	videoEl.currentAngle = 0.5; // the current angle displayed
@@ -47,12 +74,12 @@ const video360Controller = (entry) => {
 
 	videoEl.getAngle = (video, pointerX) => {
 		const rect = video.getBoundingClientRect();
-		return parseFloat((pointerX - rect.left) / rect.width);
+		return (pointerX - rect.left) / rect.width;
 	};
 
 	videoEl.getTouchAngle = (video, pointerX) => {
 		const rect = video.getBoundingClientRect();
-		return parseFloat((pointerX - rect.left) / rect.width);
+		return (pointerX - rect.left) / rect.width;
 	};
 
 	videoEl.setAngle = (currentAngle) => {
@@ -75,59 +102,67 @@ const video360Controller = (entry) => {
 
 	videoEl.handle360byPointerPosition = (e) => {
 		window.requestAnimationFrame(() => {
-			const currentAngle = e.target.getAngle(e.target, e.clientX);
-			return e.target.setAngle(currentAngle);
+			const currentVideo = e.target as SscElementVideo;
+			const currentAngle = currentVideo.getAngle(currentVideo, e.clientX);
+			return currentVideo.setAngle(currentAngle);
 		});
 	};
 
 	videoEl.handle360byTouchPosition = (e) => {
 		window.requestAnimationFrame(() => {
-			const currentAngle = e.target.getAngle(
-				e.target,
+			const currentVideo = e.target as SscElementVideo;
+			const currentAngle = currentVideo.getAngle(
+				currentVideo,
 				e.changedTouches[0].clientX
 			);
-			return e.target.setAngle(currentAngle);
+			return currentVideo.setAngle(currentAngle);
+		});
+	};
+
+	videoEl.handle360Move = (event: MouseEvent) => {
+		window.requestAnimationFrame(() => {
+			const currentVideo = event.target as SscElementVideo;
+			const currentAngle = currentVideo.getAngle(
+				currentVideo,
+				event.clientX
+			);
+			return currentVideo.setAngle(currentAngle);
 		});
 	};
 
 	videoEl.handle360byDrag = (e) => {
-		const video = e.target;
+		const video = e.target as SscElementVideo;
 		video.style.cursor = 'grab';
 		// store the event initial position
 		videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
-		videoEl.startAngle = video.getAngle(e.target, e.clientX);
+		videoEl.startAngle = video.getAngle(video, e.clientX);
 		// on mouse move update the current angle
-		video.onmousemove = (ev) => {
-			window.requestAnimationFrame(() => {
-				const currentAngle = video.getAngle(ev.target, ev.clientX);
-				return video.setAngle(currentAngle);
-			});
-		};
+		video.onmousemove = (ev) => videoEl.handle360Move(ev);
 	};
 
 	videoEl.handle360byTouch = (e) => {
-		const video = e.target;
+		const currentVideo = e.target as SscElementVideo;
 		// store the event initial position
 		videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
-		videoEl.startAngle = video.getTouchAngle(
-			e.target,
+		videoEl.startAngle = currentVideo.getTouchAngle(
+			currentVideo,
 			e.changedTouches[0].clientX
 		);
-		video.ontouchmove = (ev) => {
+		currentVideo.ontouchmove = (ev) => {
 			window.requestAnimationFrame(() => {
-				const currentAngle = video.getTouchAngle(
-					ev.target,
+				const currentAngle = currentVideo.getTouchAngle(
+					currentVideo,
 					ev.changedTouches[0].clientX
 				);
-				return video.setAngle(currentAngle);
+				return currentVideo.setAngle(currentAngle);
 			});
 		};
 	};
 
-	if (entry.target.action === 'enter') {
-		if (entry.target.sscItemOpts.control === 'pointer') {
+	if (element.action === 'enter') {
+		if (videoOptions.control === 'pointer') {
 			videoEl.onmousemove = videoEl.handle360byPointerPosition;
-		} else if (entry.target.sscItemOpts.control === 'drag') {
+		} else if (videoOptions.control === 'drag') {
 			videoEl.onmousedown = videoEl.handle360byDrag;
 			videoEl.onmouseup = () => {
 				videoEl.onmousemove = null;
@@ -138,9 +173,10 @@ const video360Controller = (entry) => {
 		videoEl.ontouchstart = videoEl.handle360byTouch;
 
 		videoEl.onmouseout = (e) => {
-			e.target.pause();
-			clearTimeout(e.target.timeoutAutoplay);
-			videoEl.timeoutAutoplay = e.target.autoplayVideo();
+			const video = e.target as SscElementVideo;
+			video.pause();
+			clearTimeout(video.timeoutAutoplay);
+			videoEl.timeoutAutoplay = video.autoplayVideo();
 		};
 
 		videoEl.onmouseenter = (e) => {
@@ -149,7 +185,7 @@ const video360Controller = (entry) => {
 			videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
 			videoEl.startAngle = e.target.getAngle(e.target, e.clientX);
 		};
-	} else if (entry.target.action === 'leave') {
+	} else if (element.action === 'leave') {
 		videoEl.onmousemove = null;
 	}
 };
