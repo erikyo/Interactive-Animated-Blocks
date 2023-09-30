@@ -27,20 +27,15 @@ import video360Controller from './modules/image360';
 import jumpToScreen from './modules/screenJumper';
 import imageScaleController from './modules/imageScale';
 import videoWheelController from './modules/videoWheel';
-import videoFocusPlay from './modules/videoFocus';
+import videoFocusPlay from './modules/videoPlayOnFocus';
 import scrollJacking from './modules/scrollJacking';
 import textStagger from './modules/textStagger';
 import textAnimated from './modules/textEffects';
-import animationSvgPath from './modules/svgPath';
+import animationSvgPath from './modules/itemAnimateSvgPath';
 import handleAnimation, { getAnimatedItem } from './modules/itemAnimate';
-import navigator from './modules/navigator';
-import {
-	addToParallaxed,
-	itemParallaxed,
-	parallax,
-	parallaxController,
-} from './modules/itemParallax';
-import animationSequence from './modules/itemCustomAnimation';
+import animationSequence from './modules/itemAnimationCustom';
+import scrollNavigator from './modules/scrollNavigator';
+import { addToParallaxed, parallaxController } from './modules/itemParallax';
 import videoParallaxController from './modules/videoParallax';
 import {
 	addToTimeline,
@@ -48,6 +43,7 @@ import {
 	enableScrollMagicIndicators,
 } from './modules/timeline';
 import { AnimateCssUrl, WAITFOR } from './constants';
+import {Coords} from "../types.d.ts";
 
 /**
  * This object holds the window data to avoid unnecessary calculations
@@ -124,29 +120,28 @@ export default class _ssc {
 	// Plugin options and variables
 	options: SscOptions;
 	collected: NodeListOf<SscElement> | [];
-	touchPos: { x: boolean | number; y: boolean | number };
+	touchPos: Coords;
 
 	// Modules
-	video360Controller: (entry: any) => true | undefined;
-	imageScaleController: (entry: any) => void;
-	jumpToScreen: (jumpers: any) => void;
-	videoWheelController: (el: any) => void;
-	videoFocusPlay: (entry: any) => any;
-	textStagger: (entry: any) => any;
-	textAnimated: (el: any) => true | undefined;
+	video360Controller: (sscElement: SscElement) => true | undefined;
+	imageScaleController: (entry: SscElement) => void;
+	jumpToScreen: (jumpers: SscElement) => void;
+	videoWheelController: (el: SscElement) => void;
+	videoFocusPlay: (entry: SscElement) => void;
+	textStagger: (entry: SscElement) => void;
+	textAnimated: (element: SscElement) => true | undefined;
 	animationSvgPath: (
-		entry: any,
-		action: any,
+		element: SscElement,
 		animationInstance?: boolean
 	) => void;
 	initTimeline: () => void;
-	navigator: (sscElement: SscElement) => void;
-	scrollJacking: (sscElement: SscElement) => any;
+	navigator: (element: SscElement) => void;
+	scrollJacking: (element: SscElement) => any;
 	sequenceAnimations: any[];
-	animationSequence: (sscElement: SscElement) => void;
-	handleAnimation: (sscElement: SscElement) => void;
-	videoParallaxController: (sscElement: SscElement) => any[] | undefined;
-	parallaxController: (sscElement: SscElement) => void;
+	animationSequence: (element: SscElement) => void;
+	handleAnimation: (element: SscElement) => void;
+	videoParallaxController: (element: SscElement) => any[] | undefined;
+	parallaxController: (element: SscElement) => void;
 
 	constructor(options: SscOptions) {
 		/**
@@ -158,8 +153,8 @@ export default class _ssc {
 		 * Store the touch position
 		 */
 		this.touchPos = {
-			x: false,
-			y: false,
+			x: undefined,
+			y: undefined,
 		};
 
 		// the ssc enabled elements found in this page it's not an array but a nodelist (anyhow we can iterate with foreach so at the moment is fine)
@@ -179,7 +174,7 @@ export default class _ssc {
 		this.textAnimated = textAnimated;
 		this.animationSvgPath = animationSvgPath;
 		this.initTimeline = initTimeline;
-		this.navigator = navigator;
+		this.navigator = scrollNavigator;
 
 		// Screen jacking - evil as eval
 		this.scrollJacking = scrollJacking;
@@ -435,7 +430,7 @@ export default class _ssc {
 	sscAnimation = (entry: IntersectionObserverEntry) => {
 		const sscElement = entry.target as SscElement;
 		// this item is entering or leaving the view
-		if (sscElement.action) {
+		if (sscElement.sscItemData.visible) {
 			switch (sscElement.sscItemData?.sscAnimation) {
 				case 'sscParallax':
 					this.parallaxController(sscElement);
@@ -447,7 +442,7 @@ export default class _ssc {
 					this.animationSequence(sscElement);
 					break;
 				case 'sscSvgPath':
-					this.animationSvgPath(entry, sscElement.action); // yup (missing some options)
+					this.animationSvgPath(sscElement); // yup (missing some options)
 					break;
 				case 'sscScrollJacking':
 					this.scrollJacking(sscElement);
@@ -456,25 +451,25 @@ export default class _ssc {
 					this.navigator(sscElement);
 					break;
 				case 'sscCounter':
-					this.textAnimated(entry);
+					this.textAnimated(sscElement);
 					break;
 				case 'sscVideoFocusPlay':
-					this.videoFocusPlay(entry); // yup, but needs to be inline and muted
+					this.videoFocusPlay(sscElement); // yup, but needs to be inline and muted
 					break;
 				case 'sscVideoParallax':
 					this.videoParallaxController(sscElement);
 					break;
 				case 'sscVideoScroll':
-					this.videoWheelController(entry);
+					this.videoWheelController(sscElement);
 					break;
 				case 'ssc360':
-					this.video360Controller(entry);
+					this.video360Controller(sscElement);
 					break;
 				case 'sscImageZoom':
-					this.imageScaleController(entry); // NO
+					this.imageScaleController(sscElement); // NO
 					break;
 				case 'sscTextStagger':
-					this.textStagger(entry);
+					this.textStagger(sscElement);
 					break;
 				default:
 					// 🥱 miss
@@ -492,18 +487,18 @@ export default class _ssc {
 		sscElement.dataset.intersection =
 			windowProps.viewHeight / 2 > elCenter ? 'up' : 'down';
 
-		// is colliding with borders // used next loop to detect if the object is inside the screen
-		sscElement.dataset.visible = el.isIntersecting ? 'true' : 'false';
-
-		// Check if the current "is Intersecting" has been changed, and if so, update the dataset
 		if (el.isIntersecting) {
+			// we need to check if the element was already visible before entering the viewport
 			if (typeof sscElement.dataset.visible === 'undefined') {
 				sscElement.action = 'enter';
 			} else {
 				sscElement.action =
 					sscElement.dataset.visible === 'true' ? 'enter' : 'leave';
 			}
+			// then set the visibility
+			sscElement.dataset.visible = 'true';
 		} else {
+			sscElement.dataset.visible = 'false';
 			sscElement.action = 'leave';
 		}
 
