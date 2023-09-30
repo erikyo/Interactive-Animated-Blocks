@@ -302,21 +302,22 @@ export function ActionList(props: {
 						items={animationProps}
 						strategy={verticalListSortingStrategy}
 					>
-						{animationProps.map((action) => (
-							<ActionRow
-								key={action.key}
-								id={action.id}
-								action={action.action}
-								value={action.value || action.defaultValue}
-								actionList={provideSelectOptions(
-									actionsTemplate,
-									'actionLabel',
-									'action'
-								)}
-								removeAction={removeAction}
-								handleChange={handleChange}
-							/>
-						))}
+						{animationProps.length &&
+							animationProps.map((action) => (
+								<ActionRow
+									key={action.key}
+									id={action.id}
+									action={action.action}
+									value={action.value || action.defaultValue}
+									actionList={provideSelectOptions(
+										actionsTemplate,
+										'actionLabel',
+										'action'
+									)}
+									removeAction={removeAction}
+									handleChange={handleChange}
+								/>
+							))}
 					</SortableContext>
 				</DndContext>
 				<Button
