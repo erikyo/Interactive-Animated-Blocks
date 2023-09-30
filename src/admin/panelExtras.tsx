@@ -56,20 +56,16 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			const setOption = (
 				data: number | string | {} | undefined,
 				prop: string
-			) => {
-				return (
-					!!data &&
-					setAttributes({
-						ssc: {
-							...ssc,
-							sscAnimationOptions: {
-								...ssc.sscAnimationOptions,
-								[prop]: data,
-							},
+			) =>
+				setAttributes({
+					ssc: {
+						...ssc,
+						sscAnimationOptions: {
+							...ssc.sscAnimationOptions,
+							[prop]: data,
 						},
-					})
-				);
-			};
+					},
+				});
 
 			/**
 			 * The function `pullScene` takes a single argument, `data`,
@@ -161,10 +157,9 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												options={
 													animationTypes as SSCAnimationScene[]
 												}
-												onChange={(newType) => {
-													console.log(newType)
+												onChange={(newType) =>
 													updateAnimation(newType)
-												}}
+												}
 											></SelectControl>
 
 											<ToggleControl
@@ -400,7 +395,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												<>
 													<SelectControl
 														label={
-															'Entering animation name'
+															'Enter animation'
 														}
 														options={animationList}
 														value={
@@ -414,9 +409,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														}
 													/>
 													<SelectControl
-														label={
-															'Exiting animation name (checkout animate.css)'
-														}
+														label={'Exit animation'}
 														options={animationList}
 														value={
 															sscAnimationOptions.animationLeave
