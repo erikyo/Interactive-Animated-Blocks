@@ -7,8 +7,9 @@ import type {
 
 export const animations: AnimationEl[] = [];
 
-interface AnimationEl extends SscElement {
-	animatedElements: AnimationEl[];
+export interface AnimationEl {
+	element: SscElement;
+	animatedElements: SscElement[];
 	animationEnter: string | undefined;
 	animationLeave: string | undefined;
 	stagger: string;
@@ -16,7 +17,7 @@ interface AnimationEl extends SscElement {
 	delay: number;
 	duration: number;
 	easing: string;
-	locked: boolean;
+	lock: boolean;
 	intersection: number;
 	lastAction?: string;
 	/**
@@ -25,24 +26,18 @@ interface AnimationEl extends SscElement {
 	initElement: () => void;
 	updatePosition: () => void;
 	animateItem: (action: string) => void;
-	applyAnimation: (target: AnimationEl, action: string) => void;
-	addCssClass: (item: AnimationEl, className: string) => void;
-	removeCssClass: (item: AnimationEl, className: string) => void;
-	applyChildAnimation: (item: SscElementChild, className: string) => void;
-}
-
-export interface SscElementChild extends AnimationEl {
-	delay: number;
-	lastAction: string;
-	duration: number;
+	applyAnimation: (target: SscElement, action: string) => void;
+	addCssClass: (item: SscElement, className: string) => void;
+	removeCssClass: (item: SscElement, className: string) => void;
+	applyChildAnimation: (item: AnimationEl, className: string) => void;
 }
 
 export function prepareAnimatedItem(
-	element: AnimationEl,
+	element: SscElement,
 	options: SSCAnimationTypeAnimation
 ): AnimationEl {
 	return {
-		...element,
+		element,
 		animatedElements: [],
 		animationEnter: options.animationEnter || undefined,
 		animationLeave: options.animationLeave || undefined,
@@ -54,7 +49,7 @@ export function prepareAnimatedItem(
 		delay: Number(options.delay) || 0,
 		duration: Number(options.duration) || 1000,
 		easing: options.easing || 'EaseInOut',
-		locked: false,
+		lock: false,
 		intersection: Number(element.sscItemData.intersection) || 80,
 		lastAction: undefined,
 		/**
@@ -73,23 +68,24 @@ export function prepareAnimatedItem(
 		 * @param action
 		 */
 		animateItem(action: string) {
-			// if the animated element is single
+			// the single animation for the element
 			if (this.animatedElements && this.animatedElements.length === 1) {
 				// check if the action needed is "enter" and if the element is in viewport
-				return this.applyAnimation(this.animatedElements[0], action);
+				return this.applyAnimation(this.element, action);
 			}
-			// otherwise for each item of the collection fire the animation
-			Object.values(this.animatedElements as SscElementChild[]).forEach(
+
+			// The element has multiple animated child elements
+			Object.values(this.animatedElements).forEach(
 				(child, index: number) => {
 					const childOptions =
-						child.sscItemOpts as SSCAnimationTypeAnimation;
-					const animationDelay = child.sscItemOpts
+						element.sscItemOpts as SSCAnimationTypeAnimation;
+					const animationDelay = element.sscItemOpts
 						? Number(options.delay)
 						: this.duration * index * 0.1;
 
-					child.delay = animationDelay;
+					childOptions.delay = String(animationDelay);
 
-					child.locked = true;
+					child.lock = true;
 
 					delay(animationDelay).then(() => {
 						if (child.sscItemOpts) {
@@ -100,12 +96,12 @@ export function prepareAnimatedItem(
 						// wait the animation has been completed before unlock the element
 						new Promise(() => {
 							setTimeout(() => {
-								child.locked = false;
-								child.lastAction =
-									child.lastAction === 'enter'
+								child.lock = false;
+								this.lastAction =
+									this.lastAction === 'enter'
 										? 'leave'
 										: 'enter';
-							}, child.duration);
+							}, this.duration);
 						});
 					});
 				}
@@ -141,12 +137,12 @@ export function prepareAnimatedItem(
 			if (this.stagger) {
 				// collect item childs
 				const childElements = element.querySelectorAll('.ssc-animated');
-				this.animatedElements = [...childElements] as AnimationEl[];
+				this.animatedElements = [...childElements] as SscElement[];
 				// if scc animated items aren't found use item childs
 				if (this.animatedElements.length === 0) {
 					this.animatedElements = [
 						...element.children,
-					] as AnimationEl[];
+					] as SscElement[];
 				}
 				// init each child
 				Object.values(this.animatedElements).forEach((child) => {
@@ -164,32 +160,31 @@ export function prepareAnimatedItem(
 		 * @param item
 		 * @param cssClass
 		 */
-		addCssClass(item, cssClass = 'false') {
-			if (cssClass !== 'false') {
-				const animation = item?.animationEnter
-					? item.animationEnter
-					: cssClass;
-				item.classList.add(
-					'animate__animated',
-					'animate__' + animation
-				);
+		addCssClass(item, cssClass: string | undefined = undefined) {
+			if (cssClass) {
+				const animation = cssClass ?? this.animationEnter;
+				if (animation)
+					item.classList.add(
+						'animate__animated',
+						'animate__' + animation
+					);
 			}
 			return this;
 		},
 		/**
 		 * Remove a css class to the element
+		 *
 		 * @param item
 		 * @param cssClass
 		 */
-		removeCssClass(item, cssClass = 'false') {
-			if (cssClass !== 'false') {
-				const animation = item.animationLeave
-					? item.animationLeave
-					: cssClass;
-				item.classList.remove(
-					'animate__animated',
-					'animate__' + animation
-				);
+		removeCssClass(item, cssClass: string | undefined = undefined) {
+			if (cssClass) {
+				const animation = cssClass ?? this.animationLeave;
+				if (animation)
+					item.classList.remove(
+						'animate__animated',
+						'animate__' + animation
+					);
 			}
 			return this;
 		},
@@ -218,14 +213,15 @@ export function prepareAnimatedItem(
 		applyChildAnimation(el, action: string) {
 			if (action === 'enter') {
 				if (this?.animationLeave)
-					this.removeCssClass(el, this.animationLeave);
+					this.removeCssClass(el.element, this.animationLeave);
 				if (this?.animationEnter)
-					this.addCssClass(el, this.animationEnter);
+					this.addCssClass(el.element, this.animationEnter);
 				return;
 			}
 			if (this?.animationEnter)
-				this.removeCssClass(el, this.animationEnter);
-			if (this?.animationLeave) this.addCssClass(el, this.animationLeave);
+				this.removeCssClass(el.element, this.animationEnter);
+			if (this?.animationLeave)
+				this.addCssClass(el.element, this.animationLeave);
 		},
 	};
 }
@@ -244,7 +240,7 @@ export const getAnimatedItem = (): AnimationEl[] => {
  *
  * @param {SscElement} element
  */
-export const handleAnimation = (element: AnimationEl) => {
+export const handleAnimation = (element: SscElement) => {
 	// if the animation isn't yet stored in "animations" object
 	if (!animations[element.sscItemData.sscItem]) {
 		const elementOptions = element.sscItemOpts as SSCAnimationTypeAnimation;
@@ -262,14 +258,14 @@ export const handleAnimation = (element: AnimationEl) => {
 		} else {
 			// the animation childrens hold a smaller set of properties
 			animations[element.sscItemData.sscItem] = {
-				...element,
+				element,
 				animatedElements: [element],
 				lastAction: undefined,
 				animationEnter: elementOptions.animationEnter || undefined,
 				animationLeave: elementOptions.animationLeave || undefined,
 				delay: parseInt(elementOptions.delay, 10) || 0,
 				duration: parseInt(elementOptions.duration, 10) || 1000,
-			};
+			} as AnimationEl;
 			if (elementOptions && elementOptions.duration) {
 				element.style.setProperty(
 					'--animate-duration',
@@ -289,41 +285,39 @@ export const handleAnimation = (element: AnimationEl) => {
 	const el = animations[element.sscItemData.sscItem] as AnimationEl;
 
 	if (
-		!el.locked &&
+		!el.lock &&
 		el.position &&
 		(el.lastAction === 'enter'
 			? isInView(el.position, el.intersection)
 			: !isInView(el.position, el.intersection))
 	) {
 		// lock the item to avoid multiple animations at the same time
-		el.locked = true;
-		delay(el.delay)
-			.then(() => {
-				if (el.lastAction) el.animateItem(el.lastAction);
-				// wait the animation has been completed before unlock the element
-				new Promise((resolve) => {
-					setTimeout(() => {
-						el.locked = false;
-						el.lastAction =
-							el.lastAction === 'enter' ? 'leave' : 'enter';
-						resolve(el);
-					}, el.duration);
-				});
-			})
-			.then(() => {
-				if (!isPartiallyVisible(element)) {
+		el.lock = true;
+		delay(el.delay).then(() => {
+			if (el.lastAction) el.animateItem(el.lastAction);
+			// wait the animation has been completed before unlock the element
+			new Promise((resolve) => {
+				setTimeout(() => {
+					el.lock = false;
+					el.lastAction =
+						el.lastAction === 'enter' ? 'leave' : 'enter';
+					resolve(el);
+				}, el.duration);
+			}).then(() => {
+				if (!isPartiallyVisible(el.element)) {
 					el.animateItem('leave');
 				}
 			});
+		});
 	}
 
 	// will catch any animated item that isn't inside the view or hasn't triggered the previous code
 	if (!isInView(el.position, 0)) {
 		delay(100).then(() => {
-			handleAnimation(el);
+			handleAnimation(element);
 		});
 	} else {
-		animations[element.sscItemData.sscItem].locked = false;
+		animations[element.sscItemData.sscItem].lock = false;
 		animations[element.sscItemData.sscItem].animateItem('leave');
 	}
 };
