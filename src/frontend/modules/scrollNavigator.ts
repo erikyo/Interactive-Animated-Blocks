@@ -8,7 +8,7 @@
 import { isPartiallyVisible } from '../../utils/utils';
 import { windowProps } from '../_ssc';
 
-function navigator(entry) {
+function scrollNavigator(entry) {
 	const wrapper = entry.target;
 	const navigationSteps = {};
 	let lastY = 0;
@@ -138,4 +138,4 @@ function navigator(entry) {
 	}
 }
 
-export default navigator;
+export default scrollNavigator;

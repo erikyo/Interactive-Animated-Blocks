@@ -20,6 +20,8 @@ export function dataStringify(data: Object, type: string): string | null {
 		.map((item) => {
 			if (type === 'sequence') {
 				return item[1].action + ':' + item[1].value;
+			} else if (type === 'defaults') {
+				return null;
 			}
 			return item[0] !== 'steps' && item[0] !== 'scene'
 				? item[0] + ':' + item[1]

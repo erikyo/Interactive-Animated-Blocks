@@ -9,6 +9,7 @@ import {
 import scrollToElement from 'scroll-to-element';
 
 import { mouseWheel } from '../../utils/compat';
+import {SSCAnimationTypeJackscrolling, SscElement} from "../../types";
 
 /**
  * store if another scroll-jacking is running to avoid to be fire multiple
@@ -58,18 +59,19 @@ export function screenJackTo(el) {
  *
  * @module scrollJacking
  *
- * @param {IntersectionObserverEntry} entry - The entry object that is passed to the callback function.
+ * @param {IntersectionObserverEntry} Element - The entry object that is passed to the callback function.
  *
  * @return {Function} A function that will be called when the IntersectionObserver fires.
  */
-export function scrollJacking(entry) {
-	const intersection = parseInt(entry.target.sscItemOpts.intersection, 10);
-	if (!hasScrolling && isInside(entry.target, intersection)) {
-		return screenJackTo(entry.target);
+export function scrollJacking(Element: SscElement) {
+	const itemOptions = Element.sscItemOpts as SSCAnimationTypeJackscrolling;
+	const intersection = Number(Element.sscItemOpts.intersection) || 80;
+	if (!hasScrolling && isInside(Element, intersection)) {
+		return screenJackTo(Element);
 	}
 
-	if (isPartiallyVisible(entry.target)) {
-		return delay(200).then(() => scrollJacking(entry));
+	if (isPartiallyVisible(Element)) {
+		return delay(200).then(() => scrollJacking(Element));
 	}
 }
 

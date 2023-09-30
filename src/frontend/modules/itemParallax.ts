@@ -1,10 +1,10 @@
 import type { SSCAnimationTypeParallax, SscElement } from '../../types.d.ts';
 
 // The watched list of items to be parallaxed
-export let itemParallaxed: SscElement[] = [];
+export const itemParallaxed: SscElement[] = [];
 
 export function addToParallaxed(el: SscElement) {
-	itemParallaxed.push(el);
+	itemParallaxed[el.sscItemData?.sscItem] = el;
 }
 
 /** last scroll position */
@@ -21,41 +21,39 @@ let lastParallaxScrollPosition = 0;
  *
  */
 export function parallax(): number | undefined {
-	if (itemParallaxed.length > 0) {
-		// if last position is the same as current
-		if (window.scrollY === lastParallaxScrollPosition) {
-			// callback the animationFrame and exit the current loop
-			return window.requestAnimationFrame(parallax);
+	// if last position is the same as current
+	if (window.scrollY === lastParallaxScrollPosition) {
+		// callback the animationFrame and exit the current loop
+		return window.requestAnimationFrame(parallax);
+	}
+
+	itemParallaxed.forEach((element: SscElement) => {
+		// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
+		const rect = element.getBoundingClientRect();
+		const motion = window.innerHeight - rect.top;
+		const elementOptions =
+			element.sscItemOpts as SSCAnimationTypeParallax;
+		if (motion > 0) {
+			const styleValue =
+				Number(elementOptions?.speed) *
+				Number(elementOptions?.level) *
+				motion *
+				-0.01;
+			const heightFix = styleValue + rect.height;
+			element.style.transform =
+				'translate3d(' +
+				(elementOptions?.direction === 'y'
+					? '0,' + heightFix + 'px'
+					: heightFix + 'px,0') +
+				',0)';
 		}
 
-		itemParallaxed.forEach((element: SscElement) => {
-			// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
-			const rect = element.getBoundingClientRect();
-			const motion = window.innerHeight - rect.top;
-			const elementOptions =
-				element.sscItemOpts as SSCAnimationTypeParallax;
-			if (motion > 0) {
-				const styleValue =
-					Number(elementOptions?.speed) *
-					Number(elementOptions?.level) *
-					motion *
-					-0.01;
-				const heightFix = styleValue + rect.height;
-				element.style.transform =
-					'translate3d(' +
-					(elementOptions?.direction === 'y'
-						? '0,' + heightFix + 'px'
-						: heightFix + 'px,0') +
-					',0)';
-			}
+		// Store the last position
+		lastParallaxScrollPosition = window.scrollY;
 
-			// Store the last position
-			lastParallaxScrollPosition = window.scrollY;
-
-			// requestAnimationFrame callback
-			window.requestAnimationFrame(parallax);
-		});
-	}
+		// requestAnimationFrame callback
+		window.requestAnimationFrame(parallax);
+	});
 }
 
 /**
@@ -74,11 +72,8 @@ export function parallaxController(sscElement: SscElement) {
 		parallax();
 	}
 	// if the item is leaving the viewport
-	if (sscElement.action !== 'enter') {
+	if (sscElement.dataset.visible !== 'true') {
 		// remove the animated item from the watched list
-		itemParallaxed = itemParallaxed.filter(
-			(item) =>
-				item.sscItemData?.sscItem !== sscElement.sscItemData?.sscItem
-		);
+		delete itemParallaxed[sscElement.sscItemData.sscItem];
 	}
 }
