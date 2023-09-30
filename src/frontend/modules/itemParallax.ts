@@ -74,7 +74,7 @@ export function parallaxController(sscElement: SscElement) {
 		parallax();
 	}
 	// if the item is leaving the viewport
-	if (sscElement.action === 'leave') {
+	if (sscElement.action !== 'enter') {
 		// remove the animated item from the watched list
 		itemParallaxed = itemParallaxed.filter(
 			(item) =>

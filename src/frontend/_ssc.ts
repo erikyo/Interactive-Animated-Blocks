@@ -15,7 +15,6 @@
 import { getElementData, getElementStyle } from '../utils/fn';
 import { delay, scrollDirection, screenBodyClass } from '../utils/utils';
 import type {
-	sscElement,
 	SSCAnimationTypeTimelineChild,
 	SscElement,
 	SscElementData,
@@ -92,7 +91,6 @@ export const logScreenSize = () => {
  * It waits 250 milliseconds for resize to be completely done,
  * then updates the windowData object with the current window height and scroll position
  *
- * @param          animations
  * @param {number} waitFor
  */
 export const updateScreenSize = (waitFor: number = WAITFOR) => {
@@ -148,7 +146,6 @@ export default class _ssc {
 	animationSequence: (sscElement: SscElement) => void;
 	handleAnimation: (sscElement: SscElement) => void;
 	videoParallaxController: (sscElement: SscElement) => any[] | undefined;
-	parallax: () => number | undefined;
 	parallaxController: (sscElement: SscElement) => void;
 
 	constructor(options: SscOptions) {
@@ -453,10 +450,10 @@ export default class _ssc {
 					this.animationSvgPath(entry, sscElement.action); // yup (missing some options)
 					break;
 				case 'sscScrollJacking':
-					this.scrollJacking(entry);
+					this.scrollJacking(sscElement);
 					break;
 				case 'sscNavigator':
-					this.navigator(entry);
+					this.navigator(sscElement);
 					break;
 				case 'sscCounter':
 					this.textAnimated(entry);
@@ -465,7 +462,7 @@ export default class _ssc {
 					this.videoFocusPlay(entry); // yup, but needs to be inline and muted
 					break;
 				case 'sscVideoParallax':
-					this.videoParallaxController(entry);
+					this.videoParallaxController(sscElement);
 					break;
 				case 'sscVideoScroll':
 					this.videoWheelController(entry);
@@ -486,46 +483,44 @@ export default class _ssc {
 		}
 	};
 
-	updateItemData = (el: SscElement) => {
-		const elBBox = el.getBoundingClientRect();
+	updateItemData = (el: IntersectionObserverEntry) => {
+		const sscElement = el.target as SscElement;
+		const elBBox = sscElement.getBoundingClientRect();
 		const elCenter = (elBBox.top + elBBox.bottom) / 2;
 
 		// stores the direction from which the element appeared
-		el.dataset.intersection =
+		sscElement.dataset.intersection =
 			windowProps.viewHeight / 2 > elCenter ? 'up' : 'down';
 
-		/**
-		 * Check if the current "is Intersecting" has been changed, and if so,
-		 * update the dataset
-		 */
+		// is colliding with borders // used next loop to detect if the object is inside the screen
+		sscElement.dataset.visible = el.isIntersecting ? 'true' : 'false';
+
+		// Check if the current "is Intersecting" has been changed, and if so, update the dataset
 		if (el.isIntersecting) {
-			if (typeof el.dataset.visible === 'undefined') {
-				el.action = 'enter';
+			if (typeof sscElement.dataset.visible === 'undefined') {
+				sscElement.action = 'enter';
 			} else {
-				el.action = el.dataset.visible === 'true' ? 'enter' : 'leave';
+				sscElement.action =
+					sscElement.dataset.visible === 'true' ? 'enter' : 'leave';
 			}
 		} else {
-			el.action = 'enter';
+			sscElement.action = 'leave';
 		}
 
-		/**
-		 * @description If the item contains the class "ssc-focused",
-		 * add a class to the body element when the element is in view.
-		 * Will be useful to show and hide the "back to top" button or show/hide the header.
-		 */
-		if (el.classList.contains('ssc-focused')) {
+		// If the item contains the class "ssc-focused", add a class to the body element when the element is in view.
+		// Will be useful to show and hide the "back to top" button or show/hide the header.
+		if (sscElement.classList.contains('ssc-focused')) {
 			if (el.isIntersecting) {
-				document.body.classList.add('ssc-focus-' + el.id);
+				document.body.classList.add('ssc-focus-' + sscElement.id);
 			} else {
-				document.body.classList.remove('ssc-focus-' + el.id);
+				document.body.classList.remove('ssc-focus-' + sscElement.id);
 			}
 		}
-
-		// is colliding with borders // used next loop to detect if the object is inside the screen
-		el.dataset.visible = el.isIntersecting ? 'true' : 'false';
 	};
 
 	/**
+	 * The intersection observer callback function
+	 *
 	 * @param {IntersectionObserverEntry[]} entries - the Intersection observer item collection
 	 */
 	screenControl = (entries: IntersectionObserverEntry[]) => {
@@ -537,7 +532,7 @@ export default class _ssc {
 				return true;
 			}
 
-			this.updateItemData(entry.target as SscElement);
+			this.updateItemData(entry);
 
 			this.sscAnimation(entry);
 		});
