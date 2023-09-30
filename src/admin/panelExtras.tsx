@@ -107,7 +107,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 					ssc: {
 						...ssc,
 						sscAnimationType: type,
-						sscAnimationOptions: defaultOptions, // the default values for this animation
+						sscAnimationOptions: defaultOptions?.default, // the default values for this animation
 						...additionalProps,
 					},
 				});
@@ -142,7 +142,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 										checked={sscAnimated}
 										onChange={toggleAnimated}
 										help={
-											!!sscAnimated
+											sscAnimated
 												? __(
 														'Please choose an animation from the select input below.'
 												  )
@@ -161,9 +161,10 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												options={
 													animationTypes as SSCAnimationScene[]
 												}
-												onChange={(newType) =>
+												onChange={(newType) => {
+													console.log(newType)
 													updateAnimation(newType)
-												}
+												}}
 											></SelectControl>
 
 											<ToggleControl
