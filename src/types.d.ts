@@ -152,7 +152,7 @@ export interface SSCAnimationTypeAnimation {
 /** Animations types */
 export type SSCAnimationTypeCustom = {
 	scene: SSCAnimationSceneData[];
-	intersection: number;
+	activeArea: number;
 	delay: number;
 	duration: number;
 	easing: string;
@@ -240,6 +240,6 @@ export interface SSCAnimationSceneData {
 	key: number;
 	action: string;
 	defaultValue?: string;
-	label: string;
+	property: any;
 	value: string;
 }

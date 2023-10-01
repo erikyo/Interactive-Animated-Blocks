@@ -27,7 +27,7 @@ function buildAnimationSequence(element: SequenceEl) {
 	// loop into animation object in order to create the animation timeline
 	Object.entries(animation).forEach((step) => {
 		// we use the duration as a "marker" for the next step
-		if (step[1].label === 'duration') {
+		if (step[1].property === 'duration') {
 			currentStep[i] = {
 				...currentStep[i],
 				duration: step[1].value + 'ms',
@@ -37,7 +37,7 @@ function buildAnimationSequence(element: SequenceEl) {
 			// otherwise store the step and continue the loop
 			currentStep[i] = {
 				...currentStep[i],
-				[step[1].label]: step[1].value,
+				[step[1].property]: step[1].value,
 			};
 		}
 	});
@@ -81,13 +81,13 @@ function animationSequence(element: SscElement) {
 	if (sequenceAnimations[element.sscItemData.sscItem]) {
 		if (
 			action === 'enter' &&
-			isActiveArea(element, sequenceOptions.intersection)
+			isActiveArea(element, sequenceOptions.activeArea)
 		) {
 			element.action = 'leave';
 			sequenceAnimations[element.sscItemData.sscItem].play();
 		} else if (
 			action === 'leave' &&
-			!isActiveArea(element, sequenceOptions.intersection)
+			!isActiveArea(element, sequenceOptions.activeArea)
 		) {
 			element.action = 'enter';
 			sequenceAnimations[element.sscItemData.sscItem].pause();
