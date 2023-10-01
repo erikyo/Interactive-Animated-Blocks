@@ -4,7 +4,7 @@ import type { SSCAnimationTypeParallax, SscElement } from '../../types.d.ts';
 export const itemParallaxed: SscElement[] = [];
 
 export function addToParallaxed(el: SscElement) {
-	itemParallaxed[el.sscItemData?.sscItem] = el;
+	itemParallaxed[el.sscItemData.sscItem] = el;
 }
 
 /** last scroll position */
@@ -31,18 +31,17 @@ export function parallax(): number | undefined {
 		// apply the parallax style (use the element get getBoundingClientRect since we need updated data)
 		const rect = element.getBoundingClientRect();
 		const motion = window.innerHeight - rect.top;
-		const elementOptions =
-			element.sscItemOpts as SSCAnimationTypeParallax;
+		const elementOptions = element.sscItemOpts as SSCAnimationTypeParallax;
 		if (motion > 0) {
 			const styleValue =
 				Number(elementOptions?.speed) *
 				Number(elementOptions?.level) *
 				motion *
-				-0.01;
+				0.01;
 			const heightFix = styleValue + rect.height;
 			element.style.transform =
 				'translate3d(' +
-				(elementOptions?.direction === 'y'
+				(elementOptions?.direction === 'vertical'
 					? '0,' + heightFix + 'px'
 					: heightFix + 'px,0') +
 				',0)';
@@ -62,18 +61,18 @@ export function parallax(): number | undefined {
  *
  * @module parallaxController
  *
- * @param  sscElement - the entry object that is passed to the callback function
+ * @param  element - the entry object that is passed to the callback function
  */
-export function parallaxController(sscElement: SscElement) {
+export function parallaxController(element: SscElement) {
 	// add this object to the watched list
-	addToParallaxed(sscElement);
+	addToParallaxed(element);
+	// if the item is leaving the viewport
+	if (element.action !== 'enter') {
+		// remove the animated item from the watched list
+		//delete itemParallaxed[element.sscItemData.sscItem];
+	}
 	// if the parallax function wasn't running before we need to start it
 	if (itemParallaxed.length) {
 		parallax();
-	}
-	// if the item is leaving the viewport
-	if (sscElement.dataset.visible !== 'true') {
-		// remove the animated item from the watched list
-		delete itemParallaxed[sscElement.sscItemData.sscItem];
 	}
 }
