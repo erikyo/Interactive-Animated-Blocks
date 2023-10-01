@@ -3,7 +3,9 @@ import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
 import type { SSCAnimationTypeCustom, SscElement } from '../../types.d.ts';
 
 interface SequenceEl extends SscElement {
-	sscSequence: {};
+	sscSequence: [];
+	play: () => void;
+	pause: () => void;
 }
 
 type StepProps = {
@@ -19,13 +21,13 @@ function buildAnimationSequence(element: SequenceEl) {
 	let i = 0;
 	const customAnimationEl = element as SequenceEl;
 	const sequenceOptions = element.sscItemOpts as SSCAnimationTypeCustom;
-	const animation: StepProps[] = sequenceOptions.sscSequence;
+	const animation = element.scene;
 	const currentStep: StepProps[] = [];
 
 	// loop into animation object in order to create the animation timeline
 	Object.entries(animation).forEach((step) => {
 		// we use the duration as a "marker" for the next step
-		if (step[1].property === 'duration') {
+		if (step[1].label === 'duration') {
 			currentStep[i] = {
 				...currentStep[i],
 				duration: step[1].value + 'ms',
@@ -35,7 +37,7 @@ function buildAnimationSequence(element: SequenceEl) {
 			// otherwise store the step and continue the loop
 			currentStep[i] = {
 				...currentStep[i],
-				[step[1].property]: step[1].value,
+				[step[1].label]: step[1].value,
 			};
 		}
 	});
@@ -82,13 +84,13 @@ function animationSequence(element: SscElement) {
 			isActiveArea(element, sequenceOptions.intersection)
 		) {
 			element.action = 'leave';
-			this.sequenceAnimations[element.sscItemData.sscItem].play();
+			sequenceAnimations[element.sscItemData.sscItem].play();
 		} else if (
 			action === 'leave' &&
 			!isActiveArea(element, sequenceOptions.intersection)
 		) {
 			element.action = 'enter';
-			this.sequenceAnimations[element.sscItemData.sscItem].pause();
+			sequenceAnimations[element.sscItemData.sscItem].pause();
 		}
 	}
 

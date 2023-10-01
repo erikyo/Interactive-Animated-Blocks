@@ -1,9 +1,5 @@
 import { animationTypes } from './data';
-import type {
-	SSCAnimationScene,
-	SSCAnimationTypeDefaults,
-	StyleRule,
-} from '../types';
+import type { StyleRule, SSCAnimationDefaults } from '../types';
 
 /**
  * It takes a data object and a type string, and returns a string of the data object's key/value pairs, separated by semicolons
@@ -28,7 +24,8 @@ export function dataStringify(data: Object, type: string): string | null {
 				: null;
 		})
 		.join(';');
-	return csv || null;
+
+	return csv;
 }
 
 /**
@@ -163,7 +160,7 @@ export const getElementData = (
  * @param {string} opts - The string of data attributes that we want to parse.
  * @return {Object | undefined} - An object with the key being the first element of the array and the value being the second element of the array.
  */
-export const getElementStyle = (opts: string): StyleRule[] | undefined => {
+export const getElementStyle = (opts: string): StyleRule[] => {
 	if (opts) {
 		const parsedArgs = parseOptions(opts);
 
@@ -178,7 +175,7 @@ export const getElementStyle = (opts: string): StyleRule[] | undefined => {
 		});
 		return style;
 	}
-	return undefined;
+	return [];
 };
 
 /**
@@ -219,6 +216,6 @@ export function splitSentence(
  *
  * @return {Object} The default values for the animation type.
  */
-export const getDefaults = (opt: string): SSCAnimationScene | undefined => {
+export const getDefaults = (opt: string): SSCAnimationDefaults | undefined => {
 	return animationTypes.find((animation) => animation.value === opt);
 };

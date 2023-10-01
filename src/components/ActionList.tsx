@@ -22,7 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { actionsTemplate } from '../utils/data';
-import type { SSCAnimationScene, SSCAnimationSceneData } from '../types.d.ts';
+import type {Label, SSCAnimationSceneData} from '../types.d.ts';
 
 interface DndChangedProps {
 	id: number;
@@ -100,7 +100,7 @@ const HandleIcon = createElement(
 function ActionRow(props: {
 	id: number;
 	action: string;
-	actionList: SSCAnimationScene[];
+	actionList: Label[];
 	handleChange: (
 		arg0: string,
 		arg1: { id: any; changed: string; action: any; value: any }
@@ -175,7 +175,7 @@ function ActionRow(props: {
 export function ActionList(props: {
 	data: SSCAnimationSceneData[];
 	type: string;
-	onSave: (arg0: any[]) => void;
+	onSave: (data: SSCAnimationSceneData[]) => void;
 }): JSX.Element {
 	const [animationProps, setAnimationProps] = useState(props.data);
 
@@ -193,13 +193,13 @@ export function ActionList(props: {
 	 * @param {any[]}  array - The input array from which to generate the options.
 	 * @param {string} label - The property name in each item of the input array to be used as the label for the option.
 	 * @param {string} value - The property name in each item of the input array to be used as the value for the option.
-	 * @return {SSCAnimationScene[]} An array of SSCAnimationTypeDef objects, where each object has a label and value property.
+	 * @return {SSCAnimationSceneData[]} An array of SSCAnimationTypeDef objects, where each object has a label and value property.
 	 */
 	const provideSelectOptions = (
 		array: any[],
 		label: string,
 		value: string
-	): SSCAnimationScene[] => {
+	): Label[] => {
 		return array.map((item) => {
 			return { label: item[label], value: item[value] };
 		});
@@ -314,7 +314,7 @@ export function ActionList(props: {
 										'actionLabel',
 										'action'
 									)}
-									removeAction={removeAction}
+									removeAction={() => removeAction(action.id)}
 									handleChange={handleChange}
 								/>
 							))}

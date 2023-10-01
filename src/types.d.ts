@@ -41,15 +41,16 @@ export type sscItemOpts =
 export interface SscElement extends HTMLElement {
 	unWatch: () => any;
 	sscItemData: SscElementData;
-	sscItemOpts?: sscItemOpts;
+	sscItemOpts: sscItemOpts;
 	dataset: DOMStringMap;
-	lock?: boolean;
-	action?: 'enter' | 'leave';
+	lock: boolean;
+	action: 'enter' | 'leave';
 	isAnimated?: boolean;
 	isChildren?: boolean;
 	isInViewport: boolean;
 	isIntersecting: boolean;
 	position?: SscPositionYDef;
+	scene: SSCAnimationSceneData[];
 	boundingClientRect?: DOMRect;
 	updatePosition(): void;
 }
@@ -150,7 +151,7 @@ export interface SSCAnimationTypeAnimation {
 
 /** Animations types */
 export type SSCAnimationTypeCustom = {
-	scene: SSCAnimationScene[];
+	scene: SSCAnimationSceneData[];
 	intersection: number;
 	delay: number;
 	duration: number;
