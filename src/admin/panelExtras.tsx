@@ -338,7 +338,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												<>
 													<TextControl
 														label={
-															'The speed of the parallaxed object (expressed in pixels - negative value enabled)'
+															'The speed of the parallaxed object (negative value for reverse)'
 														}
 														type={'number'}
 														value={
@@ -365,11 +365,11 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 														options={[
 															{
 																label: 'vertical',
-																value: 'y',
+																value: 'vertical',
 															},
 															{
 																label: 'horizontal',
-																value: 'x',
+																value: 'horizontal',
 															},
 														]}
 													/>
@@ -383,19 +383,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 															setOption(
 																e,
 																'level'
-															)
-														}
-													/>
-													<TextControl
-														label={'Motion (in ms)'}
-														type={'number'}
-														value={
-															sscAnimationOptions.motion
-														}
-														onChange={(e) =>
-															setOption(
-																e,
-																'motion'
 															)
 														}
 													/>

@@ -152,10 +152,9 @@ export type SSCAnimationType = {
 };
 
 export interface SSCAnimationTypeParallax {
-	motion: string;
 	level: string;
 	speed: string;
-	direction: string;
+	direction: "horizontal" | "vertical";
 }
 export interface SSCAnimationTypeScrollTimeline {
 	duration: number;

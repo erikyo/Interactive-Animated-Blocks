@@ -62,7 +62,7 @@ export const addExtraProps = (
 
 		// map the original array into a single key value object
 		if (sscAnimationType === 'sscSequence') {
-			const selected = animationOptions.scene || false;
+			const selected = animationOptions.scene;
 			if (selected && Object.keys(animationOptions).length) {
 				extraProps['data-ssc-sequence'] = dataStringify(
 					selected,
