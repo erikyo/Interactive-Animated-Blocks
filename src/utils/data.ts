@@ -219,6 +219,7 @@ export const animationTypes: SSCAnimationScene[] = [
 			intersection: 80,
 			reiterate: true,
 			easing: 'easeInOutQuad',
+			scene: [],
 		},
 	},
 	{
