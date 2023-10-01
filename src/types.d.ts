@@ -19,13 +19,8 @@ export type WindowProps = {
   direction: undefined | 'up' | 'down';
 };
 
-/**
- * The Animated Element interface
- */
-export interface SscElement extends HTMLElement {
-	unWatch: () => any;
-	sscItemData: SscElementData;
-	sscItemOpts?: SSCAnimationTypeAnimation |
+export type sscItemOpts =
+		SSCAnimationTypeAnimation |
 		SSCAnimationTypeParallax |
 		SSCAnimationTypeJackscrolling |
 		SSCAnimationTypeScrollTimeline |
@@ -37,7 +32,16 @@ export interface SscElement extends HTMLElement {
 		SSCAnimationTypeCounter |
 		SSCAnimationTypeStagger |
 		SSCAnimationTypeJump |
-		SSCAnimationTypeNavigator;
+		SSCAnimationTypeCustom |
+		SSCAnimationTypeNavigator
+
+/**
+ * The Animated Element interface
+ */
+export interface SscElement extends HTMLElement {
+	unWatch: () => any;
+	sscItemData: SscElementData;
+	sscItemOpts?: sscItemOpts;
 	dataset: DOMStringMap;
 	lock?: boolean;
 	action?: 'enter' | 'leave';
@@ -58,7 +62,6 @@ export type SscElementData = {
 	sscItem: number;
 	sscItemOpts?: {};
 	sscAnimation: string;
-	sscSequence?: {};
 }
 
 export interface SscElementParallaxOpts {
@@ -136,7 +139,7 @@ export interface SSCAnimationTypeAnimation {
 	reiterate: boolean;
 	duration: string;
 	delay: string;
-	intersection: string;
+	activeArea: string;
 	animationLeave?: string;
 	animationEnter?: string;
 	stagger: string;
@@ -225,10 +228,10 @@ export interface SSCAnimationTypeNavigator {
 /**
  * The scene animation step
  */
-export interface SSCAnimationScene {
+export interface SSCAnimationDefaults {
 	label: string;
 	value: string;
-	default?: {};
+	default: sscItemOpts;
 }
 
 export interface SSCAnimationSceneData {
@@ -236,6 +239,6 @@ export interface SSCAnimationSceneData {
 	key: number;
 	action: string;
 	defaultValue?: string;
-	label?: string;
-	value?: string;
+	label: string;
+	value: string;
 }

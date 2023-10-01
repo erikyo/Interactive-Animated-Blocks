@@ -1,6 +1,6 @@
 import type {
 	Label,
-	SSCActionDef,
+	SSCActionDef, SSCAnimationDefaults,
 	SSCAnimationScene,
 	StaggerPreset,
 } from '../types.d.ts';
@@ -195,14 +195,14 @@ export const animationEasings: Label[] = [
 	},
 ];
 
-export const animationTypes: SSCAnimationScene[] = [
+export const animationTypes: SSCAnimationDefaults[] = [
 	{
 		label: 'Animation',
 		value: 'sscAnimation',
 		default: {
 			animationEnter: 'fadeIn',
 			animationLeave: 'fadeOut',
-			intersection: 75,
+			activeArea: 75,
 			easing: 'linear',
 			duration: 0,
 			delay: 0,
@@ -216,7 +216,7 @@ export const animationTypes: SSCAnimationScene[] = [
 		default: {
 			duration: 2000,
 			delay: 500,
-			intersection: 80,
+			activeArea: 80,
 			reiterate: true,
 			easing: 'easeInOutQuad',
 			scene: [],
@@ -226,7 +226,7 @@ export const animationTypes: SSCAnimationScene[] = [
 		label: 'Parallax',
 		value: 'sscParallax',
 		default: {
-			direction: 'y',
+			direction: 'horizontal',
 			level: 1,
 			speed: 1,
 			motion: 50,
@@ -291,7 +291,7 @@ export const animationTypes: SSCAnimationScene[] = [
 		default: {
 			duration: 5000,
 			delay: 500,
-			intersection: 80,
+			activeArea: 80,
 
 			easing: 'easeInOutExpo',
 		},
@@ -300,7 +300,7 @@ export const animationTypes: SSCAnimationScene[] = [
 		label: 'ScrollJacking',
 		value: 'sscScrollJacking',
 		default: {
-			intersection: 10,
+			activeArea: 10,
 			duration: 800,
 			delay: 500,
 			reiterate: true,
@@ -331,7 +331,7 @@ export const animationTypes: SSCAnimationScene[] = [
 			easing: 'easeInOutQuad',
 			preset: 'default',
 			splitBy: 'letter',
-			intersection: 80,
+			activeArea: 80,
 		},
 	},
 	{
