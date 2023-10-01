@@ -3,23 +3,37 @@
  *
  * @param {Event} e - The event object.
  */
-const jumpTo = (e) => {
+const jumpTo = (e: Event) => {
 	e.preventDefault();
-	const target = e.currentTarget.dataset.sscJumperTarget;
-	let destinationY = null;
+	const currentEl = e.currentTarget as HTMLElement;
+	const target = currentEl.dataset.sscJumperTarget;
+	let destination = {};
 	if (target !== 'none') {
-		const link = e.currentTarget.querySelector('a');
-		const anchor = '#' + link.href.split('#').pop();
-		const destinationTarget = document.querySelector(anchor);
-		destinationY =
-			destinationTarget.getBoundingClientRect().top + window.scrollY;
+		const link: HTMLAnchorElement | null = currentEl.querySelector('a');
+		if (link) {
+			const anchor = '#' + link.href.split('#').pop();
+			const destinationTarget = document.querySelector(anchor);
+			if (destinationTarget) {
+				destination = {
+					top:
+						destinationTarget.getBoundingClientRect().top +
+						window.scrollY,
+					behavior: 'smooth',
+				};
+			} else {
+				console.warn(`The anchor ${anchor} was not found`);
+			}
+		} else {
+			console.warn(`The anchor link ${link} was not found`);
+		}
 	} else {
-		destinationY = window.scrollY + window.innerHeight;
+		destination = {
+			top: window.scrollY + window.innerHeight,
+			behavior: 'smooth',
+		};
 	}
-	window.scrollTo({
-		top: destinationY,
-		behavior: 'smooth',
-	});
+	// finally when the anchor is found, scroll to it
+	if (destination) window.scrollTo(destination);
 };
 
 /**
@@ -29,7 +43,7 @@ const jumpTo = (e) => {
  *
  * @param {NodeList} jumpers - The array of elements that will be clicked to jump to the screen.
  */
-const jumpToScreen = (jumpers) => {
+const jumpToScreen = (jumpers: NodeListOf<HTMLElement>) => {
 	jumpers.forEach((jumper) => {
 		jumper.onclick = jumpTo;
 	});
