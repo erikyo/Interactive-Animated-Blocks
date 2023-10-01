@@ -42,7 +42,16 @@ export const addExtraProps = (
 			);
 		}
 
-		if (sscAnimationType === 'sscTimelineChild' && animationOptions.scene) {
+		if (sscAnimationType === 'sscSequence') {
+			// map the original array into a single key value object
+			extraProps['data-scene'] = dataStringify(
+				animationOptions.scene,
+				'sequence'
+			);
+		} else if (
+			sscAnimationType === 'sscTimelineChild' &&
+			animationOptions.scene
+		) {
 			try {
 				extraProps['data-scene'] =
 					JSON.stringify(
@@ -57,17 +66,6 @@ export const addExtraProps = (
 
 		if (sscAnimationType === 'sscScreenJump' && animationOptions.target) {
 			extraProps['data-ssc-jumper-target'] = animationOptions.target;
-		}
-
-		// map the original array into a single key value object
-		if (sscAnimationType === 'sscSequence') {
-			const selected = animationOptions.scene;
-			if (selected && Object.keys(animationOptions).length) {
-				extraProps['data-ssc-sequence'] = dataStringify(
-					selected,
-					'sequence'
-				);
-			}
 		}
 
 		classes.push('ssc');
