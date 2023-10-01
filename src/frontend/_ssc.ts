@@ -21,6 +21,7 @@ import type {
 	SscOptions,
 	WindowProps,
 	Coords,
+	SSCAnimationSceneData,
 } from '../types.d.ts';
 
 // MODULES
@@ -136,8 +137,7 @@ export default class _ssc {
 	) => void;
 	initTimeline: () => void;
 	navigator: (element: SscElement) => void;
-	scrollJacking: (element: SscElement) => any;
-	sequenceAnimations: any[];
+	scrollJacking: (element: SscElement) => void;
 	animationSequence: (element: SscElement) => void;
 	handleAnimation: (element: SscElement) => void;
 	videoParallaxController: (element: SscElement) => any[] | undefined;
@@ -179,7 +179,7 @@ export default class _ssc {
 		// Screen jacking - evil as eval
 		this.scrollJacking = scrollJacking;
 
-		this.sequenceAnimations = [];
+		// Sequence animation
 		this.animationSequence = animationSequence;
 
 		// The standard animation (animate.css)
@@ -251,10 +251,11 @@ export default class _ssc {
 			? getElementData(el.dataset.sscProps)
 			: undefined;
 
-		el.sscItemData.sscSequence =
-			el.dataset && el.dataset.sscSequence
-				? getElementStyle(el.dataset.sscSequence)
-				: undefined;
+		if (el.dataset && el.dataset.scene) {
+			el.scene = getElementStyle(
+				el.dataset.scene
+			) as unknown as SSCAnimationSceneData[];
+		}
 
 		// scroll animated video needs custom settings
 		if (

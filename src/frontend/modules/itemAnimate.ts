@@ -20,7 +20,7 @@ export interface AnimationEl {
 	duration: number;
 	easing: string;
 	lock: boolean;
-	intersection: number;
+	activeArea: number;
 	state: 'enter' | 'leave' | 'init' | '';
 	/**
 	 * The element methods
@@ -59,7 +59,7 @@ export function prepareAnimatedItem(
 		duration: Number(options.duration) || 1000,
 		easing: options.easing || 'EaseInOut',
 		lock: false,
-		intersection: Number(options.intersection) || 80,
+		activeArea: Number(options.activeArea) || 80,
 		state: 'init',
 		/**
 		 * Update the element position, the position of the element is related to the top of the page
@@ -309,19 +309,19 @@ export const handleAnimation = (element: SscElement) => {
 	// Check if the element is the area that trigger the next animation
 	let animation: 'enter' | 'leave' | '' = '';
 
-	if (isInView(el.position, el.intersection) && el.state !== 'enter') {
+	if (isInView(el.position, el.activeArea) && el.state !== 'enter') {
 		animation = 'enter';
 		console.log('enter', element.sscItemData.sscItem);
 	} else if (
-		!isInView(el.position, el.intersection) &&
+		!isInView(el.position, el.activeArea) &&
 		el.state !== 'leave'
 	) {
 		animation = 'leave';
-		console.log('leave', element.sscItemData.sscItem);
 	} else {
 		console.log('No animation', el.state);
 		if (!isPartiallyVisible(element)) {
 			delete animations[element.sscItemData.sscItem];
+			console.log('deleted', el.state);
 			return;
 		}
 	}

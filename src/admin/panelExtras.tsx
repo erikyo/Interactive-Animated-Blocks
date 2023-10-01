@@ -22,7 +22,7 @@ import {
 	animationTypes,
 	textStaggerPresetsNames,
 } from '../utils/data';
-import type { SSCAnimationScene, SSCBlockProps } from '../types.d.ts';
+import type { SSCBlockProps, SSCAnimationSceneData, Label} from '../types.d.ts';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -54,7 +54,12 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 * @param prop - the property to set
 			 */
 			const setOption = (
-				data: boolean | number | string | {} | undefined,
+				data:
+					| boolean
+					| number
+					| string
+					| SSCAnimationSceneData[]
+					| undefined,
 				prop: string
 			) =>
 				setAttributes({
@@ -76,7 +81,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 *
 			 * @type {data}
 			 */
-			function pullScene(data: {}) {
+			function pullScene(data: SSCAnimationSceneData[]) {
 				setOption(data, 'scene');
 			}
 
@@ -155,7 +160,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												}
 												value={sscAnimationType}
 												options={
-													animationTypes as SSCAnimationScene[]
+													animationTypes as Label[]
 												}
 												onChange={(newType) =>
 													updateAnimation(newType)
@@ -507,16 +512,16 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 													<>
 														<RangeControl
 															label={
-																'Viewport Minimum Active Zone (%)'
+																'Viewport Minimum Active Area (%)'
 															}
 															value={
-																sscAnimationOptions.intersection ||
+																sscAnimationOptions.activeArea ||
 																80
 															}
 															onChange={(e) =>
 																setOption(
 																	e,
-																	'intersection'
+																	'activeArea'
 																)
 															}
 														/>

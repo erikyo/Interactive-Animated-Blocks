@@ -1,7 +1,7 @@
 import type {
 	Label,
-	SSCActionDef, SSCAnimationDefaults,
-	SSCAnimationScene,
+	SSCActionDef,
+	SSCAnimationDefaults,
 	StaggerPreset,
 } from '../types.d.ts';
 
