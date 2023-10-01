@@ -29,7 +29,6 @@ export const addExtraProps = (
 		const defaults = getDefaults(sscAnimationType);
 
 		const animationOptions = {
-			...defaults,
 			...sscAnimationOptions,
 		};
 

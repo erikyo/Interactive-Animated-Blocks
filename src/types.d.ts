@@ -146,8 +146,12 @@ export interface SSCAnimationTypeAnimation {
 }
 
 /** Animations types */
-export type SSCAnimationType = {
-	scene?: SSCAnimationScene[];
+export type SSCAnimationTypeCustom = {
+	scene: SSCAnimationScene[];
+	intersection: number;
+	delay: number;
+	duration: number;
+	easing: string;
 	target?: HTMLElement;
 };
 

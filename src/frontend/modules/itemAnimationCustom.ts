@@ -1,6 +1,6 @@
 import anime from 'animejs';
 import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
-import type { SscElement } from '../../types.d.ts';
+import type { SSCAnimationTypeCustom, SscElement } from '../../types.d.ts';
 
 interface SequenceEl extends SscElement {
 	sscSequence: {};
@@ -11,14 +11,15 @@ type StepProps = {
 	value: string | number;
 	duration?: string | number;
 	easing?: string;
-}
+};
 
 const sequenceAnimations: SequenceEl[] = [];
 
 function buildAnimationSequence(element: SequenceEl) {
 	let i = 0;
 	const customAnimationEl = element as SequenceEl;
-	const animation: StepProps[] = customAnimationEl.sscSequence || {};
+	const sequenceOptions = element.sscItemOpts as SSCAnimationTypeCustom;
+	const animation: StepProps[] = sequenceOptions.sscSequence;
 	const currentStep: StepProps[] = [];
 
 	// loop into animation object in order to create the animation timeline
@@ -44,9 +45,9 @@ function buildAnimationSequence(element: SequenceEl) {
 		const a = anime.timeline({
 			targets: element,
 			autoplay: false,
-			delay: element.sscItemOpts.delay,
-			duration: element.sscItemOpts.duration,
-			easing: element.sscItemOpts.easing, // Can be inherited
+			delay: sequenceOptions.delay,
+			duration: sequenceOptions.duration,
+			easing: sequenceOptions.easing, // Can be inherited
 			direction: 'normal', // Is not inherited
 			complete() {
 				element.removeAttribute('data-ssc-lock');
@@ -71,19 +72,20 @@ function buildAnimationSequence(element: SequenceEl) {
  */
 function animationSequence(element: SscElement) {
 	const action = element.action;
+	const sequenceOptions = element.sscItemOpts as SSCAnimationTypeCustom;
 	buildAnimationSequence(element as SequenceEl);
 
 	// The Enter animation sequence
 	if (sequenceAnimations[element.sscItemData.sscItem]) {
 		if (
 			action === 'enter' &&
-			isActiveArea(element, element.sscItemOpts.intersection)
+			isActiveArea(element, sequenceOptions.intersection)
 		) {
 			element.action = 'leave';
 			this.sequenceAnimations[element.sscItemData.sscItem].play();
 		} else if (
 			action === 'leave' &&
-			!isActiveArea(element, element.sscItemOpts.intersection)
+			!isActiveArea(element, sequenceOptions.intersection)
 		) {
 			element.action = 'enter';
 			this.sequenceAnimations[element.sscItemData.sscItem].pause();

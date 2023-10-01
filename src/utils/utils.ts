@@ -30,9 +30,12 @@ export function disableWheel(e: WheelEvent) {
 export const isPartiallyVisible = (el: HTMLElement) => {
 	const rect = el.getBoundingClientRect();
 	const innerHeight = windowProps.viewHeight;
+	// check when the element is smaller than the viewport
 	if (rect.height <= innerHeight) {
-		return rect.bottom >= 0 || rect.top <= innerHeight;
+		// check when the element bottom edge is above the viewport and below the bottom
+		return 0 <= rect.bottom || rect.top >= innerHeight;
 	}
+	// check when the element is bigger than the viewport
 	return (
 		(rect.top >= 0 && rect.top <= innerHeight) ||
 		(rect.bottom >= 0 && rect.bottom <= innerHeight) ||
