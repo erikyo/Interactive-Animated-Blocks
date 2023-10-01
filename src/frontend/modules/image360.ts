@@ -1,15 +1,14 @@
-import type { SscElement, SscElementParallaxOpts } from '../../types';
-import { SSCAnimation360 } from '../../types';
+import type { SscElement, SSCAnimation360 } from '../../types.d.ts';
 
 interface SscElementVideo extends HTMLVideoElement {
-	timeoutAutoplay: number | undefined;
+	timeoutAutoplay: ReturnType<typeof setTimeout> | undefined;
 	nextTime: number;
 	spinRatio: number;
 	control: string;
 	currentAngle: number;
 	startAngle: number;
 	currentVideoTimeToAngle: () => number;
-	autoplayVideo: () => void;
+	autoplayVideo: () => ReturnType<typeof setTimeout>;
 	angleToVideoTime: (currentValue: number) => number;
 	getAngle: (video: HTMLVideoElement, pointerX: number) => number;
 	getTouchAngle: (video: HTMLVideoElement, pointerX: number) => number;
@@ -20,7 +19,7 @@ interface SscElementVideo extends HTMLVideoElement {
 	getDuration: (video: HTMLVideoElement) => number;
 	setVideoTime: (video: HTMLVideoElement, time: number) => void;
 	seek: (video: HTMLVideoElement, time: number) => void;
-	handle360byPointerPosition: (event: PointerEvent) => void;
+	handle360byPointerPosition: (event: MouseEvent) => void;
 	handle360Move: (event: MouseEvent) => void;
 	handle360byDrag: (event: MouseEvent) => void;
 	handle360byTouch: (event: TouchEvent) => void;
@@ -183,7 +182,7 @@ const video360Controller = (element: SscElement) => {
 			videoEl.pause();
 			// store the event initial position
 			videoEl.currentAngle = videoEl.currentVideoTimeToAngle();
-			videoEl.startAngle = e.target.getAngle(e.target, e.clientX);
+			videoEl.startAngle = videoEl.getAngle(videoEl, e.clientX);
 		};
 	} else if (element.action === 'leave') {
 		videoEl.onmousemove = null;
