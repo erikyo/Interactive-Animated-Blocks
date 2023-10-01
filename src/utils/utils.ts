@@ -107,18 +107,19 @@ export const isInside = (
  */
 export const isInView = (
 	position: SscPositionYDef,
-	intersectionArea: number
-) => {
+	intersectionArea: number = 0
+): boolean => {
 	// return false if the element has no position data
 	if (!position?.yTop || !position?.yBottom) return false;
 	// get the center of the element
+	const viewportHeight = window.innerHeight;
 	const ycenter = (position.yTop + position.yBottom) * 0.5;
 	// calculate the margins of the active area
-	const activeArea = intersectionArea * (window.innerHeight * 0.01);
-	const inactiveArea = (window.innerHeight - activeArea) * 0.5;
+	const activeArea = intersectionArea * (viewportHeight * 0.01);
+	const inactiveArea = (viewportHeight - activeArea) * 0.5;
 	const margins = {
 		top: window.scrollY + inactiveArea,
-		bottom: window.scrollY + (window.innerHeight - inactiveArea),
+		bottom: window.scrollY + (viewportHeight - inactiveArea),
 	};
 	// return true if the center of the element is between the top and bottom margins of the active area
 	return margins.top < ycenter && margins.bottom > ycenter;
