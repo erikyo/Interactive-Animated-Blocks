@@ -20,6 +20,7 @@ import type {
 	SscElementData,
 	SscOptions,
 	WindowProps,
+	Coords,
 } from '../types.d.ts';
 
 // MODULES
@@ -43,7 +44,6 @@ import {
 	enableScrollMagicIndicators,
 } from './modules/timeline';
 import { AnimateCssUrl, WAITFOR } from './constants';
-import {Coords} from "../types.d.ts";
 
 /**
  * This object holds the window data to avoid unnecessary calculations
@@ -123,9 +123,9 @@ export default class _ssc {
 	touchPos: Coords;
 
 	// Modules
-	video360Controller: (sscElement: SscElement) => true | undefined;
+	video360Controller: (sscElement: SscElement) => void;
 	imageScaleController: (entry: SscElement) => void;
-	jumpToScreen: (jumpers: SscElement) => void;
+	jumpToScreen: (jumpers: NodeListOf<HTMLElement>) => void;
 	videoWheelController: (el: SscElement) => void;
 	videoFocusPlay: (entry: SscElement) => void;
 	textStagger: (entry: SscElement) => void;
@@ -402,11 +402,9 @@ export default class _ssc {
 			if (window.location.hash) {
 				const destination = window.location.hash.substring(1);
 				const destinationEl = document.getElementById(destination);
-				// get the element by its id
-				const destinationY = destinationEl?.offsetTop || 0;
 				// scroll to the element
 				window.scrollTo({
-					top: destinationY,
+					top: destinationEl?.offsetTop || 0,
 					behavior: 'smooth',
 				});
 			}
@@ -430,8 +428,8 @@ export default class _ssc {
 	sscAnimation = (entry: IntersectionObserverEntry) => {
 		const sscElement = entry.target as SscElement;
 		// this item is entering or leaving the view
-		if (sscElement.sscItemData.visible) {
-			switch (sscElement.sscItemData?.sscAnimation) {
+		if (sscElement.action) {
+			switch (sscElement.sscItemData.sscAnimation) {
 				case 'sscParallax':
 					this.parallaxController(sscElement);
 					break;
@@ -442,7 +440,7 @@ export default class _ssc {
 					this.animationSequence(sscElement);
 					break;
 				case 'sscSvgPath':
-					this.animationSvgPath(sscElement); // yup (missing some options)
+					this.animationSvgPath(sscElement);
 					break;
 				case 'sscScrollJacking':
 					this.scrollJacking(sscElement);
@@ -454,7 +452,7 @@ export default class _ssc {
 					this.textAnimated(sscElement);
 					break;
 				case 'sscVideoFocusPlay':
-					this.videoFocusPlay(sscElement); // yup, but needs to be inline and muted
+					this.videoFocusPlay(sscElement);
 					break;
 				case 'sscVideoParallax':
 					this.videoParallaxController(sscElement);
@@ -466,7 +464,7 @@ export default class _ssc {
 					this.video360Controller(sscElement);
 					break;
 				case 'sscImageZoom':
-					this.imageScaleController(sscElement); // NO
+					this.imageScaleController(sscElement);
 					break;
 				case 'sscTextStagger':
 					this.textStagger(sscElement);
@@ -490,10 +488,10 @@ export default class _ssc {
 		if (el.isIntersecting) {
 			// we need to check if the element was already visible before entering the viewport
 			if (typeof sscElement.dataset.visible === 'undefined') {
-				sscElement.action = 'enter';
+				sscElement.dataset.action = 'enter';
 			} else {
 				sscElement.action =
-					sscElement.dataset.visible === 'true' ? 'enter' : 'leave';
+					sscElement.dataset.visible !== 'true' ? 'enter' : 'leave';
 			}
 			// then set the visibility
 			sscElement.dataset.visible = 'true';
@@ -501,6 +499,7 @@ export default class _ssc {
 			sscElement.dataset.visible = 'false';
 			sscElement.action = 'leave';
 		}
+		sscElement.dataset.action = sscElement.action;
 
 		// If the item contains the class "ssc-focused", add a class to the body element when the element is in view.
 		// Will be useful to show and hide the "back to top" button or show/hide the header.
