@@ -1,8 +1,9 @@
 import anime from 'animejs';
 import ScrollMagic from 'scrollmagic';
 import { ScrollMagicPluginIndicator } from 'scrollmagic-plugins';
+import type { SSCAnimationSceneData, SscElement } from '../../types';
 
-export const timelines = [];
+export const timelines: ScrollMagic.Scene[] = [];
 
 /** Creating a new instance of the ScrollMagic controller. */
 const scrollMagic = new ScrollMagic.Controller();
@@ -11,7 +12,7 @@ const scrollMagic = new ScrollMagic.Controller();
  * It enables the ScrollMagic indicators plugin.
  */
 export function enableScrollMagicIndicators() {
-	console.log('scrollMagic ScrollMagicPluginIndicator enabled');
+	console.log('🪄 scrollMagic Indicator enabled');
 	ScrollMagicPluginIndicator(ScrollMagic);
 }
 
@@ -20,7 +21,7 @@ export function enableScrollMagicIndicators() {
  *
  * @param {HTMLElement} el - The element that is being added to the timeline.
  */
-export function addToTimeline(el) {
+export function addToTimeline(el: SscElement) {
 	timelines[el.sscItemData.sscItem] = el;
 }
 
@@ -37,15 +38,18 @@ export function initTimeline() {
  *
  * @param {HTMLElement} el - The element that is being animated.
  */
-function scrollTimeline(el) {
+function scrollTimeline(el: ScrollMagic.Scene) {
 	el.classList.add('ssc-timeline');
 	el.style.maxWidth = '100%';
 
 	// Add timeline for each element
 	const timeline = anime.timeline({ autoplay: false });
+	const timelineScenes = el.querySelectorAll(
+		'.ssc-timeline-scene'
+	) as NodeListOf<SscElement>;
 
-	el.querySelectorAll('.ssc-timeline-scene').forEach((scenes) => {
-		const sceneData = JSON.parse(scenes.sscItemData.scene);
+	timelineScenes.forEach((scenes) => {
+		const sceneData = JSON.parse(scenes.sscItemOpts.timelineScene);
 		const sceneOpts = scenes.sscItemOpts;
 		sceneOpts.duration = parseInt(sceneOpts.duration, 10);
 		sceneOpts.delay = parseInt(sceneOpts.delay, 10);

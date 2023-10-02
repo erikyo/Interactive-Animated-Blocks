@@ -1,4 +1,5 @@
 import { mouseWheel } from '../../utils/compat';
+import type { SSCAnimationTypeZoom, SscElement } from '../../types';
 
 /**
  * It takes a mouse wheel event value,
@@ -7,20 +8,22 @@ import { mouseWheel } from '../../utils/compat';
  *
  * @param {Event} event - The event object.
  */
-const imageScale = (event) => {
+const imageScale = (event: WheelEvent) => {
 	event.preventDefault();
+	const imageElement = event.target as SscElement;
+	const imageElementData = imageElement.sscItemOpts as SSCAnimationTypeZoom;
 	window.requestAnimationFrame(() => {
-		let scale = parseFloat(event.target.dataset.sscZoom) || 1;
+		let scale = imageElementData.zoom || 1;
 		scale += event.deltaY * -0.001;
 
 		// Restrict scale
 		// TODO: options
 		scale = Math.min(Math.max(1, scale), 4);
 
-		event.target.dataset.sscZoom = scale;
+		imageElementData.zoom = scale;
 
 		// Apply scale transform
-		event.target.style.transform = `scale(${scale})`;
+		imageElement.style.transform = `scale(${scale})`;
 	});
 };
 
@@ -34,14 +37,16 @@ const imageScale = (event) => {
  *
  * @module imageScaleController
  *
- * @param {IntersectionObserverEntry} entry - The IntersectionObserverEntry object that is passed to the callback function.
+ * @param  element The element to be animated
  */
-function imageScaleController(entry) {
-	const imageEl = entry.target.querySelector('img');
-	if (entry.target.action === 'enter') {
-		imageEl.addEventListener(mouseWheel, imageScale);
-	} else if (entry.target.action === 'leave') {
-		imageEl.removeEventListener(mouseWheel, imageScale);
+function imageScaleController(element: SscElement) {
+	const imageEl: HTMLImageElement | null = element.querySelector('img');
+	if (imageEl) {
+		if (element.action === 'enter') {
+			imageEl.addEventListener(mouseWheel, imageScale);
+		} else if (element.action === 'leave') {
+			imageEl.removeEventListener(mouseWheel, imageScale);
+		}
 	}
 }
 
