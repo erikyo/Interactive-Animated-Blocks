@@ -1,4 +1,3 @@
-// ScrollTo
 import {
 	delay,
 	disableWheel,
@@ -6,31 +5,35 @@ import {
 	isPartiallyVisible,
 } from '../../utils/utils';
 
+// @ts-ignore
 import scrollToElement from 'scroll-to-element';
 
 import { mouseWheel } from '../../utils/compat';
-import {SSCAnimationTypeJackscrolling, SscElement} from "../../types";
+import type {
+	SSCAnimationTypeJackscrolling,
+	SscElement,
+} from '../../types.d.ts';
 
 /**
  * store if another scroll-jacking is running to avoid to be fire multiple
  *
  * @type {boolean|number}
  */
-export let hasScrolling = false;
+export let isScrolling = false;
 
 /**
  * It scrolls to the element passed to it
  *
  * @param {IntersectionObserverEntry.target} el - The element that was clicked.
  */
-export function screenJackTo(el) {
-	hasScrolling = true;
+export function screenJackTo(el: SscElement): void {
+	isScrolling = true;
 	const duration = parseInt(el.sscItemOpts.duration, 10);
 	const scrollDelay = parseInt(el.sscItemOpts.delay, 10);
 
 	/** Stores the history state */
 	if (el.id) {
-		window.history.pushState(null, null, '#' + el.id);
+		window.history.pushState(null, '', '#' + el.id);
 	}
 
 	// disable the mouse wheel during scrolling to avoid flickering
@@ -47,7 +50,7 @@ export function screenJackTo(el) {
 		duration: duration || 1000,
 	}).on('end', () => {
 		delay(scrollDelay).then(() => {
-			hasScrolling = false;
+			isScrolling = false;
 			window.removeEventListener(mouseWheel, disableWheel);
 			window.removeEventListener('touchmove', disableWheel);
 		});
@@ -59,19 +62,19 @@ export function screenJackTo(el) {
  *
  * @module scrollJacking
  *
- * @param {IntersectionObserverEntry} Element - The entry object that is passed to the callback function.
+ * @param {IntersectionObserverEntry} element - The entry object that is passed to the callback function.
  *
- * @return {Function} A function that will be called when the IntersectionObserver fires.
+ * @return A function that will be called when the IntersectionObserver fires.
  */
-export function scrollJacking(Element: SscElement) {
-	const itemOptions = Element.sscItemOpts as SSCAnimationTypeJackscrolling;
-	const intersection = Number(Element.sscItemOpts.intersection) || 80;
-	if (!hasScrolling && isInside(Element, intersection)) {
-		return screenJackTo(Element);
+export function scrollJacking(element: SscElement): Promise<unknown> | void {
+	const itemOptions = element.sscItemOpts as SSCAnimationTypeJackscrolling;
+	const intersection = Number(itemOptions.activeArea) || 80;
+	if (!isScrolling && isInside(element, intersection)) {
+		return screenJackTo(element);
 	}
 
-	if (isPartiallyVisible(Element)) {
-		return delay(200).then(() => scrollJacking(Element));
+	if (isPartiallyVisible(element)) {
+		return delay(200).then(() => scrollJacking(element));
 	}
 }
 
