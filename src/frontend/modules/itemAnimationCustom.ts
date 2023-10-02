@@ -1,6 +1,7 @@
 import anime from 'animejs';
 import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
 import type { SSCAnimationTypeCustom, SscElement } from '../../types.d.ts';
+import { Animate } from '@wordpress/components';
 
 interface SequenceEl extends SscElement {
 	sscSequence: [];
@@ -15,7 +16,7 @@ type StepProps = {
 	easing?: string;
 };
 
-const sequenceAnimations: SequenceEl[] = [];
+const sequenceAnimations: anime.AnimeTimelineInstance[] = [];
 
 function buildAnimationSequence(element: SequenceEl) {
 	let i = 0;
@@ -58,9 +59,10 @@ function buildAnimationSequence(element: SequenceEl) {
 
 		// loop into the rest of the actions adding the timelines step to sequence
 		Object.entries(currentStep).forEach((step) => {
-			a.add(step[1]);
+			a.add(step[1] as anime.AnimeAnimParams);
 		});
-		sequenceAnimations[element.sscItemData.sscItem] = a;
+		sequenceAnimations[element.sscItemData.sscItem] =
+			a as anime.AnimeTimelineInstance;
 	}
 }
 
@@ -96,7 +98,7 @@ function animationSequence(element: SscElement) {
 
 	if (isPartiallyVisible(element)) {
 		delay(100).then(() => {
-			this.animationSequence(element);
+			animationSequence(element);
 		});
 	}
 }
