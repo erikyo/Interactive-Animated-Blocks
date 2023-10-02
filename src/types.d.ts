@@ -5,6 +5,12 @@ export declare global {
 	}
 }
 
+/**
+ * Anime.js library
+ * https://www.npmjs.com/package/animejs#es6-modules
+ */
+declare module 'animejs/lib/anime.es.js';
+
 export type SscOptions = {
   container: HTMLElement;
   rootMargin: string;
@@ -22,18 +28,18 @@ export type WindowProps = {
 export type sscItemOpts =
 		SSCAnimationTypeAnimation |
 		SSCAnimationTypeParallax |
-		SSCAnimationTypeJackscrolling |
-		SSCAnimationTypeScrollTimeline |
-		SSCAnimationTypeTimelineChild |
 		SSCAnimationTypeScrollParallax |
+		SSCAnimationTypeNavigator |
+		SSCAnimationTypeJackscrolling |
+		SSCAnimationTypeTimeline |
+		SSCAnimationTypePlaybackControl |
+		SSCAnimationTypeTimelineChild |
 		SSCAnimationTypeZoom |
 		SSCAnimation360 |
-		SSCAnimationTypePlaybackControl |
 		SSCAnimationTypeCounter |
 		SSCAnimationTypeStagger |
 		SSCAnimationTypeJump |
-		SSCAnimationTypeCustom |
-		SSCAnimationTypeNavigator
+		SSCAnimationTypeCustom
 
 /**
  * The Animated Element interface
@@ -65,11 +71,6 @@ export type SscElementData = {
 	sscAnimation: string;
 }
 
-export interface SscElementParallaxOpts {
-	speed: string;
-	level: string;
-	direction: string;
-}
 
 /**
  * The SSC animated item save function type for the block
@@ -164,9 +165,11 @@ export interface SSCAnimationTypeParallax {
 	speed: string;
 	direction: "horizontal" | "vertical";
 }
-export interface SSCAnimationTypeScrollTimeline {
+export interface SSCAnimationTypeTimeline {
 	duration: number;
 	triggerHook: number;
+	timelineScene: string;
+	addIndicators: boolean;
 }
 export interface SSCAnimationTypeTimelineChild {
 	offset: number;
@@ -178,6 +181,13 @@ export interface SSCAnimationTypeScrollParallax {
 	control: string;
 	spinRatio: number;
 }
+export interface SSCAnimationTypeParallaxVideo {
+	speed: string;
+	level: string;
+	direction: string;
+	timelineDuration: number;
+	playbackRatio: number;
+}
 export interface SSCAnimation360 {
 	spinRatio: number;
 	control: string; // drag
@@ -185,11 +195,8 @@ export interface SSCAnimation360 {
 export interface SSCAnimationTypeZoom {
 	zoom: number;
 }
-export interface SSCAnimationTypePlaybackControl {
-	playbackRatio: number;
-}
 export interface SSCAnimationTypeJackscrolling {
-	intersection: number;
+	activeArea: number;
 }
 
 /**
@@ -211,7 +218,8 @@ export interface SSCAnimationTypeStagger {
 	easing: string;
 	preset: string;
 	splitBy: string;
-	intersection: number;
+	target: string;
+	activeArea: number;
 }
 
 /**
@@ -240,6 +248,6 @@ export interface SSCAnimationSceneData {
 	key: number;
 	action: string;
 	defaultValue?: string;
-	property: any;
+	property?: any;
 	value: string;
 }

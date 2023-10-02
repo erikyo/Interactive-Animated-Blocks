@@ -45,6 +45,7 @@ import {
 	enableScrollMagicIndicators,
 } from './modules/timeline';
 import { AnimateCssUrl, WAITFOR } from './constants';
+import anime from "animejs/lib/anime.es.js";
 
 /**
  * This object holds the window data to avoid unnecessary calculations
@@ -79,7 +80,12 @@ export const jumpToHash = () => {
 window.addEventListener('load', jumpToHash);
 window.addEventListener('hashchange', jumpToHash);
 
-export const logScreenSize = () => {
+/**
+ * Logs the screen size.
+ *
+ * @return {void} No return value.
+ */
+export const logScreenSize = (): void => {
 	// eslint-disable-next-line no-console
 	console.info('New Screen size:', windowProps);
 };
@@ -133,7 +139,7 @@ export default class _ssc {
 	textAnimated: (element: SscElement) => true | undefined;
 	animationSvgPath: (
 		element: SscElement,
-		animationInstance?: boolean
+		animationInstance?: anime.AnimeInstance | undefined
 	) => void;
 	initTimeline: () => void;
 	navigator: (element: SscElement) => void;
