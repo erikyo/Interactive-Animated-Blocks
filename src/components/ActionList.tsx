@@ -22,7 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { actionsTemplate } from '../utils/data';
-import type {Label, SSCAnimationSceneData} from '../types.d.ts';
+import type { Label, SSCAnimationSceneData } from '../types.d.ts';
 
 interface DndChangedProps {
 	id: number;
