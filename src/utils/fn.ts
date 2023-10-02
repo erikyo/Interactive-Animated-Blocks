@@ -15,12 +15,15 @@ export function dataStringify(data: Object, type: string): string | null {
 	csv += Object.entries(data)
 		.map((item) => {
 			if (type === 'sequence') {
-				return item[1].action + ':' + item[1].value;
+				if (item[1].action === 'cssAnimation') {
+					return `animation:${item[1].value}`;
+				}
+				return `${item[1].action}:${item[1].value}`;
 			} else if (type === 'defaults') {
 				return null;
 			}
 			return item[0] !== 'steps' && item[0] !== 'scene'
-				? item[0] + ':' + item[1]
+				? `${item[0]}:${item[1]}`
 				: null;
 		})
 		.join(';');
