@@ -61,6 +61,7 @@ export function prepareAnimatedItem(
 		lock: false,
 		activeArea: Number(options.activeArea) || 80,
 		state: 'init',
+
 		/**
 		 * Update the element position, the position of the element is related to the top of the page
 		 */
@@ -311,17 +312,14 @@ export const handleAnimation = (element: SscElement) => {
 
 	if (isInView(el.position, el.activeArea) && el.state !== 'enter') {
 		animation = 'enter';
-		console.log('enter', element.sscItemData.sscItem);
 	} else if (
 		!isInView(el.position, el.activeArea) &&
 		el.state !== 'leave'
 	) {
 		animation = 'leave';
 	} else {
-		console.log('No animation', el.state);
 		if (!isPartiallyVisible(element)) {
 			delete animations[element.sscItemData.sscItem];
-			console.log('deleted', el.state);
 			return;
 		}
 	}
@@ -351,7 +349,6 @@ export const handleAnimation = (element: SscElement) => {
 			handleAnimation(element);
 		});
 	} else {
-		// el.animateItem('leave');
 		el.lock = false;
 		el.state = 'leave';
 	}
