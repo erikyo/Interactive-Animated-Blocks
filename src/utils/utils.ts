@@ -11,12 +11,14 @@ export const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /**
  * It prevents That the mouse wheel can change the position on the page
  *
- * @param {Event} e - The event object.
+ * @param {Event} event - The event object.
  */
-export function disableWheel(e: WheelEvent) {
-	e.preventDefault();
-	e.stopPropagation();
-	return false;
+export function disableWheel(event: Event) {
+	if (event instanceof WheelEvent || event instanceof TouchEvent) {
+		// Handle touch event
+		event.preventDefault();
+		event.stopPropagation();
+	}
 }
 
 /**

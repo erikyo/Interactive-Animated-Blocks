@@ -1,6 +1,6 @@
 // Safe event definition
 // detect available wheel event
-export let mouseWheel: string;
+export let mouseWheel: string | undefined;
 if ('onwheel' in document.createElement('div')) {
 	mouseWheel = 'wheel'; // new browsers
 } else {

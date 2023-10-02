@@ -139,7 +139,7 @@ export const parseOptions = (opts: string): string[][] => {
  */
 export const getElementData = (
 	opts: string
-): SSCAnimationTypeDefaults | undefined => {
+): SSCAnimationDefaults | undefined => {
 	if (opts) {
 		const parsedArgs = parseOptions(opts);
 
@@ -149,7 +149,7 @@ export const getElementData = (
 				args[el[0]] = el[1];
 			}
 		});
-		return args as SSCAnimationTypeDefaults;
+		return args as SSCAnimationDefaults;
 	}
 	return undefined;
 };
