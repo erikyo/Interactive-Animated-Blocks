@@ -180,7 +180,7 @@ export function ActionList(props: {
 	const [animationProps, setAnimationProps] = useState(props.data);
 
 	const sensors = useSensors(
-		useSensor(sscPointerSensor),
+		useSensor(sscPointerSensor, { activationConstraint: { delay: 250, tolerance: 5, }, }),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
