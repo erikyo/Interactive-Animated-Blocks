@@ -1,15 +1,21 @@
-import anime from 'animejs';
+import anime from 'animejs/lib/anime.es.js'
 import { delay } from '../../utils/utils';
 import { splitSentence } from '../../utils/fn';
+import type {
+	SSCAnimationTypeCounter,
+	SSCAnimationTypeStagger,
+	SscElement,
+} from '../../types';
 
 /**
  * Animate words and numbers
  * It splits the text into letters, wraps each letter in a span, and then animates each letter
  *
- * @param {HTMLElement} el - The element that is being animated.
+ * @param {HTMLElement} el      - The element that is being animated.
+ * @param               options
  */
-const animateWord = (el) => {
-	const animateLetter = (letter) => {
+const animateWord = (el: HTMLElement, options: SSCAnimationTypeStagger) => {
+	const animateLetter = (letter: HTMLElement): void => {
 		const alpha = [
 			'!',
 			'#',
@@ -57,13 +63,13 @@ const animateWord = (el) => {
 		}, 100);
 	};
 
-	const letters = el.querySelectorAll('.letter');
-	const shuffleDuration = el.sscItemOpts.duration;
+	const letters = el.querySelectorAll('.letter') as NodeListOf<HTMLElement>;
+	const shuffleDuration = options.duration;
 
-	letters.forEach(function (letter, index) {
+	letters.forEach((letter, index: number) => {
 		//trigger animation for each letter in word
 		setTimeout(function () {
-			animateLetter(letter, shuffleDuration);
+			animateLetter(letter);
 		}, 100 * index); //small delay for each letter
 	});
 
@@ -74,18 +80,20 @@ const animateWord = (el) => {
 
 /**
  * Animate Numbers
+ * It splits the text into numbers, wraps each number in a span, and then animates each number
  *
- * @param {Object} el Element to animate.
+ * @param element Element to animate.
+ * @param options
  */
-function animateCount(el) {
+function animateCount(element: SscElement, options: SSCAnimationTypeCounter) {
 	anime({
-		targets: el.target || el.target.lastChild,
-		textContent: [0, parseInt(el.target.lastChild.textContent, 10)],
+		targets: element || (element as HTMLElement).lastChild,
+		textContent: [0, Number(element.lastChild?.textContent)],
 		round: 1,
-		duration: parseInt(el.target.sscItemOpts.duration) || 5000,
-		delay: parseInt(el.target.sscItemOpts.delay) || 500,
-		easing: el.target.sscItemOpts.easing,
-		complete: () => el.target.removeAttribute('data-ssc-count'),
+		duration: Number(options.duration) || 5000,
+		delay: Number(options.delay) || 500,
+		easing: options.easing,
+		complete: () => element.removeAttribute('data-ssc-count'),
 	});
 }
 
@@ -94,27 +102,33 @@ function animateCount(el) {
  *
  * @module textAnimated
  *
- * @param {IntersectionObserverEntry} el - The element that is being animated.
+ * @param {SscElement} element - The element that is being animated.
  */
-function textAnimated(el) {
-	if (el.target.dataset.sscCount || el.target.action === 'leave') {
+function textAnimated(element: SscElement) {
+	if (element.dataset.sscCount || element.action === 'leave') {
 		return true;
 	}
-	el.target.dataset.sscCount = 'true';
+	const options = element.sscItemOpts as
+		| SSCAnimationTypeCounter
+		| SSCAnimationTypeStagger;
+	element.dataset.sscCount = 'true';
 
-	if (el.target.sscItemOpts.target === 'number') {
-		animateCount(el);
+	if (options.target === 'number') {
+		animateCount(element, options as SSCAnimationTypeCounter);
 	} else {
-		if (!el.target.dataset.init) {
-			const replaced = splitSentence(el.target.textContent, 'letters');
+		const textContent = element.textContent;
+		if (!element.dataset.init && textContent) {
+			const replaced = splitSentence(textContent, 'letters');
 
-			if (el.target.innerHTML) {
-				el.target.innerHTML = replaced;
+			if (element.innerHTML) {
+				element.innerHTML = replaced;
 			}
-			el.target.dataset.init = 'true';
+			element.dataset.init = 'true';
 		}
 
-		delay(el.target.sscItemOpts.delay).then(() => animateWord(el.target));
+		delay(options.delay).then(() =>
+			animateWord(element, options as SSCAnimationTypeStagger)
+		);
 	}
 }
 

@@ -1,41 +1,41 @@
-import anime from 'animejs';
+import anime from 'animejs/lib/anime.es.js';
 import { textStaggerPresets } from '../../utils/data';
 import { delay, isActiveArea } from '../../utils/utils';
 import { splitSentence } from '../../utils/fn';
+import type { SSCAnimationTypeStagger, SscElement } from '../../types';
 
 /**
  * It splits the text into individual letters, then animates them in a staggered fashion
  *
  * @module textStagger
- * @param {IntersectionObserverEntry} entry - The entry object passed to the callback function.
+ * @param {SscElement} element - The entry object passed to the callback function.
  *
  * @todo - provide an option to "start hidden"
  *
  * @return {Function} - if the element is not inside the active area it returns itself in 200ms
  */
-function textStagger(entry) {
-	const item = entry.target;
-	const intersectionArea = parseInt(item.sscItemOpts.intersection, 10) || 80;
+function textStagger(element: SscElement) {
+	const textStaggerOptions = element.sscItemOpts as SSCAnimationTypeStagger;
+	const intersectionArea = Number(textStaggerOptions.activeArea) || 80;
 
-	if (
-		item.action === 'enter' &&
-		isActiveArea(entry.target, intersectionArea)
-	) {
-		const preset = item.sscItemOpts.preset;
-		const duration = parseInt(item.sscItemOpts.duration, 10);
-		const animationDelay = parseInt(item.sscItemOpts.delay, 10);
-		const easing = item.sscItemOpts.easing;
-		const splitBy = item.sscItemOpts.splitBy || 'letter';
+	if (element.action === 'enter' && isActiveArea(element, intersectionArea)) {
+		const preset = textStaggerOptions.preset;
+		const duration = Number(textStaggerOptions.duration);
+		const animationDelay = Number(textStaggerOptions.delay);
+		const easing = textStaggerOptions.easing;
+		const splitBy = textStaggerOptions.splitBy || 'letter';
 
-		const replaced = splitSentence(item.lastChild.textContent, splitBy);
+		if (!element.lastChild?.textContent) return;
 
-		if (item.lastChild.innerHTML) {
-			item.lastChild.innerHTML = replaced;
+		const replaced = splitSentence(element.lastChild?.textContent, splitBy);
+
+		if ((element.lastChild as HTMLElement)?.innerHTML) {
+			(element.lastChild as HTMLElement).innerHTML = replaced;
 		} else {
-			item.innerHTML = replaced;
+			element.innerHTML = replaced;
 		}
 
-		item.style.position = 'relative';
+		element.style.position = 'relative';
 
 		const anim = anime.timeline({
 			loop: false,
@@ -48,7 +48,7 @@ function textStagger(entry) {
 				case 0:
 					anim.add({
 						...textStaggerPresets[preset][index],
-						targets: item.querySelectorAll('.' + splitBy),
+						targets: element.querySelectorAll('.' + splitBy),
 						duration: duration * 0.75,
 						easing,
 						delay: anime.stagger(duration * 0.05),
@@ -58,7 +58,7 @@ function textStagger(entry) {
 				case 1:
 					anim.add({
 						...(textStaggerPresets[preset][index] || null),
-						targets: item,
+						targets: element,
 						easing,
 						duration,
 						delay: duration,
@@ -68,7 +68,7 @@ function textStagger(entry) {
 				default:
 					anim.add({
 						...(textStaggerPresets[preset][index] || null),
-						targets: item,
+						targets: element,
 						easing,
 						...data,
 					});
@@ -80,7 +80,7 @@ function textStagger(entry) {
 	}
 
 	// TODO: isn't worth to provide a kind of option for this?
-	delay(200).then(() => textStagger(entry));
+	delay(200).then(() => textStagger(element));
 }
 
 export default textStagger;
