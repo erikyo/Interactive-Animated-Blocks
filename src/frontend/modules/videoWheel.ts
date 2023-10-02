@@ -22,7 +22,7 @@ interface SscVideoElement extends HTMLVideoElement {
  *
  * @param {WheelEvent} event - the event object
  *
- * @return itself in order to loop until condition were met
+ * @return {void} in order to loop until condition were met
  */
 const videoOnWheel = (event: WheelEvent): void => {
 	event.preventDefault();
@@ -34,7 +34,7 @@ const videoOnWheel = (event: WheelEvent): void => {
 			(videoEl.currentTime <= 0 && event.deltaY < 0) ||
 			(videoEl.currentTime === videoEl.duration && event.deltaY > 0)
 		) {
-			videoEl.removeEventListener(mouseWheel, videoOnWheel);
+			videoEl.removeEventListener(mouseWheel as any, videoOnWheel);
 		}
 		window.requestAnimationFrame(() => {
 			// set the current frame
@@ -55,7 +55,7 @@ function videoWheelController(element: SscElement) {
 	if (!videoEl) return;
 	// set the default playback rate to 1 and the current time to 0
 	videoEl.options.playbackRatio = element.sscItemOpts.playbackRatio;
-	videoEl.addEventListener(mouseWheel, videoOnWheel);
+	videoEl.addEventListener(mouseWheel as any, videoOnWheel);
 }
 
 export default videoWheelController;

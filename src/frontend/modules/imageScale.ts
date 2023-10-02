@@ -8,7 +8,7 @@ import type { SSCAnimationTypeZoom, SscElement } from '../../types';
  *
  * @param {Event} event - The event object.
  */
-const imageScale = (event: WheelEvent) => {
+const imageScale = (event: WheelEvent): void => {
 	event.preventDefault();
 	const imageElement = event.target as SscElement;
 	const imageElementData = imageElement.sscItemOpts as SSCAnimationTypeZoom;
@@ -43,9 +43,9 @@ function imageScaleController(element: SscElement) {
 	const imageEl: HTMLImageElement | null = element.querySelector('img');
 	if (imageEl) {
 		if (element.action === 'enter') {
-			imageEl.addEventListener(mouseWheel, imageScale);
+			imageEl.addEventListener(mouseWheel as any, imageScale);
 		} else if (element.action === 'leave') {
-			imageEl.removeEventListener(mouseWheel, imageScale);
+			imageEl.removeEventListener(mouseWheel as any, imageScale);
 		}
 	}
 }

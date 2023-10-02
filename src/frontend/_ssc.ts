@@ -258,7 +258,7 @@ export default class _ssc {
 			: undefined;
 
 		if (el.dataset && el.dataset.scene) {
-			el.scene = getElementStyle(
+			el.sscItemOpts.scene = getElementStyle(
 				el.dataset.scene
 			) as unknown as SSCAnimationSceneData[];
 		}

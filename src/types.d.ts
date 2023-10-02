@@ -56,7 +56,6 @@ export interface SscElement extends HTMLElement {
 	isInViewport: boolean;
 	isIntersecting: boolean;
 	position?: SscPositionYDef;
-	scene: SSCAnimationSceneData[];
 	boundingClientRect?: DOMRect;
 	updatePosition(): void;
 }

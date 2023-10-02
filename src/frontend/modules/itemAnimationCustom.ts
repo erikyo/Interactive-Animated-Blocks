@@ -1,10 +1,13 @@
 import anime from 'animejs';
 import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
-import type { SSCAnimationTypeCustom, SscElement } from '../../types.d.ts';
-import { Animate } from '@wordpress/components';
+import type {
+	SSCAnimationTypeCustom,
+	SscElement,
+	SSCAnimationSceneData,
+} from '../../types.d.ts';
 
 interface SequenceEl extends SscElement {
-	sscSequence: [];
+	scene: SSCAnimationSceneData[];
 	play: () => void;
 	pause: () => void;
 }
@@ -22,7 +25,7 @@ function buildAnimationSequence(element: SequenceEl) {
 	let i = 0;
 	const customAnimationEl = element as SequenceEl;
 	const sequenceOptions = element.sscItemOpts as SSCAnimationTypeCustom;
-	const animation = element.scene;
+	const animation = sequenceOptions.scene;
 	const currentStep: StepProps[] = [];
 
 	// loop into animation object in order to create the animation timeline
