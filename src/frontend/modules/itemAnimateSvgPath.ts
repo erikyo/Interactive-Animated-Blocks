@@ -19,18 +19,24 @@ interface SscElementOptions extends SscElement {
  * @param {SscElement}        element                   - The element to be animated.
  * @param {SVGAnimateElement} [animationInstance=false] - This is the instance of the animation. It's used to reverse the animation.
  */
-const animationSvgPath = (element: SscElement, animationInstance = false) => {
-	let animation = animationInstance ? animationInstance : anime;
-	const svgElement = animation.sscItemOpts as SscElement;
+const animationSvgPath = (
+	element: SscElement,
+	animationInstance: anime.AnimeInstance | undefined
+) => {
+	const svgElement = element as SscElement;
 	const svgOptions = svgElement.sscItemOpts as SscElementOptions;
+	let animation: anime.AnimeInstance | undefined;
+	if (animationInstance) {
+		animation = animationInstance;
+	}
 
 	const path = element.querySelectorAll('path');
 	if (
 		svgElement.action === 'enter' &&
-		isActiveArea(element, animation.sscItemOpts.intersection)
+		isActiveArea(element, svgOptions.intersection)
 	) {
 		svgElement.action = 'leave';
-		if (animation.began && animation.currentTime !== 0) {
+		if (animation?.began && animation?.currentTime !== 0) {
 			animation.reverse();
 		} else {
 			animation = anime({
@@ -49,7 +55,7 @@ const animationSvgPath = (element: SscElement, animationInstance = false) => {
 		!isActiveArea(element, svgOptions.intersection)
 	) {
 		svgElement.action = 'enter';
-		if (!animation.completed && typeof animation.reverse === 'function') {
+		if (!animation?.completed && typeof animation?.reverse === 'function') {
 			animation.reverse();
 		} else {
 			animation = anime({
