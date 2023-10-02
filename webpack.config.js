@@ -1,16 +1,10 @@
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 const path = require( 'path' );
 
-const entry = {};
-[ 'ssc', 'ssc-editor' ].forEach(
-	( script ) =>
-		( entry[ script ] = path.resolve(
-			process.cwd(),
-			`src/${ script }.js`
-		) )
-);
-
 module.exports = {
-	...defaultConfig,
-	entry,
+  ...defaultConfig,
+  entry: {
+    'ssc': path.resolve( process.cwd(), `src/index.ts` ),
+    'ssc-editor': path.resolve( process.cwd(), `src/editor.ts` ),
+  }
 };

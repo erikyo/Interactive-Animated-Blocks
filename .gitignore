@@ -7,9 +7,13 @@ yarn-error.log*
 
 # Coverage directory used by tools like istanbul
 coverage
+artifacts
 
 # Dependency directories
 node_modules/
+
+# Build
+build/
 
 # Optional npm cache directory
 .npm
@@ -28,6 +32,3 @@ node_modules/
 
 # Jetbrains editor config
 .idea
-
-# The build compile folder
-build

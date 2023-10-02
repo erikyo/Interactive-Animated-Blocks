@@ -3,14 +3,12 @@
  */
 
 const eslintConfig = {
-	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
+	extends: ['plugin:@wordpress/eslint-plugin/recommended'],
 };
 
 eslintConfig.parserOptions = {
-	ecmaVersion: 6,
-	env: { es6: true },
 	babelOptions: {
-		presets: [ require.resolve( '@wordpress/babel-preset-default' ) ],
+		presets: ['@wordpress/babel-preset-default'],
 	},
 };
 
