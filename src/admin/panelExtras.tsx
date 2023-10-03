@@ -13,7 +13,7 @@ import {
 } from '@wordpress/components';
 
 import { getDefaults } from '../utils/fn';
-import { ActionList } from '../components/ActionList';
+import { ActionList, ActionListExperimental } from '../components/ActionList';
 
 import {
 	animationEasings,
@@ -22,7 +22,11 @@ import {
 	animationTypes,
 	textStaggerPresetsNames,
 } from '../utils/data';
-import type { SSCBlockProps, SSCAnimationSceneData, Label} from '../types.d.ts';
+import type {
+	SSCBlockProps,
+	SSCAnimationSceneData,
+	Label,
+} from '../types.d.ts';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -171,6 +175,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												[
 													'sscSvgPath',
 													'sscSequence',
+													'sscSequenceExperimental',
 													'sscScrollJacking',
 													'sscCounter',
 													'sscTextStagger',
@@ -197,6 +202,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												[
 													'sscSvgPath',
 													'sscSequence',
+													'sscSequenceExperimental',
 													'sscScrollJacking',
 													'sscCounter',
 													'sscTextStagger',
@@ -264,6 +270,17 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 											{sscAnimationType ===
 												'sscSequence' && (
 												<ActionList
+													data={
+														sscAnimationOptions.scene
+													}
+													type={sscAnimationType}
+													onSave={pullScene}
+												/>
+											)}
+
+											{sscAnimationType ===
+												'sscSequenceExperimental' && (
+												<ActionListExperimental
 													data={
 														sscAnimationOptions.scene
 													}

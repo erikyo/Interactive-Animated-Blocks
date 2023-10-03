@@ -39,7 +39,8 @@ export type sscItemOpts =
 		SSCAnimationTypeCounter |
 		SSCAnimationTypeStagger |
 		SSCAnimationTypeJump |
-		SSCAnimationTypeCustom
+		SSCAnimationTypeCustom |
+		SSCAnimationTypeCustomExperimental
 
 /**
  * The Animated Element interface
@@ -111,6 +112,8 @@ export type SSCActionDef = {
 	valueDefault: string;
 };
 
+
+
 /** Animations types */
 export type SSCHtmlDataProps = {
 	'data-scene': string | null;
@@ -155,6 +158,14 @@ export type SSCAnimationTypeCustom = {
 	activeArea: number;
 	delay: number;
 	duration: number;
+	easing: string;
+	target?: HTMLElement;
+};
+export type SSCAnimationTypeCustomExperimental = {
+	scene: SSCAnimationSceneData[];
+	activeArea: number;
+	delay?: number;
+	duration?: number;
 	easing: string;
 	target?: HTMLElement;
 };
@@ -249,4 +260,47 @@ export interface SSCAnimationSceneData {
 	defaultValue?: string;
 	property?: any;
 	value: string;
+}
+
+
+//EXPERIMENTAL
+export type SSCActionSeqObj = {
+	value: number | string | Array<string>;
+	duration: number;
+	easing: string;
+	delay?: number;
+	endDelay?: number;
+	isValueArray?: boolean; 
+}
+
+export interface SSCActionSeqDef {
+	actionLabel: string;
+	action: string | {[key: string]:SSCActionSeqObj};
+	value?: number | string | Array<string>;
+	duration?: number;
+	delay?: number;
+	endDelay?: number;
+	valueDefault?: string;
+	isScalableX?: boolean;
+	isScalableY?: boolean;
+};
+
+export interface ActionRowProps extends SSCActionSeqDef {
+	id: number;
+	actionList: label[];
+	handlechange: (
+		arg0: string,
+		arg1: {
+			id: any;
+			changed: string;
+			action: any;
+			value: any;
+			duration: any;
+		}
+	) => void;
+	removeaction: (arg0: any) => any;
+}
+export interface SSCAnimationSceneDataExperimental extends SSCActionSeqDef {
+	id: number;
+	key: number;	
 }

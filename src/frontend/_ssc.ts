@@ -36,6 +36,7 @@ import textAnimated from './modules/textEffects';
 import animationSvgPath from './modules/itemAnimateSvgPath';
 import handleAnimation, { getAnimatedItem } from './modules/itemAnimate';
 import animationSequence from './modules/itemAnimationCustom';
+import animationSequenceExperimental from './modules/itemAnimationCustomExperimental';
 import scrollNavigator from './modules/scrollNavigator';
 import { addToParallaxed, parallaxController } from './modules/itemParallax';
 import videoParallaxController from './modules/videoParallax';
@@ -145,6 +146,7 @@ export default class _ssc {
 	navigator: (element: SscElement) => void;
 	scrollJacking: (element: SscElement) => void;
 	animationSequence: (element: SscElement) => void;
+	animationSequenceExperimental: (element: SscElement) => void;
 	handleAnimation: (element: SscElement) => void;
 	videoParallaxController: (element: SscElement) => any[] | undefined;
 	parallaxController: (element: SscElement) => void;
@@ -187,6 +189,9 @@ export default class _ssc {
 
 		// Sequence animation
 		this.animationSequence = animationSequence;
+		
+		//EXPERIMENTAL
+		this.animationSequenceExperimental = animationSequenceExperimental;
 
 		// The standard animation (animate.css)
 		this.handleAnimation = handleAnimation.bind(this);
@@ -445,6 +450,10 @@ export default class _ssc {
 					break;
 				case 'sscSequence':
 					this.animationSequence(sscElement);
+					break;
+				case 'sscSequenceExperimental':
+					this.animationSequenceExperimental(sscElement);
+					console.log(sscElement)
 					break;
 				case 'sscSvgPath':
 					this.animationSvgPath(sscElement);

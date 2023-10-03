@@ -1,6 +1,8 @@
 import type {
 	Label,
 	SSCActionDef,
+	SSCActionSeqDef,
+	SSCActionSeqObj,
 	SSCAnimationDefaults,
 	StaggerPreset,
 } from '../types.d.ts';
@@ -84,6 +86,124 @@ export const actionsTemplate: SSCActionDef[] = [
 		action: 'cssAnimation',
 		valueType: 'string',
 		valueDefault: 'fadeIn 5s linear 2s infinite alternate',
+	},
+];
+
+export const seqActionTemplate: SSCActionSeqDef[] = [
+	{
+		actionLabel: 'opacity',
+		action: 'opacity',
+		valueDefault: '1',
+	},
+	{
+		actionLabel: 'translateY',
+		action: 'translateY',
+		valueDefault: '100px',
+	},
+	{
+		actionLabel: 'translateX',
+		action: 'translateX',
+		valueDefault: '100px',
+	},
+	{
+		actionLabel: 'translateZ',
+		action: 'translateZ',
+		valueDefault: '100px',
+	},
+	{
+		actionLabel: 'rotate',
+		action: 'rotate',
+		valueDefault: '45deg',
+	},
+	{
+		actionLabel: 'rotateY',
+		action: 'rotateY',
+		valueDefault: '45deg',
+	},
+	{
+		actionLabel: 'rotateX',
+		action: 'rotateX',
+		valueDefault: '45deg',
+	},
+	{
+		actionLabel: 'rotateZ',
+		action: 'rotateZ',
+		valueDefault: '45deg',
+	},
+	{
+		actionLabel: 'scale',
+		action: 'scale',
+		valueDefault: '1.5',
+	},
+	{
+		actionLabel: 'background',
+		action: 'background',
+		valueDefault: '#000',
+	},
+	{
+		actionLabel: 'color',
+		action: 'color',
+		valueDefault: '#f00',
+	},
+];
+
+export const seqActionObjTemplate: { [key: string]: SSCActionSeqObj }[] = [
+	{
+		opacity: {
+			value: 1,
+			duration: 1000,
+			easing: 'linear',
+		},
+		translateY: {
+			value: '50%',
+			duration: 1000,
+			easing: 'linear',
+		},
+		translateX: {
+			value: '50%',
+			duration: 1000,
+			easing: 'linear',
+		},
+		translateZ: {
+			value: '50%',
+			duration: 1000,
+			easing: 'linear',
+		},
+		Rotate: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
+		rotateY: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
+		rotateX: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
+		rotateZ: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
+		scale: {
+			value: 1,
+			duration: 1000,
+			easing: 'linear',
+		},
+		background: {
+			value: ['#fff', '#000'],
+			duration: 1000,
+			easing: 'linear',
+		},
+		color: {
+			value: ['#fff', '#000'],
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
 ];
 
@@ -216,6 +336,16 @@ export const animationTypes: SSCAnimationDefaults[] = [
 		default: {
 			duration: 2000,
 			delay: 500,
+			activeArea: 80,
+			reiterate: true,
+			easing: 'easeInOutQuad',
+			scene: [],
+		},
+	},
+	{
+		label: 'Animation Experimental',
+		value: 'sscSequenceExperimental',
+		default: {
 			activeArea: 80,
 			reiterate: true,
 			easing: 'easeInOutQuad',
