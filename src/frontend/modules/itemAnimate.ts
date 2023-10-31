@@ -1,4 +1,4 @@
-import { delay, isInView, isPartiallyVisible } from '../../utils/utils';
+import { delay, isInView, isPartiallyVisible } from '../../utils/';
 import type {
 	SSCAnimationTypeAnimation,
 	SscElement,
@@ -312,16 +312,11 @@ export const handleAnimation = (element: SscElement) => {
 
 	if (isInView(el.position, el.activeArea) && el.state !== 'enter') {
 		animation = 'enter';
-	} else if (
-		!isInView(el.position, el.activeArea) &&
-		el.state !== 'leave'
-	) {
+	} else if (!isInView(el.position, el.activeArea) && el.state !== 'leave') {
 		animation = 'leave';
-	} else {
-		if (!isPartiallyVisible(element)) {
-			delete animations[element.sscItemData.sscItem];
-			return;
-		}
+	} else if (!isPartiallyVisible(element)) {
+		delete animations[element.sscItemData.sscItem];
+		return;
 	}
 
 	/**

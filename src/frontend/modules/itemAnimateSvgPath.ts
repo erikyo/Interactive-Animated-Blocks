@@ -1,5 +1,5 @@
 import anime from 'animejs';
-import { delay, isActiveArea, isPartiallyVisible } from '../../utils/utils';
+import { delay, isActiveArea, isPartiallyVisible } from '../../utils/';
 import type { SscElement } from '../../types';
 
 interface SscElementOptions extends SscElement {

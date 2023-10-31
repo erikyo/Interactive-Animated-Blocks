@@ -13,15 +13,15 @@
 
 // UTILITY
 import { getElementData, getElementStyle } from '../utils/fn';
-import { delay, scrollDirection, screenBodyClass } from '../utils/utils';
+import { delay, screenBodyClass, scrollDirection } from '../utils/';
 import type {
+	Coords,
+	SSCAnimationSceneData,
 	SSCAnimationTypeTimelineChild,
 	SscElement,
 	SscElementData,
 	SscOptions,
 	WindowProps,
-	Coords,
-	SSCAnimationSceneData,
 } from '../types.d.ts';
 
 // MODULES
@@ -41,11 +41,11 @@ import { addToParallaxed, parallaxController } from './modules/itemParallax';
 import videoParallaxController from './modules/videoParallax';
 import {
 	addToTimeline,
-	initTimeline,
 	enableScrollMagicIndicators,
-} from './modules/timeline';
+	initTimeline,
+} from './modules/itemAnimateTimeline';
 import { AnimateCssUrl, WAITFOR } from './constants';
-import anime from "animejs/lib/anime.es.js";
+import anime from 'animejs/lib/anime.es.js';
 
 /**
  * This object holds the window data to avoid unnecessary calculations

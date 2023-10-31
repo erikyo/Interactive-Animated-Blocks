@@ -1,5 +1,5 @@
-import anime from 'animejs/lib/anime.es.js'
-import { delay } from '../../utils/utils';
+import anime from 'animejs/lib/anime.es.js';
+import { delay } from '../../utils/';
 import { splitSentence } from '../../utils/fn';
 import type {
 	SSCAnimationTypeCounter,

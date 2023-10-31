@@ -1,4 +1,4 @@
-import { isPartiallyVisible } from '../../utils/utils';
+import { isPartiallyVisible } from '../../utils/';
 import type { SSCAnimationTypeParallaxVideo, SscElement } from '../../types';
 
 export interface VideoParallaxElement {

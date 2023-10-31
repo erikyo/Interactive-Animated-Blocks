@@ -5,7 +5,7 @@
  *
  * @param {IntersectionObserverEntry} entry - the navigation container
  */
-import { isPartiallyVisible } from '../../utils/utils';
+import { isPartiallyVisible } from '../../utils/';
 import { windowProps } from '../_ssc';
 
 function scrollNavigator(entry) {

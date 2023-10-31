@@ -3,7 +3,7 @@ import {
 	disableWheel,
 	isInside,
 	isPartiallyVisible,
-} from '../../utils/utils';
+} from '../../utils/';
 
 // @ts-ignore
 import scrollToElement from 'scroll-to-element';

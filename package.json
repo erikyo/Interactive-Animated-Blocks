@@ -7,7 +7,7 @@
   "types": "src/types.d.ts",
   "files": [
     "build/*",
-    "ssc.php",
+    "interactive-animated-blocks.php",
     "LICENSE.md",
     "readme.txt"
   ],

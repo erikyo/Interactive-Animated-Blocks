@@ -1,6 +1,6 @@
 import anime from 'animejs/lib/anime.es.js';
 import { textStaggerPresets } from '../../utils/data';
-import { delay, isActiveArea } from '../../utils/utils';
+import { delay, isActiveArea } from '../../utils/';
 import { splitSentence } from '../../utils/fn';
 import type { SSCAnimationTypeStagger, SscElement } from '../../types';
 

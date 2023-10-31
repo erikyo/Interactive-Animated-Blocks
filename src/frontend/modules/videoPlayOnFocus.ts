@@ -1,9 +1,10 @@
-import {SscElement} from "../../types";
+import { SscElement } from '../../types';
 
 /**
  * The above code is a function handle the play state of the video and  is called when it is in viewport.
  *
  * @module videoFocusPlay
+ * @param                             element
  *
  * @param {IntersectionObserverEntry} entry
  */
