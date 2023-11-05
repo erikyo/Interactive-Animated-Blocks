@@ -1,6 +1,6 @@
 import { __ } from '@wordpress/i18n';
 import { createHigherOrderComponent } from '@wordpress/compose';
-import { Fragment } from '@wordpress/element';
+import { Fragment, useEffect, useState } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
 import { seen } from '@wordpress/icons';
 
@@ -22,7 +22,11 @@ import {
 	animationTypes,
 	textStaggerPresetsNames,
 } from '../utils/data';
-import type { SSCBlockProps, SSCAnimationSceneData, Label} from '../types.d.ts';
+import type {
+	SSCBlockProps,
+	SSCAnimationSceneData,
+	Label,
+} from '../types.d.ts';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -41,11 +45,8 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 				attributes: { ssc },
 			} = props;
 
-			const {
-				sscAnimated = false,
-				sscAnimationType = '',
-				sscAnimationOptions = undefined,
-			} = ssc as SSCBlockProps;
+			const { sscAnimated, sscAnimationType, sscAnimationOptions } =
+				ssc as SSCBlockProps;
 
 			/**
 			 * Set the animation options
@@ -118,12 +119,16 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 * Then Enable the animation and provides default options if empty
 			 */
 			const toggleAnimated = () => {
-				// If the animation settings aren't set, set the default.
-				if (ssc?.sscAnimated !== true) {
-					updateAnimation('sscAnimation', {
-						sscAnimated: !sscAnimated,
-					});
-				}
+				const newSscAnimated = !sscAnimated ?? false;
+				updateAnimation('sscAnimation', {
+					sscAnimated: newSscAnimated,
+				});
+				setAttributes({
+					ssc: {
+						...ssc,
+						sscAnimated: newSscAnimated,
+					},
+				});
 			};
 
 			return (
