@@ -2,6 +2,7 @@ import { __ } from '@wordpress/i18n';
 import { createHigherOrderComponent } from '@wordpress/compose';
 import { Fragment } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { seen } from '@wordpress/icons';
 
 import {
@@ -13,8 +14,8 @@ import {
 } from '@wordpress/components';
 
 import { getDefaults } from '../utils/fn';
-import { ActionList, ActionListExperimental } from '../components/ActionList';
-
+import { ActionList } from '../components/ActionList';
+import { ActionListExperimental } from '../components/ActionListExperimental';
 import {
 	animationEasings,
 	cssAnimationsEasings,
@@ -27,6 +28,8 @@ import type {
 	SSCAnimationSceneData,
 	Label,
 } from '../types.d.ts';
+
+import type { SSCStep } from '../components/actionList';
 
 /**
  * Add mobile visibility controls on Advanced Block Panel.
@@ -63,6 +66,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 					| number
 					| string
 					| SSCAnimationSceneData[]
+					| SSCStep[]
 					| undefined,
 				prop: string
 			) =>
@@ -85,7 +89,7 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 			 *
 			 * @type {data}
 			 */
-			function pullScene(data: SSCAnimationSceneData[]) {
+			function pullScene(data: SSCAnimationSceneData[] | SSCStep[]) {
 				setOption(data, 'scene');
 			}
 
@@ -202,7 +206,6 @@ export const AnimationAdvancedControls = createHigherOrderComponent(
 												[
 													'sscSvgPath',
 													'sscSequence',
-													'sscSequenceExperimental',
 													'sscScrollJacking',
 													'sscCounter',
 													'sscTextStagger',

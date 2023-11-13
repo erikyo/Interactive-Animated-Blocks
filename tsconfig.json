@@ -21,21 +21,19 @@
     "allowJs": true,
     // Generate d.ts files
     "declaration": false,
-    "declarationMap": true,
+    "declarationMap": false,
     "emitDeclarationOnly": false,
     "pretty": true,
     // Types should go into this directory.
     // Removing this would place the .d.ts files
     // next to the .js files
     "outDir": "./build",
-    "typeRoots": ["./src", "node_modules/@types"]
+    "typeRoots": ["node_modules/@types"]
   },
   "include": [
-    "src/**/*"
+    "./src/**/*"
   ],
   "exclude": [
-    "build",
-    "coverage",
-    "node_modules"
+    "./src/styles",
   ]
 }

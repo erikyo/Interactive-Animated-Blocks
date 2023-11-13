@@ -1,8 +1,7 @@
+import type { AnimBaseObj } from '../components/actionList.d.ts';
 import type {
 	Label,
 	SSCActionDef,
-	SSCActionSeqDef,
-	SSCActionSeqObj,
 	SSCAnimationDefaults,
 	StaggerPreset,
 } from '../types.d.ts';
@@ -89,123 +88,63 @@ export const actionsTemplate: SSCActionDef[] = [
 	},
 ];
 
-export const seqActionTemplate: SSCActionSeqDef[] = [
-	{
-		actionLabel: 'opacity',
-		action: 'opacity',
-		valueDefault: '1',
+export const seqActionObjTemplate: AnimBaseObj = {
+	opacity: {
+		value: 1,
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'translateY',
-		action: 'translateY',
-		valueDefault: '100px',
+	translateY: {
+		value: '50%',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'translateX',
-		action: 'translateX',
-		valueDefault: '100px',
+	translateX: {
+		value: '50%',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'translateZ',
-		action: 'translateZ',
-		valueDefault: '100px',
+	translateZ: {
+		value: '50%',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'rotate',
-		action: 'rotate',
-		valueDefault: '45deg',
+	Rotate: {
+		value: '45deg',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'rotateY',
-		action: 'rotateY',
-		valueDefault: '45deg',
+	rotateY: {
+		value: '45deg',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'rotateX',
-		action: 'rotateX',
-		valueDefault: '45deg',
+	rotateX: {
+		value: '45deg',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'rotateZ',
-		action: 'rotateZ',
-		valueDefault: '45deg',
+	rotateZ: {
+		value: '45deg',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'scale',
-		action: 'scale',
-		valueDefault: '1.5',
+	scale: {
+		value: 1,
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'background',
-		action: 'background',
-		valueDefault: '#000',
+	background: {
+		value: '#fff, #000',
+		duration: 1000,
+		easing: 'linear',
 	},
-	{
-		actionLabel: 'color',
-		action: 'color',
-		valueDefault: '#f00',
+	color: {
+		value: '#fff, #000',
+		duration: 1000,
+		easing: 'linear',
 	},
-];
-
-export const seqActionObjTemplate: { [key: string]: SSCActionSeqObj }[] = [
-	{
-		opacity: {
-			value: 1,
-			duration: 1000,
-			easing: 'linear',
-		},
-		translateY: {
-			value: '50%',
-			duration: 1000,
-			easing: 'linear',
-		},
-		translateX: {
-			value: '50%',
-			duration: 1000,
-			easing: 'linear',
-		},
-		translateZ: {
-			value: '50%',
-			duration: 1000,
-			easing: 'linear',
-		},
-		Rotate: {
-			value: '45deg',
-			duration: 1000,
-			easing: 'linear',
-		},
-		rotateY: {
-			value: '45deg',
-			duration: 1000,
-			easing: 'linear',
-		},
-		rotateX: {
-			value: '45deg',
-			duration: 1000,
-			easing: 'linear',
-		},
-		rotateZ: {
-			value: '45deg',
-			duration: 1000,
-			easing: 'linear',
-		},
-		scale: {
-			value: 1,
-			duration: 1000,
-			easing: 'linear',
-		},
-		background: {
-			value: ['#fff', '#000'],
-			duration: 1000,
-			easing: 'linear',
-		},
-		color: {
-			value: ['#fff', '#000'],
-			duration: 1000,
-			easing: 'linear',
-		},
-	},
-];
+};
 
 export const cssAnimationsEasings: Label[] = [
 	{

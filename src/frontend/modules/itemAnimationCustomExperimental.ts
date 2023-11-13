@@ -6,6 +6,18 @@ import type {
 	SSCAnimationSceneData,
 } from '../../types.d.ts';
 
+/*
+
+TODO: 
+	Create an object like this:
+			
+		Object.entries(currentStep).forEach((step) => {
+			a.add(step[1] as anime.AnimeAnimParams);
+		});
+
+		the structure must resemble the test example
+*/
+
 interface SequenceEl extends SscElement {
 	scene: SSCAnimationSceneData[];
 	play: () => void;

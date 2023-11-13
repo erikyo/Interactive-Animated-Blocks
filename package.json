@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "author": "Erik",
   "license": "GPL-2.0-or-later",
-  "main": "build/index.js",
+  "main": "build/ssc-editor.js",
+  "exports": {
+    ".": "./build/ssc.js"
+  },
   "types": "src/types.d.ts",
   "files": [
     "build/*",
@@ -55,8 +58,10 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@wordpress/icons": "^9.35.0",
     "animate.css": "^4.1.1",
     "animejs": "^3.2.1",
+    "classnames": "^2.3.2",
     "scroll-to-element": "^2.0.3",
     "scrollmagic": "^2.0.8",
     "scrollmagic-plugins": "^1.0.8"

@@ -32,3 +32,6 @@ build/
 
 # Jetbrains editor config
 .idea
+
+#modules
+*.iml
