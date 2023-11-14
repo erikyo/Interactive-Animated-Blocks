@@ -5,7 +5,7 @@ import {
 	SelectControl,
 	TextControl,
 } from '@wordpress/components';
-import { createElement, useReducer, useState } from '@wordpress/element';
+import { createElement, useEffect, useState } from '@wordpress/element';
 import {
 	DndContext,
 	closestCenter,
@@ -30,10 +30,16 @@ import type {
 	SSCAction,
 	SSCStep,
 } from './actionList.d.ts';
+import React from 'react';
 
 //TODO
 // AVOID USING STATE, NESTED STATE IS BAD!!!
 
+interface propsType {
+	type: string;
+	data: SSCStep[];
+	onSave: (data: SSCStep[]) => void;
+}
 interface SelectControlProps {
 	label: string;
 	value: string;
@@ -91,14 +97,14 @@ const HandleIcon = createElement(
 function Step(props: {
 	id: number;
 	actionOptions: SelectControlProps[];
-	step: SSCStep;
-	actions: SSCAction[];
-	setParentState: (arg0: any) => any;
-	onSave: (arg0: any) => any;
+	currentStep: SSCStep;
+	parentProps: propsType;
+	setParentState: React.Dispatch<React.SetStateAction<SSCStep[]>>;
 	removeStep: (arg0: any) => any;
 }): JSX.Element {
-	const [animationActions, setAnimationActions] = useState(props.actions);
-	const [animationStep, setAnimationStep] = useState(props.step);
+	const [animationActions, setAnimationActions] = useState(
+		props.currentStep.actions
+	);
 
 	// const sensors = useSensors(
 	// 	useSensor(sscPointerSensor, {
@@ -120,24 +126,24 @@ function Step(props: {
 
 	const handleDragEnd = (event: { active: any; over: any }) => {
 		const { active, over } = event;
-		const sortedItems = sortByIndex(animationActions, active, over);
+		const sortedItems = sortByIndex(animationActions!, active, over);
 		if (active.id !== over.id) {
 			setAnimationActions(() => ({
-				...animationActions,
+				...animationActions!,
 				action: sortedItems,
 			}));
 			props.setParentState(() => ({
-				...props.step,
+				...props.currentStep,
 				actions: sortedItems,
 			}));
 			props.onSave(() => ({
-				...props.step,
+				...props.currentStep,
 				actions: sortedItems,
 			}));
 		}
 	};
 	const { attributes, listeners, setNodeRef, transform, transition } =
-		useSortable({ id: props.id });
+		useSortable({ id: props.currentStep.actions });
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
@@ -146,30 +152,35 @@ function Step(props: {
 	};
 
 	const addAction = (): void => {
-		const newID: number = animationActions.length
-			? Math.max(...animationActions.map((x) => x.id)) + 1
+		const newID: number = animationActions!.length
+			? Math.max(...animationActions!.map((x) => x.id)) + 1
 			: 1;
 		const newAction: SSCAction = {
 			id: newID,
-			key: newID + props.step.key,
+			key: newID + props.currentStep.key + props.currentStep.id,
 			action: seqActionObjTemplate.opacity,
 		} as unknown as SSCAction;
 
-		setAnimationActions(() => ({
-			...animationActions,
-			action: [...animationActions, newAction],
-		}));
-		props.setParentState(() => ({
-			...props.step,
-			actions: animationActions,
-		}));
-		props.onSave(() => ({
-			...props.step,
-			actions: animationActions,
-		}));
-		console.log(animationActions);
-	};
+		setAnimationActions([...animationActions!, newAction]);
 
+		const thisStep: SSCStep = {
+			...props.currentStep,
+			actions: animationActions,
+		};
+		console.log(props.currentStep.id);
+		props.setParentState((prevState: SSCStep[]): SSCStep[] => {
+			const updatedState: SSCStep[] = [
+				...prevState, // Create a copy of the previous state
+			];
+
+			// Update the property using the currentStep.id
+			updatedState[props.currentStep.id - 1].actions = animationActions;
+
+			return updatedState;
+		});
+		console.log('fuuuuuuuuuck');
+		console.log(props.parentProps);
+	};
 	function getKeyValue(anim: AnimBaseObj): string {
 		return Object.keys(anim)[0];
 	}
@@ -190,18 +201,18 @@ function Step(props: {
 	// }
 
 	function removeAction(id: number): void {
-		const selectedItemIndex = animationActions.findIndex(
+		const selectedItemIndex = animationActions!.findIndex(
 			(step: { id: number }) => step.id === id
 		);
 		if (selectedItemIndex !== -1) {
-			animationActions.splice(selectedItemIndex, 1);
+			animationActions!.splice(selectedItemIndex, 1);
 			setAnimationActions(animationActions);
 			props.setParentState(() => ({
-				...props.step,
+				...props.currentStep,
 				actions: animationActions,
 			}));
 			props.onSave(() => ({
-				...props.step,
+				...props.currentStep,
 				actions: animationActions,
 			}));
 		}
@@ -220,32 +231,32 @@ function Step(props: {
 	}
 	return (
 		<SortableContext
-			//key={'ctx1' + props.step.key + props.step.id}
-			items={animationActions.map((animation) => animation.id)}
+			key={'ctx1' + props.currentStep.key + props.currentStep.id}
+			items={props.currentStep.actions!.map((animation) => animation.id)}
 			strategy={verticalListSortingStrategy}
 		>
-			{animationActions &&
-				animationActions.map((act) => {
+			{props.currentStep.actions &&
+				props.currentStep.actions.map((act: SSCAction) => {
 					return (
 						<div
 							className={'col'}
-							key={act.id + '-action-col'}
+							key={act.id + act.key + '-action-col'}
 							style={{ borderBlockColor: 'black' }}
 						>
 							<div
 								id={act.id.toString()}
-								key={act.id + '-action-row'}
+								key={act.id + act.key + '-action-row'}
 								className={'ssc-row ' + act.action}
-								ref={setNodeRef}
 								style={style}
 								{...attributes}
 								{...listeners}
+								ref={setNodeRef}
 							>
 								<Icon icon={HandleIcon} />
 								<SelectControl
 									name={'action'}
 									//value={Object.keys(act.action)[0]}
-									key={act.id + 'slctfasdfa'}
+									key={act.id + act.key + 'slctfasdfa'}
 									options={props.actionOptions}
 									id={act.id.toString()}
 									onChange={(e) =>
@@ -255,7 +266,7 @@ function Step(props: {
 								<TextControl
 									name={'value'}
 									value={act[getKeyValue(act)].value || ''}
-									key={act.id + '-value'}
+									key={act.id + act.key + '-value'}
 									onChange={() =>
 										createHandleChange(act, 'value')
 									}
@@ -263,7 +274,7 @@ function Step(props: {
 								<TextControl
 									name={'duration'}
 									value={act[getKeyValue(act)].duration || 0}
-									key={act.id + '-duration'}
+									key={act.id + act.key + '-duration'}
 									onChange={() =>
 										createHandleChange(act, 'duration')
 									}
@@ -271,7 +282,7 @@ function Step(props: {
 								<TextControl
 									name={'easing'}
 									value={act[getKeyValue(act)].duration || 0}
-									key={act.id + '-easing'}
+									key={act.id + act.key + '-easing'}
 									onChange={() =>
 										createHandleChange(act, 'duration')
 									}
@@ -281,30 +292,26 @@ function Step(props: {
 					);
 				})}
 			<Button
-				key={props.step.id + 'remove'}
+				key={props.currentStep.id + props.currentStep.key + 'remove'}
 				icon={'remove'}
-				onClick={() => removeAction(props.step.id)}
+				onClick={() => removeAction(props.currentStep.id)}
 			/>
 			<Button
-				key={props.step.id + 'add'}
+				key={props.currentStep.id + props.currentStep.key + 'add'}
 				onClick={addAction}
 				icon={'insert'}
-				variant={'secondary'}
 				className={'add-action'}
 			>
-				Add Step
+				Add Action
 			</Button>
 		</SortableContext>
 	);
 }
 
-export function ActionListExperimental(props: {
-	type: string;
-	data: SSCStep[];
-	onSave: (data: SSCStep[]) => void;
-}): JSX.Element {
+export function ActionListExperimental(props: propsType): JSX.Element {
 	const [animationSteps, setAnimationSteps] = useState(props.data);
-
+	console.log('this');
+	console.log(props);
 	//const [animationSteps,setAnimationSteps] = useReducer(reducer, { a: 1, b: 2})
 
 	const sensors = useSensors(
@@ -393,6 +400,14 @@ export function ActionListExperimental(props: {
 		}
 	}
 
+	const { attributes, listeners, setNodeRef, transform, transition } =
+		useSortable({ id: props.data. });
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+		display: 'flex',
+	};
 	// function removeAction(id: number): void {
 	// 	const selectedItem = animationSteps
 	// 		.map((x: { id: number }) => x.id)
@@ -406,6 +421,10 @@ export function ActionListExperimental(props: {
 	// 	props.onSave(newAnimationProps);
 	// }
 
+	useEffect(() => {
+		props.onSave(animationSteps);
+	}, [animationSteps]);
+
 	return (
 		<section
 			className={'step-sequence'}
@@ -417,36 +436,42 @@ export function ActionListExperimental(props: {
 				onDragEnd={handleDragEnd}
 			>
 				<SortableContext
-					items={animationSteps}
+					items={animationSteps.map((step) => step.id)}
 					strategy={verticalListSortingStrategy}
 				>
-					{animationSteps.length &&
-						animationSteps.map((step) => (
-              <div key={'REEEEEEE' + step.id + 'saveme'}>
-
-								<Icon icon={HandleIcon} />
-								<Step
-									id={step.id}
-									key={step.key + 'step-step'}
-									step={step}
-									actions={step.actions!}
-									actionOptions={provideSelectOptions(
-										// TODO Here you add global delay / endDelay etc....
-										seqActionObjTemplate
-									)}
-									onSave={props.onSave}
-									setParentState={setAnimationSteps}
-									removeStep={() => removeStep(step.id)}
-								></Step>
-              </div>
-						))}
+					<div>
+						{animationSteps.length &&
+							animationSteps.map((step) => (
+								<div
+									key={'STEEPEPE' + step.id + step.key}
+									style={style}
+									{...attributes}
+									{...listeners}
+									ref={setNodeRef}
+								>
+									<Icon icon={HandleIcon} />
+									<Step
+										id={step.id}
+										key={step.key + 'step-step'}
+										currentStep={step}
+										parentProps={props}
+										actionOptions={provideSelectOptions(
+											// TODO Here you add global delay / endDelay etc....
+											seqActionObjTemplate
+										)}
+										setParentState={setAnimationSteps}
+										removeStep={() => removeStep(step.id)}
+									></Step>
+								</div>
+							))}
+					</div>
 				</SortableContext>
 			</DndContext>
 			<Button
 				key={'add-step'}
 				onClick={addStep}
 				icon={'insert'}
-				variant={'secondary'}
+				variant={'primary'}
 				className={'add-step'}
 			>
 				Add Step
