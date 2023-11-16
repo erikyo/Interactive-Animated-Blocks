@@ -35,7 +35,7 @@ import {
 import { HandleIcon, sscPointerSensor } from './Misc';
 import { sortByIndex } from './utils';
 import { SSCAnimationContext } from './ActionListExperimental';
-export function StepSortable /*props: {parentProps: propsType;setParentState: React.Dispatch<React.SetStateAction<SSCStep[]>>;removeStep: (arg0: any) => any;}*/(): JSX.Element {
+export function StepSortable(): JSX.Element {
 	//const [steps, setSteps] = useState(props.parentProps.data);
 
 	const sensors = useSensors(
@@ -183,6 +183,8 @@ export function StepSortable /*props: {parentProps: propsType;setParentState: Re
 	//   console.log(animationSteps);
 	// };
 
+	function handleDragEnd() {}
+
 	return (
 		<div>
 			<DndContext
@@ -215,7 +217,7 @@ export function StepSortable /*props: {parentProps: propsType;setParentState: Re
 		</div>
 	);
 }
-
+// check this link pls https://stackoverflow.com/questions/71830625/avoid-parent-component-re-rendering-when-child-component-updates-parent-state
 function Step(currentStep: SSCStep): JSX.Element {
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable({ id: currentStep.id });
@@ -235,7 +237,10 @@ function Step(currentStep: SSCStep): JSX.Element {
 		>
 			<Icon icon={HandleIcon} />
 
-			<ActionSortable parentStep={currentStep} actions={currentStep.actions}></ActionSortable>
+			<ActionSortable
+				parentStep={currentStep}
+				actions={currentStep.actions!}
+			></ActionSortable>
 		</div>
 	);
 }

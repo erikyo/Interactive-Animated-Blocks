@@ -1,20 +1,17 @@
+
+
 export interface AnimBaseObj {
   [actionKey: string] : {
     value: number | string;
-    duration: number;
+    duration: number | string;
     easing: string;
     delay?: number;
     endDelay?: number;
-    isValueArray?: boolean;
-    handleActionChange?: (e: string, data: any) => void;
   }
 }
 export interface SSCAction extends AnimBaseObj {
   id: number;
   key: string;
-  handleStepChange?: (e: string, data: any) => void;
-  //getKeyValue(key: keyof AnimBaseObj): number | string | undefined;
-  findIndex?: (id: number) => number;
 }
 
 export interface SSCStep {
@@ -56,14 +53,16 @@ interface ISSCAnimation {
   sscSteps: SSCStep[];
 
   addSSCStep: (sscStep: SSCStep) => void;
-  addSSCAction: () =>void,
+  addSSCAction: (sscStepId: number) =>void,
 
   removeSSCStep: (sscStepId: number) => void;
-  removeSSCAction: (sscActionId: number) =>void,
+  removeSSCAction: (sscStepId: number, sscActionId: number) =>void,
 
   updateSSCStep: (sscStep: SSCStep) => void;
-  updateSSCAction: (sscActionId: number) =>void,
+  updateSSCAction: (sscActionId: number, sscAction: SSCAction) =>void,
 
-  sortSSCActions: (sscActionId: number) =>void,
   sortSSCSteps: (sscStepId: number) => void,
+  sortSSCActions: (sscStepId: number, sscActionId: number) =>void,
+
+  updateSSCAnimeBaseObject: (sscStepId: number, sscAction: SSCAction, sscAnimeObj: AnimBaseObj) => void,
 }

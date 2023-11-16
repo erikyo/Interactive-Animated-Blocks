@@ -4,14 +4,14 @@ import {
 	useSortable,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import type { propsType, SSCAction, SSCStep, AnimBaseObj } from './actionList.d.ts';
+import type { AnimBaseObj, SSCAction, SSCStep } from './actionList.d.ts';
 import {
 	Button,
 	Icon,
 	SelectControl,
 	TextControl,
 } from '@wordpress/components';
-import React, { useContext, useReducer } from '@wordpress/element';
+import React, { useContext, useEffect, useState } from '@wordpress/element';
 import { HandleIcon, sscPointerSensor } from './Misc';
 import {
 	closestCenter,
@@ -21,9 +21,16 @@ import {
 	useSensors,
 } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { getKeyValue, provideSelectOptions } from './utils';
+import {
+	getAnimBaseObj,
+	getKeyValue,
+	provideSelectOptions,
+	setAnimBaseObj,
+} from './utils';
 import { SSCAnimationContext } from './ActionListExperimental';
 import { seqActionObjTemplate } from '../utils/data';
+import { key } from '@wordpress/icons';
+
 export function ActionSortable(props: {
 	parentStep: SSCStep;
 	actions: SSCAction[];
@@ -39,17 +46,6 @@ export function ActionSortable(props: {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
 	);
-	function createHandleChange(actual: SSCAction, changed: string) {
-		if (
-			actual.action &&
-			!!changed &&
-			typeof actual.action.handleActionChange === 'function'
-		) {
-			//handleActionChange(changed, actual);
-		} else {
-			throw new Error('actual action is null');
-		}
-	}
 
 	function handleDragEnd() {}
 
@@ -70,6 +66,7 @@ export function ActionSortable(props: {
 							<Action
 								key={action.id + action.key + 'action'}
 								currentAction={action}
+								currentStep={parentStep}
 							/>
 						);
 					})}
@@ -80,7 +77,7 @@ export function ActionSortable(props: {
 				/>
 				<Button
 					key={parentStep.id + parentStep.key + 'add'}
-					onClick={addSSCAction}
+					onClick={() => addSSCAction(parentStep.id)}
 					icon={'insert'}
 					className={'add-action'}
 				>
@@ -91,20 +88,21 @@ export function ActionSortable(props: {
 	);
 }
 
-function actionReducer(state, action) {
-  switch (action.type) {
-    case 'action':
-      return
-    case 'value':
-
-  }
-  throw Error('Unknown action.');
+enum ActionTypes {
+	Action = 'action',
+	Value = 'value',
+	Duration = 'duration',
+	Easing = 'easing',
+	Delay = 'delay',
+	EndDelay = 'endDelay',
 }
 
-function Action(props: { currentAction: SSCAction }) {
-	const { currentAction } = props;
-  const [state, dispatch] = useReducer<SSCAction>(actionReducer, currentAction);
-
+function Action(props: { currentAction: SSCAction; currentStep: SSCStep }) {
+	const { currentAction, currentStep } = props;
+	const [animObj, setAnimObj] = useState<AnimBaseObj>(
+		getAnimBaseObj(currentAction)
+	);
+	const { updateSSCAnimeBaseObject } = useContext(SSCAnimationContext);
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable({ id: props.currentAction.id });
 
@@ -114,6 +112,13 @@ function Action(props: { currentAction: SSCAction }) {
 	};
 
 	const options = provideSelectOptions();
+	const animKey = { key: 'opacity' };
+
+	useEffect(() => {
+		animKey.key = getKeyValue(animObj);
+		// @ts-ignore
+		updateSSCAnimeBaseObject(currentAction, currentStep, animObj);
+	}, [animObj]);
 
 	return (
 		<div
@@ -130,45 +135,80 @@ function Action(props: { currentAction: SSCAction }) {
 				className={'ssc-row ' + currentAction.action}
 			>
 				<Icon icon={HandleIcon} />
+
 				<SelectControl
-					name={'action'}
+					name={ActionTypes.Action}
 					//value={Object.keys(act.action)[0]}
 					key={currentAction.id + currentAction.key + 'slctfasdfa'}
 					options={options}
 					id={currentAction.id.toString()}
-					onChange={(e) =>
-            dispatch({ type: 'action' }))
-					}
+					onChange={(e) => {
+						setAnimObj(
+							seqActionObjTemplate!.find((obj) => obj![e])!
+						);
+					}}
 				></SelectControl>
 				<TextControl
-					name={'value'}
+					name={ActionTypes.Value}
 					value={
 						currentAction[getKeyValue(currentAction)].value || ''
 					}
 					key={currentAction.id + currentAction.key + '-value'}
-					onChange={() =>
-            dispatch({ type: 'value' })
-					}
+					onChange={(e) => {
+						setAnimObj((prevState) => {
+							let newObj = prevState[animKey.key];
+							newObj = {
+								...newObj,
+								[ActionTypes.Value]: e,
+							};
+							return {
+								...prevState,
+								newObj,
+							};
+						});
+					}}
 				/>
 				<TextControl
-					name={'duration'}
+					name={ActionTypes.Duration}
 					value={
 						currentAction[getKeyValue(currentAction)].duration || 0
 					}
 					key={currentAction.id + currentAction.key + '-duration'}
-					onChange={() =>
-						props.createHandleChange(currentAction, 'duration')
-					}
+					onChange={(e) => {
+						setAnimObj((prevState) => {
+							let newObj = prevState[animKey.key];
+							newObj = {
+								...newObj,
+								[ActionTypes.Duration]: e,
+							};
+							return {
+								...prevState,
+								newObj,
+							};
+						});
+					}}
 				/>
 				<TextControl
-					name={'easing'}
+					name={ActionTypes.Easing}
 					value={
-						currentAction[getKeyValue(currentAction)].duration || 0
+						currentAction[getKeyValue(currentAction)][
+							ActionTypes.Easing
+						] || 0
 					}
 					key={currentAction.id + currentAction.key + '-easing'}
-					onChange={() =>
-						props.createHandleChange(currentAction, 'duration')
-					}
+					onChange={(e) => {
+						setAnimObj((prevState) => {
+							let newObj = prevState[animKey.key];
+							newObj = {
+								...newObj,
+								[ActionTypes.Easing]: e,
+							};
+							return {
+								...prevState,
+								newObj,
+							};
+						});
+					}}
 				/>
 			</div>
 		</div>

@@ -4,7 +4,10 @@ import type {
 	SSCAction,
 	SSCStep,
 	ISSCAnimation,
+	AnimBaseObj,
 } from './actionList';
+import { seqActionObjTemplate } from '../utils/data';
+import { set } from 'animejs';
 
 export const useSSCAnimation = (props: propsType): ISSCAnimation => {
 	const [sscSteps, setSSCSteps] = useState<SSCStep[]>(props.data);
@@ -39,22 +42,35 @@ export const useSSCAnimation = (props: propsType): ISSCAnimation => {
 		);
 	};
 
-	const addSSCAction = (sscStepId: number, sscAction: SSCAction) => {
-		const updatedSSCSteps = sscSteps.map((sscStep) => {
-			if (sscStep.id === sscStepId) {
-				return { ...sscStep, actions: [...sscStep.actions, sscAction] };
-			}
-			return sscStep;
-		});
+	const addSSCAction = (sscStep: SSCStep) => {
+		const sscStep = sscSteps[sscStepId];
+		const updatedSSCSteps = () => {
+			const newID: number = sscStep.actions!.length + 1;
+			const newKey: string =
+				sscStep.key + '-' + sscStepId + '-action-' + newID;
+			const newSscAction: SSCAction = {
+				id: newID,
+				key: newKey,
+				opacity: seqActionObjTemplate.opacity,
+			} as unknown as SSCAction;
+
+			return {
+				...sscSteps,
+				sscSteps: {
+					...sscStep,
+					actions: [...sscStep.actions!, newSscAction],
+				},
+			};
+		};
 		setSSCSteps(updatedSSCSteps);
 	};
 
-	const removeSSCAction = (sscStepId: number, sscActionId: number) => {
+	const removeSSCAction = (sscStep: SSCStep, sscActionId: number) => {
 		const updatedSSCSteps = sscSteps.map((sscStep) => {
 			if (sscStep.id === sscStepId) {
 				return {
 					...sscStep,
-					actions: sscStep.actions.filter(
+					actions: sscStep.actions!.filter(
 						(action) => action.id !== sscActionId
 					),
 				};
@@ -64,12 +80,12 @@ export const useSSCAnimation = (props: propsType): ISSCAnimation => {
 		setSSCSteps(updatedSSCSteps);
 	};
 
-	const updateSSCAction = (sscStepId: number, sscAction: SSCAction) => {
+	const updateSSCAction = (sscStep: SSCStep, sscAction: SSCAction) => {
 		const updatedSSCSteps = sscSteps.map((sscStep) => {
 			if (sscStep.id === sscStepId) {
 				return {
 					...sscStep,
-					actions: sscStep.actions.map((existingAction) => {
+					actions: sscStep.actions!.map((existingAction) => {
 						if (existingAction.id === sscAction.id) {
 							return sscAction;
 						}
@@ -87,7 +103,7 @@ export const useSSCAnimation = (props: propsType): ISSCAnimation => {
 			if (sscStep.id === sscStepId) {
 				return {
 					...sscStep,
-					actions: sscStep.actions.sort(
+					actions: sscStep.actions!.sort(
 						(action1, action2) => action1.id - action2.id
 					),
 				};
@@ -95,6 +111,18 @@ export const useSSCAnimation = (props: propsType): ISSCAnimation => {
 			return sscStep;
 		});
 		setSSCSteps(updatedSSCSteps);
+	};
+
+	const updateSSCAnimeBaseObject = (
+		sscStepId: number,
+		sscAction: SSCAction,
+		sscAnimeObj: AnimBaseObj
+	) => {
+		updateSSCStep({
+			...sscSteps[sscStepId],
+			...sscAction,
+			...sscAnimeObj,
+		});
 	};
 
 	return {
@@ -107,5 +135,6 @@ export const useSSCAnimation = (props: propsType): ISSCAnimation => {
 		removeSSCAction,
 		updateSSCAction,
 		sortSSCActions,
+		updateSSCAnimeBaseObject,
 	};
 };

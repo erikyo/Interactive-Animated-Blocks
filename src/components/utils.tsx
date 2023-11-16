@@ -1,4 +1,4 @@
-import type { AnimBaseObj } from './actionList';
+import type { AnimBaseObj, SSCAction } from './actionList';
 import { seqActionObjTemplate } from '../utils/data';
 import { sscPointerSensor } from './Misc';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
@@ -19,11 +19,31 @@ export function sortByIndex<T extends { id: number }>(
 }
 
 export const provideSelectOptions = (): { label: string; value: string }[] => {
-	return Object.keys(seqActionObjTemplate).map((stepAction) => {
-		const baseObj = seqActionObjTemplate[stepAction];
+	return seqActionObjTemplate.map((baseObj) => {
+		const key = getKeyValue(baseObj);
 		return {
-			label: stepAction,
-			value: baseObj.value.toString(),
+			label: key,
+			value: baseObj[key].value as string,
 		};
 	});
 };
+
+export function getAnimBaseObj(sscAction: SSCAction): AnimBaseObj {
+	return Object.entries(sscAction).reduce((obj, [key, value]) => {
+		obj[key] = value;
+		return obj;
+	}, {} as AnimBaseObj);
+}
+
+export function setAnimBaseObj(
+	animBaseObj: AnimBaseObj,
+	newKey: string
+): AnimBaseObj {
+	let newObj: AnimBaseObj = { ...animBaseObj };
+	delete newObj[newKey];
+	newObj = {
+		...newObj,
+		[newKey]: animBaseObj[newKey],
+	};
+	return newObj;
+}

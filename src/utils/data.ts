@@ -88,63 +88,85 @@ export const actionsTemplate: SSCActionDef[] = [
 	},
 ];
 
-export const seqActionObjTemplate: AnimBaseObj = {
-	opacity: {
-		value: 1,
-		duration: 1000,
-		easing: 'linear',
+export const seqActionObjTemplate: AnimBaseObj[] = [
+	{
+		opacity: {
+			value: 1,
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	translateY: {
-		value: '50%',
-		duration: 1000,
-		easing: 'linear',
+	{
+		translateY: {
+			value: '50%',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	translateX: {
-		value: '50%',
-		duration: 1000,
-		easing: 'linear',
+	{
+		translateX: {
+			value: '50%',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	translateZ: {
-		value: '50%',
-		duration: 1000,
-		easing: 'linear',
+	{
+		translateZ: {
+			value: '50%',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	Rotate: {
-		value: '45deg',
-		duration: 1000,
-		easing: 'linear',
+	{
+		rotate: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	rotateY: {
-		value: '45deg',
-		duration: 1000,
-		easing: 'linear',
+	{
+		rotateY: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	rotateX: {
-		value: '45deg',
-		duration: 1000,
-		easing: 'linear',
+	{
+		rotateX: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	rotateZ: {
-		value: '45deg',
-		duration: 1000,
-		easing: 'linear',
+	{
+		rotateZ: {
+			value: '45deg',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	scale: {
-		value: 1,
-		duration: 1000,
-		easing: 'linear',
+	{
+		scale: {
+			value: 1,
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	background: {
-		value: '#fff, #000',
-		duration: 1000,
-		easing: 'linear',
+	{
+		background: {
+			value: '#fff, #000',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-	color: {
-		value: '#fff, #000',
-		duration: 1000,
-		easing: 'linear',
+	{
+		color: {
+			value: '#fff, #000',
+			duration: 1000,
+			easing: 'linear',
+		},
 	},
-};
+];
 
 export const cssAnimationsEasings: Label[] = [
 	{
