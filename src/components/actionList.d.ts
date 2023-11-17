@@ -52,14 +52,14 @@ interface propsType {
 interface ISSCAnimation {
   sscSteps: SSCStep[];
 
-  addSSCStep: (sscStep: SSCStep) => void;
-  addSSCAction: (sscStepId: number) =>void,
+  addSSCStep: () => void;
+  addSSCAction: (sscStep: SSCStep) =>void,
 
   removeSSCStep: (sscStepId: number) => void;
-  removeSSCAction: (sscStepId: number, sscActionId: number) =>void,
+  removeSSCAction: (sscStep: SSCStep, sscActionId: number) =>void,
 
   updateSSCStep: (sscStep: SSCStep) => void;
-  updateSSCAction: (sscActionId: number, sscAction: SSCAction) =>void,
+  updateSSCAction: (sscStep: SSCStep, sscAction: SSCAction) =>void,
 
   sortSSCSteps: (sscStepId: number) => void,
   sortSSCActions: (sscStepId: number, sscActionId: number) =>void,

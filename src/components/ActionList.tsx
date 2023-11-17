@@ -120,7 +120,7 @@ function ActionRow(props: {
 
 	return (
 		<div
-			className={'ssc-row ' + props.action}
+			className={'ssc-row'}
 			ref={setNodeRef}
 			style={style}
 			{...attributes}

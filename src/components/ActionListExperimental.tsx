@@ -9,6 +9,7 @@ import {
 	createContext,
 	createElement,
 	useEffect,
+	useMemo,
 	useState,
 } from '@wordpress/element';
 import {
@@ -37,7 +38,7 @@ import type {
 	propsType,
 	ISSCAnimation,
 } from './actionList.d.ts';
-import React from '@wordpress/block-editor'
+import React from '@wordpress/block-editor';
 import { StepSortable } from './StepSortable';
 import { useSSCAnimation } from './useSSCAnimation';
 //TODO
@@ -52,45 +53,23 @@ interface SelectControlProps {
 export const SSCAnimationContext = createContext<ISSCAnimation>(null);
 
 export function ActionListExperimental(props: propsType): JSX.Element {
-	console.log('this');
 	console.log(props);
-
+	//TODO: Fix key
 	const sscAnimation: ISSCAnimation = useSSCAnimation(props);
 
-	// const addAction = (): void => {
-	// 	const newID: number = animationSteps.length
-	// 		? Math.max(.. animationSteps.map((x) => x.id)) + 1
-	// 		: 1;
-	// 	const newAnimationProps: SSCStep = {
-	// 		id: newID,
-	// 		key: newID,
-	// 		action: seqActionStepTemplate[1].action,
-	// 		value: seqActionStepTemplate[1].valueDefault,
-	// 		duration: 1000,
-	// 	};
-	// 	setAnimationSteps([.. animationSteps, newAnimationProps]);
-	// 	props.onSave animationSteps);
-	// };
-
-	// function removeAction(id: number): void {
-	// 	const selectedItem = animationSteps
-	// 		.map((x: { id: number }) => x.id)
-	// 		.indexOf(id);
-
-	// 	const newAnimationProps = [
-	// 		.. animationSteps.slice(0, selectedItem),
-	// 		.. animationSteps.slice(selectedItem + 1),
-	// 	];
-	// 	setAnimationSteps([...newAnimationProps]);
-	// 	props.onSave(newAnimationProps);
-	// }
+	const contextValue = useMemo(
+		() => ({
+			sscAnimation,
+		}),
+		[sscAnimation]
+	);
 
 	return (
 		<section
 			className={'step-sequence'}
 			style={{ margin: '24px 0', position: 'relative' }}
 		>
-			<SSCAnimationContext.Provider value={sscAnimation}>
+			<SSCAnimationContext.Provider value={contextValue.sscAnimation}>
 				<StepSortable></StepSortable>
 			</SSCAnimationContext.Provider>
 		</section>

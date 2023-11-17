@@ -77,7 +77,7 @@ export function ActionSortable(props: {
 				/>
 				<Button
 					key={parentStep.id + parentStep.key + 'add'}
-					onClick={() => addSSCAction(parentStep.id)}
+					onClick={() => addSSCAction(parentStep)}
 					icon={'insert'}
 					className={'add-action'}
 				>
@@ -129,88 +129,75 @@ function Action(props: { currentAction: SSCAction; currentStep: SSCStep }) {
 			{...listeners}
 			ref={setNodeRef}
 		>
-			<div
-				id={currentAction.id.toString()}
-				key={currentAction.id + currentAction.key + '-action-row'}
-				className={'ssc-row ' + currentAction.action}
-			>
-				<Icon icon={HandleIcon} />
+			<Icon icon={HandleIcon} />
 
-				<SelectControl
-					name={ActionTypes.Action}
-					//value={Object.keys(act.action)[0]}
-					key={currentAction.id + currentAction.key + 'slctfasdfa'}
-					options={options}
-					id={currentAction.id.toString()}
-					onChange={(e) => {
-						setAnimObj(
-							seqActionObjTemplate!.find((obj) => obj![e])!
-						);
-					}}
-				></SelectControl>
-				<TextControl
-					name={ActionTypes.Value}
-					value={
-						currentAction[getKeyValue(currentAction)].value || ''
-					}
-					key={currentAction.id + currentAction.key + '-value'}
-					onChange={(e) => {
-						setAnimObj((prevState) => {
-							let newObj = prevState[animKey.key];
-							newObj = {
-								...newObj,
-								[ActionTypes.Value]: e,
-							};
-							return {
-								...prevState,
-								newObj,
-							};
-						});
-					}}
-				/>
-				<TextControl
-					name={ActionTypes.Duration}
-					value={
-						currentAction[getKeyValue(currentAction)].duration || 0
-					}
-					key={currentAction.id + currentAction.key + '-duration'}
-					onChange={(e) => {
-						setAnimObj((prevState) => {
-							let newObj = prevState[animKey.key];
-							newObj = {
-								...newObj,
-								[ActionTypes.Duration]: e,
-							};
-							return {
-								...prevState,
-								newObj,
-							};
-						});
-					}}
-				/>
-				<TextControl
-					name={ActionTypes.Easing}
-					value={
-						currentAction[getKeyValue(currentAction)][
-							ActionTypes.Easing
-						] || 0
-					}
-					key={currentAction.id + currentAction.key + '-easing'}
-					onChange={(e) => {
-						setAnimObj((prevState) => {
-							let newObj = prevState[animKey.key];
-							newObj = {
-								...newObj,
-								[ActionTypes.Easing]: e,
-							};
-							return {
-								...prevState,
-								newObj,
-							};
-						});
-					}}
-				/>
-			</div>
+			<SelectControl
+				name={ActionTypes.Action}
+				//value={Object.keys(act.action)[0]}
+				key={currentAction.id + currentAction.key + 'slctfasdfa'}
+				options={options}
+				onChange={(e) => {
+					setAnimObj(seqActionObjTemplate!.find((obj) => obj![e])!);
+				}}
+			></SelectControl>
+			<TextControl
+				name={ActionTypes.Value}
+				value={currentAction[getKeyValue(currentAction)].value || ''}
+				key={currentAction.id + currentAction.key + '-value'}
+				onChange={(e) => {
+					setAnimObj((prevState) => {
+						let newObj = prevState[animKey.key];
+						newObj = {
+							...newObj,
+							[ActionTypes.Value]: e,
+						};
+						return {
+							...prevState,
+							newObj,
+						};
+					});
+				}}
+			/>
+			<TextControl
+				name={ActionTypes.Duration}
+				value={currentAction[getKeyValue(currentAction)].duration || 0}
+				key={currentAction.id + currentAction.key + '-duration'}
+				onChange={(e) => {
+					setAnimObj((prevState) => {
+						let newObj = prevState[animKey.key];
+						newObj = {
+							...newObj,
+							[ActionTypes.Duration]: e,
+						};
+						return {
+							...prevState,
+							newObj,
+						};
+					});
+				}}
+			/>
+			<TextControl
+				name={ActionTypes.Easing}
+				value={
+					currentAction[getKeyValue(currentAction)][
+						ActionTypes.Easing
+					] || 0
+				}
+				key={currentAction.id + currentAction.key + '-easing'}
+				onChange={(e) => {
+					setAnimObj((prevState) => {
+						let newObj = prevState[animKey.key];
+						newObj = {
+							...newObj,
+							[ActionTypes.Easing]: e,
+						};
+						return {
+							...prevState,
+							newObj,
+						};
+					});
+				}}
+			/>
 		</div>
 	);
 }

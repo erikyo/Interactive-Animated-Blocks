@@ -47,3 +47,19 @@ export function setAnimBaseObj(
 	};
 	return newObj;
 }
+
+export function deepMerge(target , source ) {
+	for (const key in source) {
+		if (source.hasOwnProperty(key)) {
+			const value = source[key];
+			if (typeof value === 'object' && value !== null) {
+				if (!target[key] || typeof target[key] !== 'object') {
+					target[key] = {};
+				}
+				deepMerge(target[key], value);
+			} else {
+				target[key] = value;
+			}
+		}
+	}
+}

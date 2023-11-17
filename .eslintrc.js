@@ -4,6 +4,10 @@
 
 const eslintConfig = {
 	extends: ['plugin:@wordpress/eslint-plugin/recommended'],
+	rules: {
+		'no-shadow': 'off',
+		'@typescript-eslint/no-shadow': 'off',
+	},
 };
 
 eslintConfig.parserOptions = {
